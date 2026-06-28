@@ -1,0 +1,26 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "deanversedigital",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-06-28",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "deanversedigital"
+    }
+  ],
+  "images": {
+    "binding": "IMAGES"
+  },
+  "r2_buckets": [
+    {
+      "binding": "NEXT_INC_CACHE_R2_BUCKET",
+      "bucket_name": "deanversedigital-opennext-cache"
+    }
+  ]
+}

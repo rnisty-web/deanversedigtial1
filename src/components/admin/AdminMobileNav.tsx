@@ -39,7 +39,7 @@ export function AdminMobileNav({ profile, unreadMessagesCount = 0 }: AdminMobile
           </div>
           <div className="min-w-0">
             <p className="truncate text-[9px] font-semibold uppercase tracking-[0.22em] text-[var(--admin-gold)]">
-              DeanVerse Digital
+              DEANVERSEDIGITAL
             </p>
             <p className="text-[8px] tracking-[0.12em] text-[var(--admin-gold)]/50">D + D</p>
           </div>

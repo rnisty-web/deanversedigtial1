@@ -28,15 +28,21 @@ function mergeSection<K extends CMSKey>(
   return { ...cmsDefaults[key], ...(dbValue as object) } as CMSContent[K];
 }
 
+async function createCMSSupabaseClient() {
+  // settings table is admin-only via RLS — server reads need the service role.
+  if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return createAdminClient();
+  }
+  return createClient();
+}
+
 async function fetchCMSFromDb(): Promise<CMSContent> {
   if (!hasSupabase()) {
     return cmsDefaults;
   }
 
   try {
-    const supabase = process.env.SUPABASE_SERVICE_ROLE_KEY
-      ? await createAdminClient()
-      : await createClient();
+    const supabase = await createCMSSupabaseClient();
     const { data, error } = await supabase.from("settings").select("key, value");
 
     if (error || !data?.length) {
@@ -59,7 +65,7 @@ async function fetchCMSFromDb(): Promise<CMSContent> {
 export const getCMSContent = unstable_cache(
   fetchCMSFromDb,
   ["cms-content"],
-  { revalidate: 60, tags: ["cms"] },
+  { tags: ["cms"] },
 );
 
 async function fetchCMSLayoutFromDb(): Promise<CMSLayout> {
@@ -70,9 +76,7 @@ async function fetchCMSLayoutFromDb(): Promise<CMSLayout> {
   }
 
   try {
-    const supabase = process.env.SUPABASE_SERVICE_ROLE_KEY
-      ? await createAdminClient()
-      : await createClient();
+    const supabase = await createCMSSupabaseClient();
     const { data, error } = await supabase
       .from("settings")
       .select("value")
@@ -92,7 +96,7 @@ async function fetchCMSLayoutFromDb(): Promise<CMSLayout> {
 export const getCMSLayout = unstable_cache(
   fetchCMSLayoutFromDb,
   ["cms-layout"],
-  { revalidate: 60, tags: ["cms"] },
+  { tags: ["cms"] },
 );
 
 export function getPublishedHomepageSections(layout: CMSLayout): SectionId[] {

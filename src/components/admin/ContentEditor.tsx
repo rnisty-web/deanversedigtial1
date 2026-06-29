@@ -201,7 +201,7 @@ export function ContentEditor() {
 
     setMessage({
       type: "success",
-      text: `${activeDef?.title ?? activeSection} saved successfully`,
+      text: `${activeDef?.title ?? activeSection} saved — live site updated`,
     });
   }
 
@@ -226,7 +226,7 @@ export function ContentEditor() {
       const saved = await handleSaveLayout(layout);
       setLayout(saved);
       setSavedLayout(saved);
-      setMessage({ type: "success", text: "Section order saved" });
+      setMessage({ type: "success", text: "Section order saved — live site updated" });
     } catch (err) {
       setMessage({
         type: "error",
@@ -279,7 +279,7 @@ export function ContentEditor() {
       setLayout(saved);
       setSavedLayout(saved);
       setActiveSection(sectionId as SectionId);
-      setMessage({ type: "success", text: "Section published" });
+      setMessage({ type: "success", text: "Section published — live site updated" });
     } catch {
       setMessage({ type: "error", text: "Failed to publish section" });
     }
@@ -331,7 +331,7 @@ export function ContentEditor() {
       setMessage({ type: "error", text: data.error ?? "Failed to seed defaults" });
       return;
     }
-    setMessage({ type: "success", text: "Defaults seeded successfully" });
+    setMessage({ type: "success", text: "Defaults seeded — live site updated" });
     fetchContent();
   }
 

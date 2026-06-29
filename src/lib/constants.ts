@@ -1,9 +1,14 @@
+function publicEnv(name: string, fallback: string): string {
+  const value = process.env[name]?.trim();
+  return value ? value : fallback;
+}
+
 export const siteConfig = {
   name: "DeanVerse Digital",
   tagline: "Freelance web design by Andrey",
   description:
     "Custom websites and web applications for small businesses and startups. Clean design, fast performance, and a personal touch from California.",
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://deanversedigital.com",
+  url: publicEnv("NEXT_PUBLIC_SITE_URL", "https://deanversedigital.com"),
   ogImage: "/images/deanverse-digital-logo.png",
   creator: "Andrey",
   email: "adean2440@gmail.com",

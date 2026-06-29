@@ -2,8 +2,9 @@ import type { NextConfig } from "next";
 
 import("@opennextjs/cloudflare").then((m) => m.initOpenNextCloudflareForDev());
 
-const supabaseHostname = process.env.NEXT_PUBLIC_SUPABASE_URL
-  ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).hostname
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+const supabaseHostname = supabaseUrl
+  ? new URL(supabaseUrl).hostname
   : "*.supabase.co";
 
 const nextConfig: NextConfig = {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 
@@ -46,9 +47,9 @@ export function AdminModal({
 
   if (!open) return null;
 
-  return (
+  const modal = (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 backdrop-blur-md sm:items-center sm:p-4"
+      className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60 p-0 backdrop-blur-md sm:items-center sm:p-4"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
@@ -56,12 +57,12 @@ export function AdminModal({
     >
       <div
         className={cn(
-          "admin-luxury-card w-full max-h-[92vh] overflow-hidden rounded-t-[var(--admin-radius)] sm:max-h-[90vh] sm:rounded-[var(--admin-radius)]",
+          "admin-luxury-card flex w-full max-h-[min(92vh,100dvh)] flex-col overflow-hidden rounded-t-[var(--admin-radius)] sm:max-h-[min(90vh,100dvh)] sm:rounded-[var(--admin-radius)]",
           sizeClasses[size],
         )}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-[var(--admin-border-subtle)] px-6 py-4">
+        <div className="flex shrink-0 items-center justify-between border-b border-[var(--admin-border-subtle)] px-6 py-4">
           <h3 id="admin-modal-title" className="text-lg font-semibold text-[var(--admin-text)]">
             {title}
           </h3>
@@ -77,10 +78,12 @@ export function AdminModal({
           </button>
         </div>
 
-        <div className="overflow-y-auto px-6 py-4">{children}</div>
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 py-4">{children}</div>
 
-        {footer ?? (
-          <div className="flex justify-end gap-2 border-t border-[var(--admin-border-subtle)] px-6 py-4">
+        {footer ? (
+          <div className="shrink-0">{footer}</div>
+        ) : (
+          <div className="flex shrink-0 justify-end gap-2 border-t border-[var(--admin-border-subtle)] px-6 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
             <Button variant="ghost" size="sm" className="admin-btn-ghost" onClick={onClose}>
               Close
             </Button>
@@ -89,4 +92,8 @@ export function AdminModal({
       </div>
     </div>
   );
+
+  if (typeof document === "undefined") return null;
+
+  return createPortal(modal, document.body);
 }

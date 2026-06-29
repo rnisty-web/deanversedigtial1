@@ -14,7 +14,7 @@ Freelance web design and development portfolio site with a client portal and adm
 | Backend / DB | [Supabase](https://supabase.com/) (PostgreSQL, Auth, Storage) |
 | Email | [Resend](https://resend.com/) |
 | Payments | Stripe *(planned — not yet integrated)* |
-| Hosting | [Cloudflare Workers](https://developers.cloudflare.com/workers/) (OpenNext) + [GitHub Actions](https://github.com/features/actions) |
+| Hosting | [Vercel](https://vercel.com/) + [GitHub](https://github.com/rnisty-web/deanversedigtial1) |
 | Language | TypeScript |
 
 ---
@@ -33,33 +33,13 @@ Freelance web design and development portfolio site with a client portal and adm
 ## Folder structure
 
 ```
-deanversedigital/
-├── public/
-│   └── images/              # Brand assets (logo, profile, background)
-├── src/
-│   ├── app/                 # Next.js App Router pages and metadata routes
-│   │   ├── layout.tsx       # Root layout
-│   │   ├── page.tsx         # Home page
-│   │   ├── sitemap.ts       # Dynamic sitemap.xml
-│   │   └── robots.ts        # robots.txt
-│   ├── components/
-│   │   ├── home/            # Home page sections
-│   │   ├── layout/          # Header, footer, background
-│   │   ├── seo/             # StructuredData (JSON-LD)
-│   │   └── ui/              # Reusable UI primitives
-│   ├── lib/
-│   │   ├── constants.ts     # Site config, nav links, services, pricing
-│   │   ├── utils.ts         # cn() and helpers
-│   │   └── supabase/        # Browser, server, and middleware clients
-│   ├── types/
-│   │   └── index.ts         # TypeScript interfaces for DB entities
-│   └── middleware.ts        # Auth guards for /admin and /portal
-├── supabase/
-│   └── schema.sql           # Full database schema, RLS, seed data
-├── .env.example             # Environment variable template
-├── DEPLOYMENT.md            # Cloudflare + GitHub + Supabase deployment guide
-├── next.config.ts           # Next.js config (image domains)
-└── package.json
+C:\MYWEBSITE\                 # Project root (this repo)
+├── public/                   # Static assets
+├── src/                      # Next.js App Router app
+├── supabase/                 # Database schema
+├── archive/static-html-site/ # Old static HTML site (local backup, not deployed)
+├── package.json
+└── README.md
 ```
 
 ---

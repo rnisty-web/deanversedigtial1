@@ -631,8 +631,9 @@ export default function AdminLeadsPage() {
         open={addLeadOpen}
         onClose={() => setAddLeadOpen(false)}
         title="Add Lead"
+        size="lg"
         footer={
-          <div className="flex justify-end gap-2 border-t border-[var(--admin-border-subtle)] px-6 py-4">
+          <div className="flex justify-end gap-2 border-t border-[var(--admin-border-subtle)] px-6 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
             <Button variant="ghost" size="sm" className="admin-btn-ghost" onClick={() => setAddLeadOpen(false)}>Cancel</Button>
             <Button size="sm" className="admin-btn-gold" disabled={savingLead || !leadForm.name || !leadForm.email} onClick={createLead}>
               {savingLead ? "Saving…" : "Add Lead"}

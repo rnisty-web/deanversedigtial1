@@ -45,3 +45,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local archive (old static site backup — not part of the app)
+/archive/
+
+# leftover copy from folder cleanup — safe to delete locally
+/deanversedigtial/
+/_old-nested-copy/

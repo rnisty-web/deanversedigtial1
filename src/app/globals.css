@@ -2412,9 +2412,11 @@ body {
   z-index: 50;
   margin-top: 0.25rem;
   min-width: 11rem;
-  max-height: min(18rem, 70vh);
+  max-height: min(20rem, 70vh);
   overflow-y: auto;
   overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(201, 169, 98, 0.35) transparent;
   border-radius: 12px;
   border: 1px solid var(--admin-border);
   background: rgba(12, 12, 12, 0.98);
@@ -2862,9 +2864,11 @@ body {
   z-index: 50;
   margin-top: 0.25rem;
   min-width: 11rem;
-  max-height: min(18rem, 70vh);
+  max-height: min(20rem, 70vh);
   overflow-y: auto;
   overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(201, 169, 98, 0.35) transparent;
   border-radius: 12px;
   border: 1px solid var(--admin-border);
   background: rgba(12, 12, 12, 0.98);
@@ -2896,6 +2900,29 @@ body {
 .admin-clients-menu-link:hover {
   background: rgba(255, 255, 255, 0.05);
   color: var(--admin-text);
+}
+
+.admin-leads-menu::-webkit-scrollbar,
+.admin-clients-menu::-webkit-scrollbar {
+  width: 5px;
+}
+
+.admin-leads-menu::-webkit-scrollbar-track,
+.admin-clients-menu::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.admin-leads-menu::-webkit-scrollbar-thumb,
+.admin-clients-menu::-webkit-scrollbar-thumb {
+  background-color: rgba(201, 169, 98, 0.35);
+  border-radius: 9999px;
+}
+
+.admin-leads-menu::-webkit-scrollbar-button,
+.admin-clients-menu::-webkit-scrollbar-button {
+  display: none;
+  height: 0;
+  width: 0;
 }
 
 .admin-clients-card {

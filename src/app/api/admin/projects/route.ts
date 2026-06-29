@@ -11,7 +11,7 @@ export async function GET() {
     await Promise.all([
       auth.supabase!
         .from("projects")
-        .select("*, clients(name, email)")
+        .select("*, clients(name, email, company)")
         .order("created_at", { ascending: false }),
       auth.supabase!.from("clients").select("id, name, email").order("name"),
     ]);
@@ -50,7 +50,7 @@ export async function POST(request: Request) {
       deadline: deadline || null,
       lead_id: lead_id ?? null,
     })
-    .select("*, clients(name, email)")
+    .select("*, clients(name, email, company)")
     .single();
 
   if (error) {
@@ -82,7 +82,7 @@ export async function PATCH(request: Request) {
     .from("projects")
     .update(updates)
     .eq("id", id)
-    .select("*, clients(name, email)")
+    .select("*, clients(name, email, company)")
     .single();
 
   if (error) {

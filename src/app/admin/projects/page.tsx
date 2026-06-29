@@ -252,30 +252,31 @@ function AdminProjectsInner() {
     [clients],
   );
 
-  const statusOptions = useMemo(
-    () => [
-      { value: "all", label: "All Statuses" },
-      ...projectStatuses.map((s) => ({ value: s, label: statusStyle(s).label })),
-    ],
-    [],
-  );
-
   const categoryOptions = useMemo(
     () => [{ value: "all", label: "All Categories" }, ...PROJECT_CATEGORIES.map((c) => ({ value: c, label: c }))],
     [],
   );
+
+  const tabCounts = useMemo(() => {
+    const base: Record<string, number> & { all: number } = { all: scopedProjects.length };
+    for (const status of projectStatuses) {
+      base[status] = scopedProjects.filter((p) => p.status === status).length;
+    }
+    return base;
+  }, [scopedProjects]);
 
   return (
     <div className="admin-projects-page">
       <ProjectsAdminHeader
         search={search}
         onSearchChange={setSearch}
-        showFilters={showFilters}
-        onToggleFilters={() => setShowFilters((v) => !v)}
         layoutMode={layoutMode}
         onLayoutModeChange={setLayoutMode}
         onNewProject={openCreate}
         newProjectDisabled={clients.length === 0}
+        tab={statusFilter}
+        onTabChange={setStatusFilter}
+        counts={tabCounts}
       />
 
       <AdminPageContent className="admin-projects-content">
@@ -296,7 +297,7 @@ function AdminProjectsInner() {
           </AdminAlert>
         )}
 
-        <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           <ProjectsStatCard label="Total Projects" value={stats.total} hint={monthGrowthHint(scopedProjects)} icon={statIcons.total} />
           <ProjectsStatCard label="In Progress" value={stats.inProgress} hint={monthGrowthHint(scopedProjects, (p) => isInProgressStatus(p.status))} icon={statIcons.inProgress} />
           <ProjectsStatCard label="Completed" value={stats.completed} hint={monthGrowthHint(scopedProjects, (p) => p.status === "completed")} icon={statIcons.completed} />
@@ -310,7 +311,6 @@ function AdminProjectsInner() {
               {showFilters && (
                 <div className="flex flex-wrap gap-2">
                   <ProjectsSelect value={clientSelect} onChange={setClientSelect} options={clientOptions} />
-                  <ProjectsSelect value={statusFilter} onChange={setStatusFilter} options={statusOptions} />
                   <ProjectsSelect value={categoryFilter} onChange={setCategoryFilter} options={categoryOptions} />
                   <ProjectsSelect
                     value={tagFilter}
@@ -325,6 +325,16 @@ function AdminProjectsInner() {
               )}
 
               <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowFilters((v) => !v)}
+                  className={cn(
+                    "admin-btn-ghost inline-flex items-center gap-1.5 px-3 py-2 text-xs",
+                    showFilters && "border-[var(--admin-gold)]/40 text-[var(--admin-gold-light)]",
+                  )}
+                >
+                  Filters
+                </button>
                 {layoutMode === "list" && (
                   <div className="admin-projects-view-toggle">
                     <button type="button" onClick={() => setListDisplay("grid")} className={cn("admin-projects-view-btn", listDisplay === "grid" && "admin-projects-view-btn-active")} aria-label="Grid view">
@@ -339,6 +349,9 @@ function AdminProjectsInner() {
                     </button>
                   </div>
                 )}
+                <span className="text-xs text-[var(--admin-text-muted)]">
+                  {filtered.length} {filtered.length === 1 ? "project" : "projects"}
+                </span>
                 <button type="button" onClick={() => exportProjectsCsv(filtered)} className="admin-btn-ghost px-3 py-2 text-xs">Export</button>
               </div>
             </div>

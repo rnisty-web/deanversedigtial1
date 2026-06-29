@@ -9,6 +9,20 @@ import { AdminMiniCalendar } from "@/components/admin/AdminMiniCalendar";
 import { AdminPageContent } from "@/components/admin/AdminPageContent";
 import { AdminRecentActivity } from "@/components/admin/AdminRecentActivity";
 import { AdminStatusBadge } from "@/components/admin/AdminStatusBadge";
+import {
+  DashboardAiInsights,
+  DashboardInvoicesWidget,
+  DashboardMessagesWidget,
+  DashboardTasksWidget,
+} from "@/components/admin/dashboard/DashboardSideWidgets";
+import { DashboardKpiStrip } from "@/components/admin/dashboard/DashboardKpiStrip";
+import {
+  DashboardDeadlinesTable,
+  DashboardPaymentsTable,
+  DashboardProjectStatusBar,
+} from "@/components/admin/dashboard/DashboardOperationsRow";
+import { DashboardSkeleton } from "@/components/admin/dashboard/DashboardSkeleton";
+import { DashboardWidget } from "@/components/admin/dashboard/DashboardWidget";
 import { ActivityStatusBadge, ActivityStatusPicker, useActivityStatus } from "@/components/admin/ActivityStatusPicker";
 import { PresenceIndicator, PresenceLegend } from "@/components/admin/PresenceIndicator";
 import { StatsChart } from "@/components/admin/StatsChart";
@@ -20,7 +34,6 @@ import {
   DashboardProgressRow,
 } from "@/components/dashboard/DashboardPanel";
 import { DashboardSectionHeader } from "@/components/dashboard/DashboardSectionHeader";
-import { DashboardStatCard } from "@/components/dashboard/DashboardStatCard";
 import { RoleBadges } from "@/components/ui/RoleBadges";
 import type { ActivityStatus } from "@/lib/activity-status";
 import { cn } from "@/lib/utils";
@@ -97,6 +110,33 @@ type DashboardStats = {
   recentInvoices: RecentInvoice[];
   projectStatusCounts: Record<string, number>;
   recentActivity: ActivityFeedItem[];
+  upcomingDeadlines: {
+    id: string;
+    title: string;
+    deadline: string;
+    status: string;
+    client_name: string;
+  }[];
+  recentPayments: {
+    id: string;
+    invoice_number: string;
+    amount: number;
+    client_name: string;
+    created_at: string;
+  }[];
+  todayEvents: {
+    id: string;
+    title: string;
+    starts_at: string;
+    event_type: string;
+  }[];
+  recentMessages: {
+    id: string;
+    subject: string;
+    read: boolean;
+    created_at: string;
+    sender_name: string;
+  }[];
 };
 
 function formatRelativeDate(dateStr: string) {
@@ -119,30 +159,64 @@ function formatCurrency(amount: number) {
   }).format(amount);
 }
 
-const STATIC_TREND = "+—";
+function formatShortDate(dateStr: string) {
+  return new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
 
-const statIcons = {
-  revenue: (
-    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.242 0l.879.659m0-3.182V6.75A2.25 2.25 0 0010.5 4.5h-3A2.25 2.25 0 005.25 6.75v.659m0 3.182V12" />
-    </svg>
-  ),
-  leads: (
-    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
-    </svg>
-  ),
-  projects: (
-    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v.894m7.5 0a48.667 48.667 0 00-7.5 0" />
-    </svg>
-  ),
-  clients: (
-    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
-    </svg>
-  ),
-};
+function buildAiSummary(stats: DashboardStats) {
+  const parts: string[] = [];
+  if (stats.leadsThisMonth > 0) {
+    parts.push(`${stats.leadsThisMonth} new lead${stats.leadsThisMonth === 1 ? "" : "s"} this month`);
+  }
+  if (stats.activeProjectsCount > 0) {
+    parts.push(`${stats.activeProjectsCount} active project${stats.activeProjectsCount === 1 ? "" : "s"}`);
+  }
+  if (stats.totalPaidRevenue > 0) {
+    parts.push(`${formatCurrency(stats.totalPaidRevenue)} in paid revenue`);
+  }
+  if (parts.length === 0) {
+    return "Your studio is ready. Add portfolio pieces, testimonials, and share your contact page to start generating leads.";
+  }
+  return `Strong momentum with ${parts.join(", ")}. Focus on converting qualified leads and keeping project deadlines on track.`;
+}
+
+function buildTaskItems(stats: DashboardStats) {
+  const tasks: { id: string; label: string; due: string; href: string }[] = [];
+  const newLeads = stats.leadStatusCounts["new"] ?? 0;
+  if (newLeads > 0) {
+    tasks.push({
+      id: "new-leads",
+      label: `Follow up on ${newLeads} new lead${newLeads === 1 ? "" : "s"}`,
+      due: "Today",
+      href: "/admin/leads",
+    });
+  }
+  if (stats.activitySummary.unreadMessagesCount > 0) {
+    tasks.push({
+      id: "messages",
+      label: `Reply to ${stats.activitySummary.unreadMessagesCount} unread message${stats.activitySummary.unreadMessagesCount === 1 ? "" : "s"}`,
+      due: "Today",
+      href: "/admin/messages",
+    });
+  }
+  if (stats.pendingInvoiceAmount > 0) {
+    tasks.push({
+      id: "invoices",
+      label: "Review pending invoices",
+      due: "This week",
+      href: "/admin/invoices",
+    });
+  }
+  if (stats.upcomingDeadlines?.[0]) {
+    tasks.push({
+      id: "deadline",
+      label: `Deadline: ${stats.upcomingDeadlines[0].title}`,
+      due: formatShortDate(stats.upcomingDeadlines[0].deadline),
+      href: "/admin/projects",
+    });
+  }
+  return tasks.slice(0, 4);
+}
 
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -274,210 +348,88 @@ export default function AdminDashboardPage() {
         )}
 
         {loading ? (
-          <div className="space-y-6">
-            <div className="admin-luxury-card h-36 animate-pulse rounded-2xl" />
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="admin-luxury-card h-28 animate-pulse rounded-2xl" />
-              ))}
-            </div>
-          </div>
+          <DashboardSkeleton />
         ) : !stats ? (
           <p className="text-[var(--admin-text-muted)]">Unable to load dashboard data.</p>
         ) : (
-          <div className="space-y-8">
-            {/* Row 1: Key stat cards */}
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              <DashboardStatCard
-                variant="admin"
-                label="Total Revenue"
-                value={formatCurrency(stats.totalPaidRevenue)}
-                hint={
-                  stats.pendingInvoiceAmount > 0
-                    ? `${formatCurrency(stats.pendingInvoiceAmount)} pending`
-                    : undefined
-                }
-                href="/admin/invoices"
-                icon={statIcons.revenue}
-                accent="accent"
-                trend={STATIC_TREND}
-              />
-              <DashboardStatCard
-                variant="admin"
-                label="Active Projects"
-                value={stats.activeProjectsCount}
-                hint={`${stats.projectsCount} total`}
-                href="/admin/projects"
-                icon={statIcons.projects}
-                accent="primary"
-                trend={STATIC_TREND}
-              />
-              <DashboardStatCard
-                variant="admin"
-                label="Total Clients"
-                value={stats.clientsCount}
-                href="/admin/clients"
-                icon={statIcons.clients}
-                trend={STATIC_TREND}
-              />
-              <DashboardStatCard
-                variant="admin"
-                label="Leads This Month"
-                value={stats.leadsThisMonth}
-                href="/admin/leads"
-                icon={statIcons.leads}
-                accent="accent"
-                trend={STATIC_TREND}
-              />
-            </div>
+          <div className="admin-dashboard-page space-y-8">
+            <DashboardKpiStrip
+              revenue={formatCurrency(stats.totalPaidRevenue)}
+              revenueHint={
+                stats.pendingInvoiceAmount > 0
+                  ? `${formatCurrency(stats.pendingInvoiceAmount)} pending`
+                  : undefined
+              }
+              activeProjects={stats.activeProjectsCount}
+              totalProjects={stats.projectsCount}
+              clients={stats.clientsCount}
+              leadsThisMonth={stats.leadsThisMonth}
+              websiteTraffic={totalPageViews}
+              conversionRate={stats.conversionRate}
+            />
 
-            {/* Row 2: Traffic chart + Recent Activity + Mini Calendar */}
-            <div className="grid gap-6 lg:grid-cols-12">
-              <DashboardPanel theme="admin" padding="md" className="lg:col-span-7">
-                <div className="mb-5 flex items-center justify-between gap-3">
-                  <div>
-                    <h4 className="text-sm font-medium text-[var(--admin-text)]">Traffic & revenue</h4>
-                    <p className="text-xs text-[var(--admin-text-muted)]">Page views — last 7 days</p>
-                  </div>
-                  <Link
-                    href="/admin/analytics"
-                    className="text-xs font-medium text-[var(--admin-gold-light)] hover:text-[var(--admin-text)]"
-                  >
-                    Full analytics →
-                  </Link>
-                </div>
+            <div className="grid gap-6 xl:grid-cols-12">
+              <DashboardWidget
+                title="Revenue Overview"
+                subtitle="Website traffic — last 7 days"
+                actionHref="/admin/analytics"
+                className="xl:col-span-7"
+              >
                 <StatsChart
                   type="line"
                   variant="luxury"
                   labels={stats.pageViewLabels}
-                  datasets={[{ label: "Views", data: stats.pageViewData }]}
+                  datasets={[{ label: "Page views", data: stats.pageViewData }]}
                   height={320}
                   emptyMessage="No page views recorded yet. Browse your site to start tracking."
                 />
-              </DashboardPanel>
+              </DashboardWidget>
 
-              <div className="flex flex-col gap-6 lg:col-span-5">
-                <DashboardPanel theme="admin" padding="md" className="flex-1">
-                  <div className="mb-4 flex items-center justify-between gap-3">
-                    <div>
-                      <h4 className="text-sm font-medium text-[var(--admin-text)]">Recent activity</h4>
-                      <p className="text-xs text-[var(--admin-text-muted)]">Latest leads & invoices</p>
-                    </div>
-                  </div>
+              <div className="flex flex-col gap-6 xl:col-span-5">
+                <DashboardWidget title="Recent Activity" subtitle="Latest leads & invoices">
                   <AdminRecentActivity items={stats.recentActivity} />
-                </DashboardPanel>
+                </DashboardWidget>
 
-                <DashboardPanel theme="admin" padding="md">
-                  <AdminMiniCalendar />
-                </DashboardPanel>
+                <DashboardWidget title="Calendar" subtitle="Schedule at a glance" actionHref="/admin/calendar">
+                  <AdminMiniCalendar events={stats.todayEvents ?? []} />
+                </DashboardWidget>
               </div>
             </div>
 
-            {/* Row 3: Project status, Recent invoices, Quick metrics */}
-            <div className="grid gap-6 lg:grid-cols-12">
-              <DashboardPanel theme="admin" padding="md" className="lg:col-span-4">
-                <div className="mb-5 flex items-center justify-between gap-3">
-                  <div>
-                    <h4 className="text-sm font-medium text-[var(--admin-text)]">Project status</h4>
-                    <p className="text-xs text-[var(--admin-text-muted)]">By current status</p>
-                  </div>
-                  <Link
-                    href="/admin/projects"
-                    className="text-xs font-medium text-[var(--admin-gold-light)] hover:text-[var(--admin-text)]"
-                  >
-                    View all →
-                  </Link>
-                </div>
-                <StatsChart
-                  type="doughnut"
-                  labels={projectStatusLabels}
-                  datasets={[{ label: "Projects", data: projectStatusValues }]}
-                  height={220}
-                  emptyMessage="No projects yet. Create your first project to track status."
-                />
-              </DashboardPanel>
+            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-5">
+              <div className="md:col-span-2 xl:col-span-1">
+                <DashboardWidget title="Upcoming Schedule" subtitle="Project status mix" actionHref="/admin/calendar">
+                  <StatsChart
+                    type="doughnut"
+                    labels={projectStatusLabels}
+                    datasets={[{ label: "Projects", data: projectStatusValues }]}
+                    height={200}
+                    emptyMessage="No projects scheduled."
+                  />
+                  <p className="mt-3 text-center text-xs text-[var(--admin-text-muted)]">
+                    {stats.projectsCount} total project{stats.projectsCount === 1 ? "" : "s"}
+                  </p>
+                </DashboardWidget>
+              </div>
+              <DashboardInvoicesWidget invoices={stats.recentInvoices} formatCurrency={formatCurrency} />
+              <DashboardMessagesWidget messages={stats.recentMessages ?? []} />
+              <DashboardTasksWidget tasks={buildTaskItems(stats)} />
+              <DashboardAiInsights
+                summary={buildAiSummary(stats)}
+                leadsThisMonth={stats.leadsThisMonth}
+                activeProjects={stats.activeProjectsCount}
+                conversionRate={stats.conversionRate}
+              />
+            </div>
 
-              <DashboardPanel theme="admin" padding="md" className="lg:col-span-4">
-                <div className="mb-5 flex items-center justify-between gap-3">
-                  <div>
-                    <h4 className="text-sm font-medium text-[var(--admin-text)]">Recent invoices</h4>
-                    <p className="text-xs text-[var(--admin-text-muted)]">Latest billing activity</p>
-                  </div>
-                  <Link
-                    href="/admin/invoices"
-                    className="text-xs font-medium text-[var(--admin-gold-light)] hover:text-[var(--admin-text)]"
-                  >
-                    View all →
-                  </Link>
-                </div>
-                {stats.recentInvoices.length === 0 ? (
-                  <DashboardEmptyState
-                    theme="admin"
-                    message="No invoices yet."
-                    hint="Create an invoice from the billing section."
-                  />
-                ) : (
-                  <ul className="space-y-3">
-                    {stats.recentInvoices.map((inv) => (
-                      <li key={inv.id}>
-                        <Link
-                          href="/admin/invoices"
-                          className="flex items-center justify-between gap-3 rounded-xl border border-[var(--admin-border-subtle)] px-3 py-2.5 transition-colors hover:border-[var(--admin-gold)]/30 hover:bg-[var(--admin-gold-soft)]"
-                        >
-                          <div className="min-w-0">
-                            <p className="truncate text-sm font-medium text-[var(--admin-text)]">
-                              {inv.invoice_number}
-                            </p>
-                            <p className="truncate text-xs text-[var(--admin-text-muted)]">
-                              {inv.client_name}
-                            </p>
-                          </div>
-                          <div className="flex shrink-0 flex-col items-end gap-1">
-                            <span className="text-sm font-semibold tabular-nums text-[var(--admin-gold-light)]">
-                              {formatCurrency(inv.amount)}
-                            </span>
-                            <AdminStatusBadge status={inv.status} />
-                          </div>
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </DashboardPanel>
-
-              <DashboardPanel theme="admin" padding="md" className="lg:col-span-4">
-                <div className="mb-4">
-                  <h4 className="text-sm font-medium text-[var(--admin-text)]">Studio snapshot</h4>
-                  <p className="text-xs text-[var(--admin-text-muted)]">Content & conversion</p>
-                </div>
-                <div className="space-y-3">
-                  <DashboardMetricRow
-                    theme="admin"
-                    label="Conversion rate"
-                    value={`${stats.conversionRate}%`}
-                    href="/admin/leads"
-                  />
-                  <DashboardMetricRow
-                    theme="admin"
-                    label="Portfolio items"
-                    value={stats.portfolioCount}
-                    href="/admin/portfolio"
-                  />
-                  <DashboardMetricRow
-                    theme="admin"
-                    label="Testimonials"
-                    value={stats.testimonialsCount}
-                    href="/admin/testimonials"
-                  />
-                  <DashboardMetricRow
-                    theme="admin"
-                    label="Unread messages"
-                    value={stats.activitySummary.unreadMessagesCount}
-                    href="/admin/messages"
-                    highlight={stats.activitySummary.unreadMessagesCount > 0}
-                  />
-                </div>
-              </DashboardPanel>
+            <div className="grid gap-6 xl:grid-cols-3">
+              <DashboardProjectStatusBar statusCounts={stats.projectStatusCounts} />
+              <DashboardDeadlinesTable deadlines={stats.upcomingDeadlines ?? []} formatDate={formatShortDate} />
+              <DashboardPaymentsTable
+                payments={stats.recentPayments ?? []}
+                formatCurrency={formatCurrency}
+                formatDate={formatShortDate}
+              />
             </div>
 
             {/* Setup hint */}

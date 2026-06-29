@@ -145,3 +145,65 @@ export function matchesSizeFilter(size: number, filter: MediaSizeFilter) {
 export function folderCount(files: MediaFile[], folder: MediaFolder) {
   return files.filter((f) => fileMatchesFolder(f, folder)).length;
 }
+
+export type MediaStats = {
+  total: number;
+  images: number;
+  videos: number;
+  documents: number;
+  other: number;
+};
+
+export type MediaTabCounts = Record<MediaTab, number>;
+
+export function computeMediaStats(files: MediaFile[]): MediaStats {
+  const total = files.length;
+  const images = files.filter((f) => getFileType(f.name) === "image").length;
+  const videos = files.filter((f) => getFileType(f.name) === "video").length;
+  const documents = files.filter((f) => getFileType(f.name) === "document").length;
+  const other = files.filter((f) => getFileType(f.name) === "other").length;
+  return { total, images, videos, documents, other };
+}
+
+export function computeMediaTabCounts(files: MediaFile[]): MediaTabCounts {
+  return {
+    all: files.length,
+    image: files.filter((f) => getFileType(f.name) === "image").length,
+    video: files.filter((f) => getFileType(f.name) === "video").length,
+    document: files.filter((f) => getFileType(f.name) === "document").length,
+    other: files.filter((f) => getFileType(f.name) === "other").length,
+  };
+}
+
+export function filterMediaFiles(
+  files: MediaFile[],
+  opts: {
+    search: string;
+    activeTab: MediaTab;
+    activeFolder: MediaFolder;
+    sizeFilter: MediaSizeFilter;
+    sortBy: MediaSort;
+  },
+) {
+  const q = opts.search.trim().toLowerCase();
+  let list = files.filter((f) => fileMatchesFolder(f, opts.activeFolder));
+
+  if (opts.activeTab !== "all") {
+    list = list.filter((f) => getFileType(f.name) === opts.activeTab);
+  }
+
+  list = list.filter((f) => matchesSizeFilter(f.size, opts.sizeFilter));
+
+  if (q) {
+    list = list.filter((f) => f.name.toLowerCase().includes(q));
+  }
+
+  return [...list].sort((a, b) => {
+    if (opts.sortBy === "name") return a.name.localeCompare(b.name);
+    if (opts.sortBy === "size") return b.size - a.size;
+    if (opts.sortBy === "oldest") {
+      return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+    }
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+  });
+}

@@ -6,6 +6,10 @@ import {
   ContentEditorHeader,
   ContentFilterTabs,
 } from "@/components/admin/content/ContentEditorHeader";
+import {
+  ContentOverviewSidebar,
+  ContentOverviewStats,
+} from "@/components/admin/content/ContentOverviewPanel";
 import { ContentReorderBar } from "@/components/admin/content/ContentReorderBar";
 import {
   addSectionItem,
@@ -22,6 +26,7 @@ import {
 import { SectionIcon } from "@/components/admin/content/SectionIcon";
 import { Button } from "@/components/ui/Button";
 import { defaultCMSLayout, formatLayoutDate, getHomepageOrder, applyHomepageOrder, reorderFullOrder, type CMSLayout } from "@/lib/cms/layout";
+import { computeCMSStats } from "@/lib/cms/stats";
 import {
   FILTER_TABS,
   filterSectionsBySearch,
@@ -109,6 +114,12 @@ export function ContentEditor() {
   const activeMeta = layout.meta[activeSection];
   const activeStatus = activeMeta?.status ?? "published";
   const homepageOrder = useMemo(() => getHomepageOrder(layout), [layout]);
+  const cmsStats = useMemo(() => computeCMSStats(layout), [layout]);
+
+  const draftSectionTitles = useMemo(
+    () => draftSections.map((s) => ({ id: s.id, title: s.title })),
+    [draftSections],
+  );
 
   const orderDirty = useMemo(
     () => JSON.stringify(layout.order) !== JSON.stringify(savedLayout.order),
@@ -364,6 +375,8 @@ export function ContentEditor() {
         counts={tabCounts}
       />
 
+      <ContentOverviewStats stats={cmsStats} />
+
       {message && (
         <div
           className={cn(
@@ -377,7 +390,7 @@ export function ContentEditor() {
         </div>
       )}
 
-      <div className="admin-content-body flex min-h-0 flex-1 overflow-hidden">
+      <div className="admin-content-body admin-content-body-grid flex min-h-0 flex-1 overflow-hidden">
         <aside className="admin-content-sidebar flex w-full max-w-[340px] shrink-0 flex-col border-r border-[var(--admin-border-subtle)]">
           {!listReorderEnabled && (
             <p className="border-b border-[var(--admin-border-subtle)] px-4 py-2 text-[11px] text-[var(--admin-text-muted)]">
@@ -523,6 +536,13 @@ export function ContentEditor() {
             )}
           </div>
         </main>
+
+        <ContentOverviewSidebar
+          stats={cmsStats}
+          draftSectionTitles={draftSectionTitles}
+          onSelectDraft={(id) => selectSection(id as SectionId)}
+          onPublishDraft={handlePublishDraft}
+        />
       </div>
 
       <ContentReorderBar

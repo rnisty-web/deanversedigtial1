@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { AdminAlert } from "@/components/admin/AdminAlert";
+import { AdminField } from "@/components/admin/AdminField";
 import { Button } from "@/components/ui/Button";
 import { PortalModal } from "@/components/portal/PortalModal";
 import { PortalPageContent } from "@/components/portal/PortalPageContent";
@@ -138,62 +140,51 @@ export default function PortalMessagesPage() {
   }
 
   const unreadCount = messages.filter((m) => !m.read).length;
+  const tabs = [
+    { id: "all", label: "All" },
+    { id: "unread", label: "Unread", count: unreadCount },
+  ];
 
   return (
     <PortalPageContent>
       <PortalPageHeader
         title="Messages"
         subtitle="Direct line to your DeanVerse project team — questions, feedback, and updates."
+        breadcrumb={[
+          { label: "Dashboard", href: "/portal" },
+          { label: "Messages" },
+        ]}
+        tabs={tabs}
+        activeTab={filter}
+        onTabChange={(id) => setFilter(id as "all" | "unread")}
         actions={
-          <Button size="sm" onClick={() => setShowCompose(true)}>
+          <Button size="sm" className="admin-btn-gold" onClick={() => setShowCompose(true)}>
             Compose
           </Button>
         }
       />
 
       {error && (
-        <div className="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+        <AdminAlert tone="error" className="mb-4">
           {error}
-        </div>
+        </AdminAlert>
       )}
 
-      <div className="mb-4 flex gap-2">
-        {(["all", "unread"] as const).map((key) => (
-          <button
-            key={key}
-            type="button"
-            onClick={() => setFilter(key)}
-            className={cn(
-              "min-h-[44px] rounded-full px-4 py-2 text-sm font-medium capitalize transition-colors",
-              filter === key
-                ? "bg-[#6f8f72]/25 text-[#a3c9a8]"
-                : "bg-white/5 text-white/50 hover:text-white/70",
-            )}
-          >
-            {key}
-            {key === "unread" && unreadCount > 0 ? ` (${unreadCount})` : ""}
-          </button>
-        ))}
-      </div>
-
       {loading ? (
-        <p className="text-white/50">Loading inbox…</p>
+        <div className="portal-messages-layout">
+          <div className="admin-luxury-card h-96 animate-pulse" />
+          <div className="admin-luxury-card h-96 animate-pulse" />
+        </div>
       ) : filtered.length === 0 ? (
         <PortalCard padding="lg" className="text-center">
-          <p className="text-white/60">Your inbox is empty.</p>
-          <Button size="sm" className="mt-4" onClick={() => setShowCompose(true)}>
+          <p className="text-[var(--admin-text-muted)]">Your inbox is empty.</p>
+          <Button size="sm" className="admin-btn-gold mt-4" onClick={() => setShowCompose(true)}>
             Send your first message
           </Button>
         </PortalCard>
       ) : (
-        <div className="grid gap-4 lg:min-h-[480px] lg:grid-cols-5">
-          <PortalCard
-            padding="sm"
-            className={cn(
-              "overflow-hidden p-0 lg:col-span-2",
-              mobileDetailOpen && "hidden lg:block",
-            )}
-          >
+        <div className={cn("portal-messages-layout", mobileDetailOpen && "max-lg:[&>:first-child]:hidden")}>
+          <PortalCard padding="none" className="overflow-hidden">
             <ul className="max-h-[70vh] overflow-y-auto lg:max-h-[560px]">
               {filtered.map((msg) => (
                 <li key={msg.id}>
@@ -201,25 +192,23 @@ export default function PortalMessagesPage() {
                     type="button"
                     onClick={() => handleSelect(msg.id)}
                     className={cn(
-                      "w-full border-b border-white/[0.06] px-4 py-3 text-left transition-colors hover:bg-white/[0.03]",
-                      selected?.id === msg.id && "bg-[#6f8f72]/10",
-                      !msg.read && "border-l-2 border-l-[#6f8f72]",
+                      "portal-message-list-item",
+                      selected?.id === msg.id && "portal-message-list-item-active",
+                      !msg.read && "portal-message-list-item-unread",
                     )}
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <p className="truncate text-sm font-medium text-white">
+                      <p className="truncate text-sm font-medium text-[var(--admin-text)]">
                         {msg.subject ?? "No subject"}
                       </p>
                       {!msg.read && (
-                        <span className="shrink-0 rounded-full bg-[#6f8f72] px-2 py-0.5 text-[10px] text-white">
-                          New
-                        </span>
+                        <span className="admin-nav-badge shrink-0 !min-w-0 px-2 py-0.5 text-[10px]">New</span>
                       )}
                     </div>
-                    <p className="mt-1 line-clamp-1 text-xs text-white/40">
+                    <p className="mt-1 line-clamp-1 text-xs text-[var(--admin-text-muted)]">
                       {msg.sender?.full_name ?? msg.sender?.email ?? "Team"}
                     </p>
-                    <p className="mt-1 text-[11px] text-white/30">
+                    <p className="mt-1 text-[11px] text-[var(--admin-text-muted)]">
                       {new Date(msg.created_at).toLocaleString()}
                     </p>
                   </button>
@@ -228,34 +217,31 @@ export default function PortalMessagesPage() {
             </ul>
           </PortalCard>
 
-          <PortalCard
-            padding="lg"
-            className={cn("lg:col-span-3", !mobileDetailOpen && "hidden lg:block")}
-          >
+          <PortalCard padding="lg" className={cn(!mobileDetailOpen && "hidden lg:block")}>
             {selected ? (
               <>
                 <button
                   type="button"
                   onClick={() => setMobileDetailOpen(false)}
-                  className="mb-4 inline-flex min-h-[44px] items-center gap-2 text-sm text-[var(--accent)] lg:hidden"
+                  className="admin-btn-ghost mb-4 inline-flex min-h-[44px] items-center gap-2 px-3 py-2 text-sm lg:hidden"
                 >
                   ← Back to inbox
                 </button>
-                <div className="mb-4 border-b border-white/[0.06] pb-4">
-                  <h2 className="text-xl font-semibold text-white">
+                <div className="mb-4 border-b border-[var(--admin-border-subtle)] pb-4">
+                  <h2 className="text-xl font-semibold text-[var(--admin-text)]">
                     {selected.subject ?? "No subject"}
                   </h2>
-                  <p className="mt-1 text-sm text-white/45">
+                  <p className="mt-1 text-sm text-[var(--admin-text-muted)]">
                     {selected.sender?.full_name ?? selected.sender?.email ?? "Unknown"} ·{" "}
                     {new Date(selected.created_at).toLocaleString()}
                   </p>
                 </div>
-                <p className="whitespace-pre-wrap text-sm leading-relaxed text-white/75">
+                <p className="whitespace-pre-wrap text-sm leading-relaxed text-[var(--admin-text)]/85">
                   {selected.content}
                 </p>
               </>
             ) : (
-              <p className="text-white/40">Select a message</p>
+              <p className="text-[var(--admin-text-muted)]">Select a message</p>
             )}
           </PortalCard>
         </div>
@@ -271,41 +257,41 @@ export default function PortalMessagesPage() {
         <form id="compose-message-form" onSubmit={handleSend} className="space-y-4">
           {projects.length > 0 && (
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-white/50">Project (optional)</label>
+              <label className="mb-1.5 block text-sm font-medium text-[var(--admin-text-muted)]">
+                Project (optional)
+              </label>
               <select
                 value={projectId}
                 onChange={(e) => setProjectId(e.target.value)}
-                className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white"
+                className="admin-input admin-entity-select w-full"
               >
                 <option value="">General inquiry</option>
                 {projects.map((p) => (
-                  <option key={p.id} value={p.id} className="bg-[#0f1a17]">
+                  <option key={p.id} value={p.id}>
                     {p.title}
                   </option>
                 ))}
               </select>
             </div>
           )}
-          <input
-            placeholder="Subject"
-            value={subject}
-            onChange={(e) => setSubject(e.target.value)}
-            className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-white"
-          />
-          <textarea
-            required
-            placeholder="Your message"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-white"
-            rows={6}
-          />
-          {sendError && <p className="text-sm text-red-400">{sendError}</p>}
+          <AdminField label="Subject" value={subject} onChange={setSubject} placeholder="What is this about?" />
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-[var(--admin-text-muted)]">Message</label>
+            <textarea
+              required
+              placeholder="Your message"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              className="admin-input min-h-[140px] resize-y"
+              rows={6}
+            />
+          </div>
+          {sendError && <AdminAlert tone="error">{sendError}</AdminAlert>}
           <div className="flex justify-end gap-2 pt-2">
-            <Button variant="ghost" size="sm" type="button" onClick={() => setShowCompose(false)}>
+            <Button variant="ghost" size="sm" type="button" className="admin-btn-ghost" onClick={() => setShowCompose(false)}>
               Cancel
             </Button>
-            <Button size="sm" type="submit" disabled={sending}>
+            <Button size="sm" type="submit" className="admin-btn-gold" disabled={sending}>
               {sending ? "Sending…" : "Send message"}
             </Button>
           </div>

@@ -22,6 +22,23 @@ type RecentProjectRow = {
   title: string;
   status: string;
   created_at: string;
+  deadline: string | null;
+  clients: { name: string } | { name: string }[] | null;
+};
+
+type CalendarEventRow = {
+  id: string;
+  title: string;
+  starts_at: string;
+  event_type: string;
+};
+
+type RecentMessageRow = {
+  id: string;
+  subject: string;
+  read: boolean;
+  created_at: string;
+  sender: { full_name: string | null; email: string } | { full_name: string | null; email: string }[] | null;
 };
 
 type ActivityItem = {
@@ -58,6 +75,11 @@ export async function GET() {
   const startOfMonth = new Date();
   startOfMonth.setDate(1);
   startOfMonth.setHours(0, 0, 0, 0);
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+  const endOfToday = new Date();
+  endOfToday.setHours(23, 59, 59, 999);
+  const todayDateStr = startOfToday.toISOString().slice(0, 10);
   const ownerEmail = getOwnerEmail();
 
   const { data: currentProfile, presenceReady: profilePresenceReady } =
@@ -96,6 +118,9 @@ export async function GET() {
     { data: recentProjects },
     { data: allProjects },
     { count: leadsThisMonth },
+    { data: upcomingProjectsRaw },
+    { data: recentPaymentsRaw },
+    { data: recentMessagesRaw },
   ] = await Promise.all([
     supabase.from("leads").select("*", { count: "exact", head: true }),
     supabase.from("projects").select("*", { count: "exact", head: true }),
@@ -128,7 +153,7 @@ export async function GET() {
       .limit(4),
     supabase
       .from("projects")
-      .select("id, title, status, created_at")
+      .select("id, title, status, created_at, deadline, clients(name)")
       .order("created_at", { ascending: false })
       .limit(4),
     supabase.from("projects").select("status"),
@@ -136,7 +161,35 @@ export async function GET() {
       .from("leads")
       .select("*", { count: "exact", head: true })
       .gte("created_at", startOfMonth.toISOString()),
+    supabase
+      .from("projects")
+      .select("id, title, deadline, status, clients(name)")
+      .not("deadline", "is", null)
+      .gte("deadline", todayDateStr)
+      .order("deadline", { ascending: true })
+      .limit(6),
+    supabase
+      .from("invoices")
+      .select("id, invoice_number, amount, created_at, clients(name)")
+      .eq("status", "paid")
+      .order("created_at", { ascending: false })
+      .limit(5),
+    supabase
+      .from("messages")
+      .select(
+        "id, subject, read, created_at, sender:profiles!messages_sender_id_fkey(full_name, email)",
+      )
+      .order("created_at", { ascending: false })
+      .limit(4),
   ]);
+
+  const { data: todayEventsRaw } = await supabase
+    .from("calendar_events")
+    .select("id, title, starts_at, event_type")
+    .gte("starts_at", startOfToday.toISOString())
+    .lte("starts_at", endOfToday.toISOString())
+    .order("starts_at", { ascending: true })
+    .limit(8);
 
   if (leadsError) {
     return NextResponse.json({ error: leadsError.message }, { status: 500 });
@@ -191,6 +244,44 @@ export async function GET() {
       status: p.status,
       created_at: p.created_at,
     })) ?? [];
+
+  const upcomingDeadlines =
+    (upcomingProjectsRaw as RecentProjectRow[] | null)?.map((p) => ({
+      id: p.id,
+      title: p.title,
+      deadline: p.deadline!,
+      status: p.status,
+      client_name: resolveClientName(p.clients),
+    })) ?? [];
+
+  const recentPayments =
+    (recentPaymentsRaw as RecentInvoiceRow[] | null)?.map((inv) => ({
+      id: inv.id,
+      invoice_number: inv.invoice_number,
+      amount: Number(inv.amount) || 0,
+      client_name: resolveClientName(inv.clients),
+      created_at: inv.created_at,
+    })) ?? [];
+
+  const todayEvents =
+    (todayEventsRaw as CalendarEventRow[] | null)?.map((event) => ({
+      id: event.id,
+      title: event.title,
+      starts_at: event.starts_at,
+      event_type: event.event_type,
+    })) ?? [];
+
+  const recentMessages =
+    (recentMessagesRaw as RecentMessageRow[] | null)?.map((msg) => {
+      const sender = Array.isArray(msg.sender) ? msg.sender[0] : msg.sender;
+      return {
+        id: msg.id,
+        subject: msg.subject,
+        read: msg.read,
+        created_at: msg.created_at,
+        sender_name: sender?.full_name?.trim() || sender?.email?.split("@")[0] || "Unknown",
+      };
+    }) ?? [];
 
   const activityFromLeads: ActivityItem[] =
     recentLeads?.map((lead) => ({
@@ -290,5 +381,9 @@ export async function GET() {
     recentProjects: recentProjectsNormalized,
     projectStatusCounts,
     recentActivity,
+    upcomingDeadlines,
+    recentPayments,
+    todayEvents,
+    recentMessages,
   });
 }

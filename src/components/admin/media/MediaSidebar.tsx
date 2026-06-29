@@ -1,15 +1,20 @@
 "use client";
 
+import { useMemo } from "react";
+import { StatsChart } from "@/components/admin/StatsChart";
 import { cn } from "@/lib/utils";
 import type { MediaFile, MediaFolder } from "@/lib/media/utils";
 import {
   MEDIA_FOLDERS,
   STORAGE_LIMIT_BYTES,
+  computeMediaStats,
   folderCount,
   formatBytes,
   getFileType,
   timeAgo,
 } from "@/lib/media/utils";
+
+const TYPE_COLORS = ["#34d399", "#c9a962", "#60a5fa", "#9ca3af"];
 
 type MediaSidebarProps = {
   files: MediaFile[];
@@ -35,6 +40,15 @@ export function MediaSidebar({
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     .slice(0, 4);
 
+  const typeOverview = useMemo(() => {
+    const stats = computeMediaStats(files);
+    return {
+      labels: ["Images", "Videos", "Documents", "Other"],
+      data: [stats.images, stats.videos, stats.documents, stats.other],
+      total: stats.total,
+    };
+  }, [files]);
+
   function handleDragOver(e: React.DragEvent) {
     e.preventDefault();
     e.stopPropagation();
@@ -51,6 +65,36 @@ export function MediaSidebar({
   return (
     <aside className="admin-media-sidebar">
       <div className="admin-media-sidebar-panel">
+        <section className="admin-media-sidebar-section">
+          <h3 className="admin-media-sidebar-title">Library Overview</h3>
+          <div className="admin-media-overview-chart">
+            <StatsChart
+              type="doughnut"
+              labels={typeOverview.labels}
+              datasets={[{ label: "Files", data: typeOverview.data, backgroundColor: TYPE_COLORS }]}
+              height={160}
+              emptyMessage="No files yet."
+              variant="luxury"
+              hideLegend
+            />
+            <p className="admin-media-overview-total">
+              <span className="text-2xl font-bold text-[var(--admin-text)]">{typeOverview.total}</span>
+              <span className="block text-xs text-[var(--admin-text-muted)]">Total Files</span>
+            </p>
+          </div>
+          <ul className="admin-media-overview-legend">
+            {typeOverview.labels.map((label, i) => (
+              <li key={label}>
+                <span className="admin-media-legend-dot" style={{ backgroundColor: TYPE_COLORS[i] }} />
+                {label}
+                <span className="ml-auto tabular-nums text-[var(--admin-text-muted)]">{typeOverview.data[i]}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <div className="admin-media-sidebar-divider" />
+
         <section className="admin-media-sidebar-section">
           <h3 className="admin-media-sidebar-title">Storage Overview</h3>
           <p className="admin-media-storage-label">

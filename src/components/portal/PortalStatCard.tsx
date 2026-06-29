@@ -23,6 +23,7 @@ export function PortalStatCard({
       href={href}
       accent={accent}
       icon={icon}
+      variant="admin"
     />
   );
 }

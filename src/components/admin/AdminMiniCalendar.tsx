@@ -1,8 +1,16 @@
 "use client";
 
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 const WEEKDAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+
+type TodayEvent = {
+  id: string;
+  title: string;
+  starts_at: string;
+  event_type: string;
+};
 
 function buildMonthGrid(year: number, month: number) {
   const firstDay = new Date(year, month, 1).getDay();
@@ -16,7 +24,19 @@ function buildMonthGrid(year: number, month: number) {
   return cells;
 }
 
-export function AdminMiniCalendar({ className }: { className?: string }) {
+function formatEventTime(startsAt: string) {
+  const date = new Date(startsAt);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+}
+
+export function AdminMiniCalendar({
+  className,
+  events = [],
+}: {
+  className?: string;
+  events?: TodayEvent[];
+}) {
   const now = new Date();
   const year = now.getFullYear();
   const month = now.getMonth();
@@ -56,14 +76,38 @@ export function AdminMiniCalendar({ className }: { className?: string }) {
       </div>
 
       <div className="border-t border-[var(--admin-border-subtle)] pt-4">
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--admin-gold)]">
-          Today&apos;s schedule
-        </p>
-        <p className="mt-2 text-sm text-[var(--admin-text-muted)]">
-          {now.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
-          {" — "}
-          <span className="text-[var(--admin-text-muted)]/80">No events scheduled</span>
-        </p>
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--admin-gold)]">
+            Today&apos;s schedule
+          </p>
+          <Link href="/admin/calendar" className="admin-dashboard-link text-[10px]">
+            + Add Event
+          </Link>
+        </div>
+        {events.length === 0 ? (
+          <p className="mt-2 text-sm text-[var(--admin-text-muted)]">
+            {now.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
+            {" — "}
+            <span>No events scheduled</span>
+          </p>
+        ) : (
+          <ul className="mt-3 space-y-2">
+            {events.map((event) => (
+              <li
+                key={event.id}
+                className="flex items-center gap-2 rounded-lg border border-[var(--admin-border-subtle)] px-2.5 py-2"
+              >
+                <span className="h-2 w-2 shrink-0 rounded-full bg-[var(--admin-gold)]" aria-hidden />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-xs font-medium text-[var(--admin-text)]">{event.title}</p>
+                  {formatEventTime(event.starts_at) ? (
+                    <p className="text-[10px] text-[var(--admin-text-muted)]">{formatEventTime(event.starts_at)}</p>
+                  ) : null}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );

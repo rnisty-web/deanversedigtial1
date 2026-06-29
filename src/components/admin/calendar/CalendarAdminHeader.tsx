@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 import type { CalendarViewMode } from "@/lib/calendar/types";
 import { monthYearLabel } from "@/lib/calendar/utils";
@@ -7,12 +8,11 @@ import { monthYearLabel } from "@/lib/calendar/utils";
 type CalendarAdminHeaderProps = {
   cursorDate: Date;
   viewMode: CalendarViewMode;
-  showFilters: boolean;
+  onViewModeChange: (mode: CalendarViewMode) => void;
   onToday: () => void;
   onPrev: () => void;
   onNext: () => void;
   onMonthChange: (year: number, month: number) => void;
-  onToggleFilters: () => void;
   onAddEvent: () => void;
 };
 
@@ -21,28 +21,45 @@ const MONTHS = [
   "July", "August", "September", "October", "November", "December",
 ];
 
+const VIEW_TABS: { id: CalendarViewMode; label: string }[] = [
+  { id: "month", label: "Month" },
+  { id: "week", label: "Week" },
+  { id: "day", label: "Day" },
+  { id: "agenda", label: "Agenda" },
+];
+
 export function CalendarAdminHeader({
   cursorDate,
   viewMode,
-  showFilters,
+  onViewModeChange,
   onToday,
   onPrev,
   onNext,
   onMonthChange,
-  onToggleFilters,
   onAddEvent,
 }: CalendarAdminHeaderProps) {
   const years = Array.from({ length: 5 }, (_, i) => cursorDate.getFullYear() - 2 + i);
 
   return (
-    <header className="admin-content-header shrink-0 border-b border-[var(--admin-border-subtle)] px-6 lg:px-8">
+    <header className="admin-content-header sticky top-0 z-20 shrink-0 border-b border-[var(--admin-border-subtle)] bg-[color-mix(in_srgb,var(--admin-bg)_90%,transparent)] px-6 backdrop-blur-xl lg:px-8">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div className="min-w-0">
-          <h1 className="admin-heading-serif admin-content-title text-2xl text-[var(--admin-text)] md:text-3xl">
-            Calendar <span aria-hidden>✨</span>
-          </h1>
+          <div className="flex flex-wrap items-start gap-3 pt-0.5">
+            <h1 className="admin-heading-serif admin-content-title text-2xl text-[var(--admin-text)] md:text-3xl">
+              Calendar <span aria-hidden>✨</span>
+            </h1>
+            <Link
+              href="/admin/projects"
+              className="admin-btn-ghost inline-flex items-center gap-1.5 px-3 py-1.5 text-xs"
+            >
+              Project Deadlines
+              <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+              </svg>
+            </Link>
+          </div>
           <p className="mt-1 text-sm text-[var(--admin-text-muted)]">
-            Manage your schedule, events, and important dates.
+            Manage your schedule, client meetings, deadlines, and internal events.
           </p>
         </div>
 
@@ -80,23 +97,23 @@ export function CalendarAdminHeader({
               ))}
             </select>
           </div>
-          <button
-            type="button"
-            onClick={onToggleFilters}
-            className={cn(
-              "admin-btn-ghost inline-flex items-center gap-1.5 px-3 py-2 text-sm",
-              showFilters && "border-[var(--admin-gold)]/40 text-[var(--admin-gold-light)]",
-            )}
-          >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z" />
-            </svg>
-            Filter
-          </button>
           <button type="button" onClick={onAddEvent} className="admin-btn-gold whitespace-nowrap px-4 py-2 text-sm">
-            + Add Event
+            + New Event
           </button>
         </div>
+      </div>
+
+      <div className="admin-calendar-tabs mt-4">
+        {VIEW_TABS.map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => onViewModeChange(tab.id)}
+            className={cn("admin-calendar-tab", viewMode === tab.id && "admin-calendar-tab-active")}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       <p className="sr-only">{monthYearLabel(cursorDate)} — {viewMode} view</p>
@@ -104,35 +121,31 @@ export function CalendarAdminHeader({
   );
 }
 
-export function CalendarViewTabs({
-  viewMode,
-  onChange,
+export function CalendarStatCard({
+  label,
+  value,
+  hint,
+  icon,
 }: {
-  viewMode: CalendarViewMode;
-  onChange: (mode: CalendarViewMode) => void;
+  label: string;
+  value: string | number;
+  hint?: string;
+  icon: React.ReactNode;
 }) {
-  const tabs: { id: CalendarViewMode; label: string }[] = [
-    { id: "month", label: "Month" },
-    { id: "week", label: "Week" },
-    { id: "day", label: "Day" },
-    { id: "agenda", label: "Agenda" },
-  ];
-
   return (
-    <div className="admin-calendar-view-tabs">
-      {tabs.map((tab) => (
-        <button
-          key={tab.id}
-          type="button"
-          onClick={() => onChange(tab.id)}
-          className={cn(
-            "admin-calendar-view-tab",
-            viewMode === tab.id && "admin-calendar-view-tab-active",
-          )}
-        >
-          {tab.label}
-        </button>
-      ))}
+    <div className="admin-calendar-stat-card">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="text-[11px] font-medium uppercase tracking-wider text-[var(--admin-text-muted)]">
+            {label}
+          </p>
+          <p className="mt-1 text-2xl font-bold tabular-nums text-[var(--admin-gold-light)]">{value}</p>
+          {hint ? <p className="mt-1.5 text-xs text-[var(--admin-text-muted)]">{hint}</p> : null}
+        </div>
+        <div className="admin-stat-icon-glow !h-10 !w-10 [&>svg]:h-[18px] [&>svg]:w-[18px]">
+          {icon}
+        </div>
+      </div>
     </div>
   );
 }

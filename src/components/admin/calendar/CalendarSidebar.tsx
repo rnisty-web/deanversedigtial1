@@ -1,18 +1,23 @@
 "use client";
 
+import { useMemo } from "react";
 import Link from "next/link";
+import { StatsChart } from "@/components/admin/StatsChart";
 import { cn } from "@/lib/utils";
 import type { CalendarEvent } from "@/lib/calendar/types";
 import {
   EVENT_TYPE_STYLES,
   WEEKDAY_SHORT,
   buildMonthCells,
+  countByEventType,
   endOfDay,
   eventsForDay,
   formatEventTime,
   formatUpcomingBlock,
   isSameDay,
 } from "@/lib/calendar/utils";
+
+const TYPE_COLORS = ["#34d399", "#38bdf8", "#a78bfa", "#fbbf24"];
 
 type CalendarSidebarProps = {
   cursorDate: Date;
@@ -45,9 +50,48 @@ export function CalendarSidebar({
     .sort((a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime())
     .slice(0, 4);
 
+  const typeOverview = useMemo(() => {
+    const counts = countByEventType(events);
+    return {
+      labels: ["Meetings", "Calls", "Deadlines", "Internal"],
+      data: [counts.meeting, counts.call, counts.deadline, counts.internal],
+      total: events.length,
+    };
+  }, [events]);
+
   return (
     <aside className="admin-calendar-sidebar">
       <div className="admin-calendar-sidebar-panel">
+        <section className="admin-calendar-sidebar-section">
+          <h3 className="admin-calendar-sidebar-title">Events Overview</h3>
+          <div className="admin-calendar-overview-chart">
+            <StatsChart
+              type="doughnut"
+              labels={typeOverview.labels}
+              datasets={[{ label: "Events", data: typeOverview.data, backgroundColor: TYPE_COLORS }]}
+              height={150}
+              emptyMessage="No events yet."
+              variant="luxury"
+              hideLegend
+            />
+            <p className="admin-calendar-overview-total">
+              <span className="text-2xl font-bold text-[var(--admin-text)]">{typeOverview.total}</span>
+              <span className="block text-xs text-[var(--admin-text-muted)]">Total Events</span>
+            </p>
+          </div>
+          <ul className="admin-calendar-overview-legend">
+            {typeOverview.labels.map((label, i) => (
+              <li key={label}>
+                <span className="admin-calendar-legend-dot" style={{ backgroundColor: TYPE_COLORS[i] }} />
+                {label}
+                <span className="ml-auto tabular-nums text-[var(--admin-text-muted)]">{typeOverview.data[i]}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <div className="admin-calendar-sidebar-divider" />
+
         {/* Mini calendar */}
         <div className="admin-calendar-mini">
           <p className="admin-calendar-mini-title">

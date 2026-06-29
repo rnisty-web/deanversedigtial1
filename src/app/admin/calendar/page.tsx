@@ -9,7 +9,7 @@ import { AdminPageContent } from "@/components/admin/AdminPageContent";
 import {
   CalendarAdminHeader,
   CalendarLegend,
-  CalendarViewTabs,
+  CalendarStatCard,
 } from "@/components/admin/calendar/CalendarAdminHeader";
 import { CalendarAgendaView } from "@/components/admin/calendar/CalendarAgendaView";
 import { CalendarDayView } from "@/components/admin/calendar/CalendarDayView";
@@ -20,7 +20,35 @@ import { CalendarWeekView } from "@/components/admin/calendar/CalendarWeekView";
 import { Button } from "@/components/ui/Button";
 import type { CalendarEvent, CalendarEventType, CalendarViewMode } from "@/lib/calendar/types";
 import { CALENDAR_EVENT_TYPES, EVENT_TYPE_LABELS } from "@/lib/calendar/types";
-import { addDays, addMonths, filterEventsByType } from "@/lib/calendar/utils";
+import { addDays, addMonths, computeCalendarStats, filterEventsByType, monthEventsHint, pct } from "@/lib/calendar/utils";
+
+const statIcons = {
+  total: (
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+    </svg>
+  ),
+  today: (
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  ),
+  week: (
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+    </svg>
+  ),
+  upcoming: (
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+    </svg>
+  ),
+  meetings: (
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
+    </svg>
+  ),
+};
 
 const emptyForm = {
   title: "",
@@ -57,7 +85,6 @@ export default function AdminCalendarPage() {
   const [cursorDate, setCursorDate] = useState(() => new Date());
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [typeFilter, setTypeFilter] = useState<CalendarEventType[] | "all">("all");
-  const [showFilters, setShowFilters] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editEvent, setEditEvent] = useState<CalendarEvent | null>(null);
   const [form, setForm] = useState(emptyForm);
@@ -87,6 +114,8 @@ export default function AdminCalendarPage() {
     () => filterEventsByType(events, typeFilter),
     [events, typeFilter],
   );
+
+  const stats = useMemo(() => computeCalendarStats(events), [events]);
 
   function goToday() {
     const now = new Date();
@@ -237,12 +266,11 @@ export default function AdminCalendarPage() {
       <CalendarAdminHeader
         cursorDate={cursorDate}
         viewMode={viewMode}
-        showFilters={showFilters}
+        onViewModeChange={setViewMode}
         onToday={goToday}
         onPrev={goPrev}
         onNext={goNext}
         onMonthChange={(year, month) => setCursorDate(new Date(year, month, 1))}
-        onToggleFilters={() => setShowFilters((v) => !v)}
         onAddEvent={() => openCreate()}
       />
 
@@ -267,13 +295,42 @@ export default function AdminCalendarPage() {
           </AdminAlert>
         )}
 
+        <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+          <CalendarStatCard
+            label="Total Events"
+            value={stats.total}
+            hint={monthEventsHint(events)}
+            icon={statIcons.total}
+          />
+          <CalendarStatCard
+            label="Today"
+            value={stats.today}
+            hint="Scheduled for today"
+            icon={statIcons.today}
+          />
+          <CalendarStatCard
+            label="This Week"
+            value={stats.thisWeek}
+            hint={`${pct(stats.thisWeek, stats.total)} of total`}
+            icon={statIcons.week}
+          />
+          <CalendarStatCard
+            label="Upcoming"
+            value={stats.upcoming}
+            hint="After today"
+            icon={statIcons.upcoming}
+          />
+          <CalendarStatCard
+            label="Meetings"
+            value={stats.meetings}
+            hint={`${pct(stats.meetings, stats.total)} of total`}
+            icon={statIcons.meetings}
+          />
+        </div>
+
         <div className="admin-calendar-layout">
           <div className="admin-calendar-main">
-            <CalendarViewTabs viewMode={viewMode} onChange={setViewMode} />
-
-            {showFilters && (
-              <CalendarFilterBar activeTypes={typeFilter} onChange={setTypeFilter} />
-            )}
+            <CalendarFilterBar activeTypes={typeFilter} onChange={setTypeFilter} />
 
             {loading ? (
               <div className="admin-calendar-loading">

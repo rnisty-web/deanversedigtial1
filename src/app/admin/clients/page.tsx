@@ -299,26 +299,37 @@ export default function AdminClientsPage() {
     setDateTo(range.to);
   }
 
+  const tabCounts = useMemo(
+    () => ({
+      all: clients.length,
+      active: clients.filter((c) => c.status === "active").length,
+      inactive: clients.filter((c) => c.status === "inactive").length,
+      archived: clients.filter((c) => c.status === "archived").length,
+    }),
+    [clients],
+  );
+
   return (
     <div className="admin-clients-page">
       <ClientsAdminHeader
         search={search}
         onSearchChange={setSearch}
-        showFilters={showFilters}
-        onToggleFilters={() => setShowFilters((v) => !v)}
         onAddClient={openCreate}
+        tab={statusFilter}
+        onTabChange={setStatusFilter}
+        counts={tabCounts}
       />
 
       <AdminPageContent className="admin-clients-content">
         {error && <AdminAlert tone="error" className="mb-4">{error}</AdminAlert>}
         {success && <AdminAlert tone="success" className="mb-4">{success}</AdminAlert>}
 
-        <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           <ClientsStatCard label="Total Clients" value={stats.totalClients} hint={monthGrowthHint(clients)} icon={statIcons.total} />
           <ClientsStatCard label="Active Clients" value={stats.activeClients} hint={`${pct(stats.activeClients, stats.totalClients)} of total`} icon={statIcons.active} />
           <ClientsStatCard label="Projects in Progress" value={stats.projectsInProgress} hint={`${pct(stats.projectsInProgress, Math.max(stats.totalClients, 1))} active clients`} icon={statIcons.projects} />
-          <ClientsStatCard label="Outstanding Invoices" value={stats.outstandingInvoices} hint={formatCurrencyDetailed(stats.outstandingTotal)} icon={statIcons.invoices} goldValue />
-          <ClientsStatCard label="Total Revenue" value={formatCurrency(stats.totalRevenue)} hint={monthGrowthHint(clients, (c) => c.revenue > 0)} icon={statIcons.revenue} goldValue />
+          <ClientsStatCard label="Outstanding Invoices" value={stats.outstandingInvoices} hint={formatCurrencyDetailed(stats.outstandingTotal)} icon={statIcons.invoices} />
+          <ClientsStatCard label="Total Revenue" value={formatCurrency(stats.totalRevenue)} hint={monthGrowthHint(clients, (c) => c.revenue > 0)} icon={statIcons.revenue} />
         </div>
 
         <div className="admin-clients-layout">
@@ -326,14 +337,6 @@ export default function AdminClientsPage() {
             <div className={cn("admin-clients-toolbar", !showFilters && "admin-clients-toolbar-compact")}>
               {showFilters && (
                 <div className="flex flex-wrap gap-2">
-                  <ClientsSelect
-                    value={statusFilter}
-                    onChange={setStatusFilter}
-                    options={[
-                      { value: "all", label: "All Statuses" },
-                      ...CLIENT_STATUSES.map((s) => ({ value: s, label: statusStyle(s).label })),
-                    ]}
-                  />
                   <ClientsSelect value={industryFilter} onChange={setIndustryFilter} options={industryOptions} />
                   <ClientsSelect
                     value={vipFilter}
@@ -356,6 +359,16 @@ export default function AdminClientsPage() {
               )}
 
               <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowFilters((v) => !v)}
+                  className={cn(
+                    "admin-btn-ghost inline-flex items-center gap-1.5 px-3 py-2 text-xs",
+                    showFilters && "border-[var(--admin-gold)]/40 text-[var(--admin-gold-light)]",
+                  )}
+                >
+                  Filters
+                </button>
                 <div className="admin-clients-date-range">
                   <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="admin-clients-date-input" aria-label="From date" />
                   <span className="text-[var(--admin-text-muted)]">–</span>
@@ -378,6 +391,9 @@ export default function AdminClientsPage() {
                   </button>
                 </div>
 
+                <span className="text-xs text-[var(--admin-text-muted)]">
+                  {filtered.length} {filtered.length === 1 ? "client" : "clients"}
+                </span>
                 <button type="button" onClick={() => exportClientsCsv(filtered)} className="admin-btn-ghost px-3 py-2 text-xs">Export</button>
               </div>
             </div>

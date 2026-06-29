@@ -32,7 +32,7 @@ export function AdminHeader({
   }
 
   return (
-    <header className="sticky top-0 z-10 shrink-0 border-b border-[var(--admin-border-subtle)] bg-[var(--admin-bg)]/85 px-4 py-4 backdrop-blur-xl sm:px-6 lg:px-8">
+    <header className="admin-content-header sticky top-0 z-10 shrink-0 border-b border-[var(--admin-border-subtle)] bg-[color-mix(in_srgb,var(--admin-bg)_88%,transparent)] px-4 py-4 backdrop-blur-xl sm:px-6 lg:px-8">
       <div className="mx-auto flex max-w-[1600px] flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
         <div className="min-w-0 flex-1">
           {showPortalBadge && (
@@ -40,8 +40,8 @@ export function AdminHeader({
               Admin Portal
             </p>
           )}
-          <h1 className="truncate text-2xl font-semibold tracking-tight text-[var(--admin-text)] sm:text-[1.75rem]">
-            {title}
+          <h1 className="admin-heading-serif truncate text-2xl text-[var(--admin-text)] sm:text-[1.75rem]">
+            {title} <span aria-hidden>✨</span>
           </h1>
           {subtitle && (
             <p className="mt-1 max-w-2xl text-sm leading-relaxed text-[var(--admin-text-muted)]">
@@ -55,10 +55,10 @@ export function AdminHeader({
           <div className="flex flex-wrap items-center gap-2">
             {showActivityPicker && <ActivityStatusQuickPicker />}
             {actions}
-            <a href="/portal" className="admin-nav-link hidden px-4 sm:inline-flex">
+            <a href="/portal" className="admin-btn-ghost hidden px-4 sm:inline-flex">
               Client Portal
             </a>
-            <button type="button" onClick={handleSignOut} className="admin-nav-link px-4">
+            <button type="button" onClick={handleSignOut} className="admin-btn-ghost px-4">
               Sign out
             </button>
           </div>
@@ -92,6 +92,7 @@ export function AdminSearchBar({
       </svg>
       <input
         type="search"
+        data-admin-search
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}

@@ -412,21 +412,34 @@ export default function AdminLeadsPage() {
     setDateTo(range.to);
   }
 
+  const tabCounts = useMemo(
+    () => ({
+      all: leads.length,
+      new: leads.filter((l) => l.status === "new").length,
+      contacted: leads.filter((l) => l.status === "contacted").length,
+      qualified: leads.filter((l) => l.status === "qualified").length,
+      converted: leads.filter((l) => l.status === "converted").length,
+      lost: leads.filter((l) => l.status === "lost").length,
+    }),
+    [leads],
+  );
+
   return (
     <div className="admin-leads-page">
       <LeadsAdminHeader
         search={search}
         onSearchChange={setSearch}
-        showFilters={showFilters}
-        onToggleFilters={() => setShowFilters((v) => !v)}
         onAddLead={() => setAddLeadOpen(true)}
+        tab={statusFilter}
+        onTabChange={setStatusFilter}
+        counts={tabCounts}
       />
 
       <AdminPageContent className="admin-leads-content">
         {error && <AdminAlert tone="error" className="mb-4">{error}</AdminAlert>}
         {success && <AdminAlert tone="success" className="mb-4">{success}</AdminAlert>}
 
-        <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           {STAT_CARDS.map((card) => (
             <LeadsStatCard
               key={card.id}
@@ -446,21 +459,20 @@ export default function AdminLeadsPage() {
                 <div className="flex flex-wrap gap-2">
                   <LeadsSelect value={sourceFilter} onChange={setSourceFilter} options={sourceOptions} />
                   <LeadsSelect value={serviceFilter} onChange={setServiceFilter} options={serviceOptions} />
-                  <LeadsSelect
-                    value={statusFilter}
-                    onChange={setStatusFilter}
-                    options={[
-                      { value: "all", label: "All Statuses" },
-                      ...leadStatuses.map((s) => ({
-                        value: s,
-                        label: s === "converted" ? "Won" : s.charAt(0).toUpperCase() + s.slice(1),
-                      })),
-                    ]}
-                  />
                 </div>
               )}
 
               <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowFilters((v) => !v)}
+                  className={cn(
+                    "admin-btn-ghost inline-flex items-center gap-1.5 px-3 py-2 text-xs",
+                    showFilters && "border-[var(--admin-gold)]/40 text-[var(--admin-gold-light)]",
+                  )}
+                >
+                  Filters
+                </button>
                 <div className="admin-leads-date-range">
                   <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="admin-leads-date-input" aria-label="From date" />
                   <span className="text-[var(--admin-text-muted)]">–</span>
@@ -493,6 +505,9 @@ export default function AdminLeadsPage() {
                   </button>
                 </div>
 
+                <span className="text-xs text-[var(--admin-text-muted)]">
+                  {filtered.length} {filtered.length === 1 ? "lead" : "leads"}
+                </span>
                 <button type="button" onClick={() => exportLeadsCsv(filtered)} className="admin-btn-ghost px-3 py-2 text-xs">
                   Export
                 </button>

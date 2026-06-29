@@ -7,5 +7,5 @@ type PortalModalProps = Omit<AppModalProps, "variant" | "size"> & {
 };
 
 export function PortalModal({ size = "md", ...props }: PortalModalProps) {
-  return <AppModal {...props} size={size} variant="portal" />;
+  return <AppModal {...props} size={size} variant="admin" />;
 }

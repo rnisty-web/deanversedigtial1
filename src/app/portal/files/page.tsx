@@ -2,6 +2,7 @@
 
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { AdminAlert } from "@/components/admin/AdminAlert";
 import { Button } from "@/components/ui/Button";
 import { PortalPageContent } from "@/components/portal/PortalPageContent";
 import { PortalPageHeader } from "@/components/portal/PortalPageHeader";
@@ -33,7 +34,7 @@ function formatBytes(bytes: number | null) {
 }
 
 function FileTypeIcon({ mime }: { mime: string | null }) {
-  const className = "h-8 w-8 shrink-0 text-[var(--accent)]";
+  const className = "h-8 w-8 shrink-0 text-[var(--admin-gold-light)]";
 
   if (mime?.startsWith("image/")) {
     return (
@@ -193,6 +194,10 @@ function PortalFilesInner() {
       <PortalPageHeader
         title="Project files"
         subtitle="Secure deliverables hub — upload assets, download proofs, and share project materials."
+        breadcrumb={[
+          { label: "Dashboard", href: "/portal" },
+          { label: "Files" },
+        ]}
       />
 
       <PortalCard padding="md" className="mb-6">
@@ -202,11 +207,11 @@ function PortalFilesInner() {
               <select
                 value={projectFilter}
                 onChange={(e) => setProjectFilter(e.target.value)}
-                className="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white sm:max-w-xs"
+                className="admin-entity-select w-full sm:max-w-xs"
               >
                 <option value="">All projects</option>
                 {projects.map((p) => (
-                  <option key={p.id} value={p.id} className="bg-[#0f1a17]">
+                  <option key={p.id} value={p.id}>
                     {p.title}
                   </option>
                 ))}
@@ -217,7 +222,7 @@ function PortalFilesInner() {
               placeholder="Search files…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white"
+              className="admin-input flex-1"
             />
           </div>
 
@@ -234,21 +239,21 @@ function PortalFilesInner() {
               onChange={handleUpload}
               disabled={uploading || projects.length === 0}
             />
-            <span className="inline-flex h-10 items-center rounded-xl bg-[#6f8f72] px-4 text-sm font-medium text-white transition-opacity hover:opacity-90">
+            <span className="admin-btn-gold inline-flex h-10 items-center px-4 text-sm">
               {uploading ? "Uploading…" : "Upload file"}
             </span>
           </label>
         </div>
 
         {uploadState && (
-          <div className="mt-4 rounded-xl border border-white/10 bg-white/[0.03] p-4">
+          <div className="mt-4 rounded-[var(--admin-radius)] border border-[var(--admin-border-subtle)] bg-[var(--admin-panel)] p-4">
             <div className="flex items-center justify-between gap-3 text-sm">
-              <p className="truncate text-white/80">{uploadState.filename}</p>
-              <span className="shrink-0 tabular-nums text-white/45">{uploadState.progress}%</span>
+              <p className="truncate text-[var(--admin-text)]">{uploadState.filename}</p>
+              <span className="shrink-0 tabular-nums text-[var(--admin-text-muted)]">{uploadState.progress}%</span>
             </div>
-            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
+            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[var(--admin-panel-hover)]">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] transition-all duration-200"
+                className="h-full rounded-full bg-gradient-to-r from-[var(--admin-emerald)] to-[var(--admin-gold)] transition-all duration-200"
                 style={{ width: `${uploadState.progress}%` }}
               />
             </div>
@@ -256,25 +261,33 @@ function PortalFilesInner() {
         )}
 
         {uploadSuccess && (
-          <p className="mt-3 rounded-lg border border-[var(--accent)]/25 bg-[var(--primary)]/10 px-3 py-2 text-sm text-[var(--accent)]">
+          <AdminAlert tone="success" className="mt-3">
             {uploadSuccess}
-          </p>
+          </AdminAlert>
         )}
 
         {projects.length === 0 && (
-          <p className="mt-3 text-sm text-amber-200/80">
+          <AdminAlert tone="warning" className="mt-3">
             No projects yet — message the team to get a project workspace set up.
-          </p>
+          </AdminAlert>
         )}
-        {uploadError && <p className="mt-3 text-sm text-red-400">{uploadError}</p>}
+        {uploadError && (
+          <AdminAlert tone="error" className="mt-3">
+            {uploadError}
+          </AdminAlert>
+        )}
       </PortalCard>
 
       {loading ? (
-        <p className="text-white/50">Loading files…</p>
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="admin-luxury-card h-32 animate-pulse" />
+          ))}
+        </div>
       ) : filtered.length === 0 ? (
         <PortalCard padding="lg" className="text-center">
-          <p className="text-white/60">No files found.</p>
-          <p className="mt-2 text-sm text-white/40">
+          <p className="text-[var(--admin-text-muted)]">No files found.</p>
+          <p className="mt-2 text-sm text-[var(--admin-text-muted)]">
             Upload brand assets, content, or reference materials for your project.
           </p>
         </PortalCard>
@@ -285,14 +298,13 @@ function PortalFilesInner() {
               <div className="flex items-start gap-3">
                 <FileTypeIcon mime={file.mime_type} />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium text-white">{file.name}</p>
-                  <p className="mt-1 text-xs text-white/40">
+                  <p className="truncate font-medium text-[var(--admin-text)]">{file.name}</p>
+                  <p className="mt-1 text-xs text-[var(--admin-text-muted)]">
                     {formatBytes(file.file_size)} · {new Date(file.created_at).toLocaleDateString()}
                   </p>
                   <Button
                     size="sm"
-                    variant="ghost"
-                    className="mt-3"
+                    className="admin-btn-ghost mt-3 px-3 py-1.5 text-xs"
                     onClick={() => handleDownload(file.file_path)}
                   >
                     Download
@@ -309,7 +321,17 @@ function PortalFilesInner() {
 
 export default function PortalFilesPage() {
   return (
-    <Suspense fallback={<PortalPageContent><p className="text-white/50">Loading files…</p></PortalPageContent>}>
+    <Suspense
+      fallback={
+        <PortalPageContent>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="admin-luxury-card h-32 animate-pulse" />
+            ))}
+          </div>
+        </PortalPageContent>
+      }
+    >
       <PortalFilesInner />
     </Suspense>
   );

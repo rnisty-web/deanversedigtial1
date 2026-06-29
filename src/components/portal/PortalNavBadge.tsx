@@ -32,29 +32,12 @@ export function PortalNavBadge({
       ? `${count} unread message${count === 1 ? "" : "s"}`
       : `${count} unpaid invoice${count === 1 ? "" : "s"}`;
 
-  if (variant === "mobile") {
-    return (
-      <span
-        className={cn(
-          "ml-1.5 inline-flex min-w-[1.125rem] items-center justify-center rounded-full px-1.5 py-0.5 text-[10px] font-semibold tabular-nums",
-          overdue
-            ? "bg-amber-500/90 text-[#0f1a17]"
-            : "bg-white/20 text-white",
-        )}
-        aria-label={label}
-      >
-        {count > 9 ? "9+" : count}
-      </span>
-    );
-  }
-
   return (
     <span
       className={cn(
-        "ml-auto inline-flex min-w-[1.25rem] items-center justify-center rounded-full px-1.5 py-0.5 text-[10px] font-semibold tabular-nums ring-1",
-        overdue
-          ? "bg-amber-500/20 text-amber-200 ring-amber-400/30"
-          : "bg-[var(--primary)]/25 text-[var(--accent)] ring-[var(--primary)]/40",
+        variant === "sidebar" ? "ml-auto" : "ml-1.5",
+        overdue ? "bg-amber-500/20 text-amber-200 ring-1 ring-amber-400/30" : "admin-nav-badge",
+        variant === "mobile" && "min-w-[1.125rem] px-1.5 py-0.5",
       )}
       aria-label={label}
     >

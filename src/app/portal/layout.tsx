@@ -1,13 +1,17 @@
-import Link from "next/link";
+import { Cormorant_Garamond } from "next/font/google";
 import { Suspense } from "react";
 import { requireAuth } from "@/lib/auth";
-import { siteConfig } from "@/lib/constants";
-import { PortalNav } from "@/components/portal/PortalNav";
-import { PortalHeader } from "@/components/portal/PortalHeader";
+import { AdminFooter } from "@/components/admin/AdminFooter";
 import { PortalMobileNav } from "@/components/portal/PortalMobileNav";
 import { PortalNotice } from "@/components/portal/PortalNotice";
-import { BrandLogo } from "@/components/ui/BrandLogo";
-import { LiquidBackground } from "@/components/layout/LiquidBackground";
+import { PortalSidebar } from "@/components/portal/PortalSidebar";
+
+const portalSerif = Cormorant_Garamond({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-admin-serif",
+  display: "swap",
+});
 
 export const dynamic = "force-dynamic";
 
@@ -19,39 +23,18 @@ export default async function PortalLayout({
   const profile = await requireAuth();
 
   return (
-    <div className="relative flex min-h-screen bg-[var(--background)]">
-      <LiquidBackground />
-      <aside className="liquid-glass-strong relative z-10 hidden w-64 shrink-0 flex-col border-r border-white/10 lg:flex">
-        <div className="border-b border-white/10 px-4 py-5">
-          <Link href="/portal" className="block transition-opacity hover:opacity-90">
-            <BrandLogo
-              width={200}
-              height={260}
-              className="mx-auto h-20 w-auto max-w-[210px]"
-            />
-            <p className="mt-3 text-center text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--accent)]">
-              Client Portal
-            </p>
-          </Link>
-        </div>
-        <PortalNav />
-        <div className="mt-auto border-t border-white/10 p-4">
-          <p className="text-[11px] leading-relaxed text-white/35">
-            Questions about your project? Use Messages or contact{" "}
-            <span className="text-[var(--accent)]">{siteConfig.email}</span>
-          </p>
-        </div>
-      </aside>
-      <main className="relative z-10 flex min-w-0 flex-1 flex-col overflow-hidden">
-        <PortalHeader profile={profile} />
+    <div className={`portal-theme ${portalSerif.variable} flex h-screen overflow-hidden`}>
+      <PortalSidebar profile={profile} />
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         <PortalMobileNav />
         <Suspense fallback={null}>
           <PortalNotice />
         </Suspense>
-        <div className="flex-1 overflow-y-auto overscroll-y-contain pb-[env(safe-area-inset-bottom)]">
+        <main className="admin-main-scroll min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
           {children}
-        </div>
-      </main>
+        </main>
+        <AdminFooter />
+      </div>
     </div>
   );
 }

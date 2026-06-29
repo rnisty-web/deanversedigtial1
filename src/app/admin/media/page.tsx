@@ -2,12 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AdminAlert } from "@/components/admin/AdminAlert";
+import { AdminEmptyState } from "@/components/admin/AdminEmptyState";
 import { AdminPageContent } from "@/components/admin/AdminPageContent";
 import {
   MediaAdminHeader,
   MediaSelect,
   MediaStatCard,
-  MediaViewTabs,
 } from "@/components/admin/media/MediaAdminHeader";
 import { MediaFileCard, MediaFileListRow } from "@/components/admin/media/MediaFileCard";
 import { MediaPagination } from "@/components/admin/media/MediaPagination";
@@ -16,9 +16,9 @@ import { cn } from "@/lib/utils";
 import type { MediaFile, MediaFolder, MediaSizeFilter, MediaSort, MediaTab } from "@/lib/media/utils";
 import {
   MAX_UPLOAD_BYTES,
-  fileMatchesFolder,
-  getFileType,
-  matchesSizeFilter,
+  computeMediaStats,
+  computeMediaTabCounts,
+  filterMediaFiles,
   monthGrowthHint,
   pct,
 } from "@/lib/media/utils";
@@ -67,7 +67,6 @@ export default function AdminMediaPage() {
   const [activeFolder, setActiveFolder] = useState<MediaFolder>("all");
   const [sizeFilter, setSizeFilter] = useState<MediaSizeFilter>("all");
   const [sortBy, setSortBy] = useState<MediaSort>("newest");
-  const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [bulkMode, setBulkMode] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -97,40 +96,20 @@ export default function AdminMediaPage() {
     setPage(1);
   }, [search, activeTab, activeFolder, sizeFilter, sortBy, perPage]);
 
-  const stats = useMemo(() => {
-    const total = files.length;
-    const images = files.filter((f) => getFileType(f.name) === "image").length;
-    const videos = files.filter((f) => getFileType(f.name) === "video").length;
-    const documents = files.filter((f) => getFileType(f.name) === "document").length;
-    const other = files.filter((f) => getFileType(f.name) === "other").length;
-    return { total, images, videos, documents, other };
-  }, [files]);
+  const stats = useMemo(() => computeMediaStats(files), [files]);
+  const tabCounts = useMemo(() => computeMediaTabCounts(files), [files]);
 
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    let list = files.filter((f) => fileMatchesFolder(f, activeFolder));
-
-    if (activeTab !== "all") {
-      list = list.filter((f) => getFileType(f.name) === activeTab);
-    }
-
-    list = list.filter((f) => matchesSizeFilter(f.size, sizeFilter));
-
-    if (q) {
-      list = list.filter((f) => f.name.toLowerCase().includes(q));
-    }
-
-    list = [...list].sort((a, b) => {
-      if (sortBy === "name") return a.name.localeCompare(b.name);
-      if (sortBy === "size") return b.size - a.size;
-      if (sortBy === "oldest") {
-        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-      }
-      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-    });
-
-    return list;
-  }, [files, search, activeTab, activeFolder, sizeFilter, sortBy]);
+  const filtered = useMemo(
+    () =>
+      filterMediaFiles(files, {
+        search,
+        activeTab,
+        activeFolder,
+        sizeFilter,
+        sortBy,
+      }),
+    [files, search, activeTab, activeFolder, sizeFilter, sortBy],
+  );
 
   const paginated = useMemo(() => {
     const start = (page - 1) * perPage;
@@ -250,17 +229,18 @@ export default function AdminMediaPage() {
       <MediaAdminHeader
         search={search}
         onSearchChange={setSearch}
-        showFilters={showFilters}
-        onToggleFilters={() => setShowFilters((v) => !v)}
         onUpload={() => uploadRef.current?.click()}
         uploading={uploading}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        tabCounts={tabCounts}
       />
 
       <AdminPageContent className="admin-media-content">
         {error && <AdminAlert tone="error" className="mb-4">{error}</AdminAlert>}
         {success && <AdminAlert tone="success" className="mb-4">{success}</AdminAlert>}
 
-        <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           <MediaStatCard label="Total Files" value={stats.total} hint={monthGrowthHint(files)} icon={statIcons.total} />
           <MediaStatCard label="Images" value={stats.images} hint={`${pct(stats.images, stats.total)} of total`} icon={statIcons.images} />
           <MediaStatCard label="Videos" value={stats.videos} hint={`${pct(stats.videos, stats.total)} of total`} icon={statIcons.videos} />
@@ -270,12 +250,7 @@ export default function AdminMediaPage() {
 
         <div className="admin-media-layout">
           <div className="admin-media-main">
-            <MediaViewTabs
-              activeTab={activeTab}
-              onChange={(tab) => setActiveTab(tab as MediaTab)}
-            />
-
-            <div className={cn("admin-media-toolbar", !showFilters && "admin-media-toolbar-compact")}>
+            <div className="admin-media-toolbar">
               <div className="flex flex-wrap gap-2">
                 <MediaSelect
                   value={activeFolder}
@@ -288,17 +263,6 @@ export default function AdminMediaPage() {
                     { value: "documents", label: "Documents" },
                     { value: "logos", label: "Logos & Icons" },
                     { value: "backgrounds", label: "Backgrounds" },
-                    { value: "other", label: "Other" },
-                  ]}
-                />
-                <MediaSelect
-                  value={activeTab}
-                  onChange={(v) => setActiveTab(v as MediaTab)}
-                  options={[
-                    { value: "all", label: "All Types" },
-                    { value: "image", label: "Images" },
-                    { value: "video", label: "Videos" },
-                    { value: "document", label: "Documents" },
                     { value: "other", label: "Other" },
                   ]}
                 />
@@ -368,6 +332,9 @@ export default function AdminMediaPage() {
                     Delete ({selected.size})
                   </button>
                 )}
+                <span className="text-xs text-[var(--admin-text-muted)]">
+                  {filtered.length} {filtered.length === 1 ? "file" : "files"}
+                </span>
               </div>
             </div>
 
@@ -378,14 +345,16 @@ export default function AdminMediaPage() {
                 ))}
               </div>
             ) : filtered.length === 0 ? (
-              <div className="admin-media-empty">
-                <p className="text-sm text-[var(--admin-text-muted)]">
-                  {files.length === 0 ? "No media uploaded yet." : "No files match your filters."}
-                </p>
-                <button type="button" className="admin-btn-gold mt-4 px-4 py-2 text-sm" onClick={() => uploadRef.current?.click()}>
-                  + Upload Files
-                </button>
-              </div>
+              <AdminEmptyState
+                title={files.length === 0 ? "No media uploaded yet" : "No files match your filters"}
+                description={
+                  files.length === 0
+                    ? "Upload images, videos, and documents to use across your site and CMS."
+                    : "Try a different folder, type tab, or search term."
+                }
+                actionLabel="+ Upload Files"
+                onAction={() => uploadRef.current?.click()}
+              />
             ) : viewMode === "grid" ? (
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 {paginated.map((file) => (

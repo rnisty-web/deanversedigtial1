@@ -1,28 +1,34 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
+import { statusStyle } from "@/lib/projects/utils";
 
 type ProjectsAdminHeaderProps = {
   search: string;
   onSearchChange: (value: string) => void;
-  showFilters: boolean;
-  onToggleFilters: () => void;
   layoutMode: "list" | "kanban";
   onLayoutModeChange: (mode: "list" | "kanban") => void;
   onNewProject: () => void;
   newProjectDisabled?: boolean;
+  tab: string;
+  onTabChange: (tab: string) => void;
+  counts: Record<string, number> & { all: number };
 };
+
+const PROJECT_TABS = ["all", "planning", "in_progress", "completed", "on_hold"] as const;
 
 export function ProjectsAdminHeader({
   search,
   onSearchChange,
-  showFilters,
-  onToggleFilters,
   layoutMode,
   onLayoutModeChange,
   onNewProject,
   newProjectDisabled,
+  tab,
+  onTabChange,
+  counts,
 }: ProjectsAdminHeaderProps) {
   const searchRef = useRef<HTMLInputElement>(null);
 
@@ -38,44 +44,53 @@ export function ProjectsAdminHeader({
   }, []);
 
   return (
-    <header className="admin-content-header shrink-0 border-b border-[var(--admin-border-subtle)] px-6 lg:px-8">
+    <header className="admin-content-header sticky top-0 z-20 shrink-0 border-b border-[var(--admin-border-subtle)] bg-[color-mix(in_srgb,var(--admin-bg)_90%,transparent)] px-6 backdrop-blur-xl lg:px-8">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div className="min-w-0">
-          <h1 className="admin-heading-serif admin-content-title text-2xl text-[var(--admin-text)] md:text-3xl">
-            Projects <span aria-hidden>✨</span>
-          </h1>
+          <div className="flex flex-wrap items-start gap-3 pt-0.5">
+            <h1 className="admin-heading-serif admin-content-title text-2xl text-[var(--admin-text)] md:text-3xl">
+              Projects <span aria-hidden>✨</span>
+            </h1>
+            <Link href="/admin/clients" className="admin-btn-ghost inline-flex items-center gap-1.5 px-3 py-1.5 text-xs">
+              View Clients
+              <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+              </svg>
+            </Link>
+          </div>
           <p className="mt-1 text-sm text-[var(--admin-text-muted)]">
             Manage all client projects from start to finish.
           </p>
         </div>
 
         <div className="flex w-full flex-col gap-2 lg:w-auto">
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 sm:justify-end">
             <div className="admin-projects-view-switch">
               <button
                 type="button"
                 onClick={() => onLayoutModeChange("kanban")}
                 className={cn("admin-projects-view-switch-btn", layoutMode === "kanban" && "admin-projects-view-switch-btn-active")}
               >
-                Kanban View
+                Kanban
               </button>
               <button
                 type="button"
                 onClick={() => onLayoutModeChange("list")}
                 className={cn("admin-projects-view-switch-btn", layoutMode === "list" && "admin-projects-view-switch-btn-active")}
               >
-                List View
+                List
               </button>
             </div>
           </div>
 
           <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center lg:min-w-[520px]">
             <div className="relative min-w-0 flex-1">
-              <svg className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--admin-text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <svg className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--admin-text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
               </svg>
               <input
                 ref={searchRef}
+                data-admin-search
                 type="search"
                 value={search}
                 onChange={(e) => onSearchChange(e.target.value)}
@@ -88,19 +103,6 @@ export function ProjectsAdminHeader({
             </div>
             <button
               type="button"
-              onClick={onToggleFilters}
-              className={cn(
-                "admin-btn-ghost inline-flex items-center gap-1.5 px-3 py-2 text-sm",
-                showFilters && "border-[var(--admin-gold)]/40 text-[var(--admin-gold-light)]",
-              )}
-            >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z" />
-              </svg>
-              Filters
-            </button>
-            <button
-              type="button"
               onClick={onNewProject}
               disabled={newProjectDisabled}
               className="admin-btn-gold whitespace-nowrap px-4 py-2 text-sm disabled:opacity-50"
@@ -109,6 +111,20 @@ export function ProjectsAdminHeader({
             </button>
           </div>
         </div>
+      </div>
+
+      <div className="admin-projects-tabs mt-4">
+        {PROJECT_TABS.map((id) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => onTabChange(id)}
+            className={cn("admin-projects-tab", tab === id && "admin-projects-tab-active")}
+          >
+            {id === "all" ? "All" : statusStyle(id).label}
+            <span className="admin-projects-tab-badge">{counts[id] ?? 0}</span>
+          </button>
+        ))}
       </div>
     </header>
   );
@@ -119,7 +135,7 @@ export function ProjectsStatCard({
   value,
   hint,
   icon,
-  hintTone = "up",
+  hintTone = "neutral",
 }: {
   label: string;
   value: string | number;
@@ -132,12 +148,12 @@ export function ProjectsStatCard({
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <p className="text-[11px] font-medium uppercase tracking-wider text-[var(--admin-text-muted)]">{label}</p>
-          <p className="mt-1 text-2xl font-bold tabular-nums text-[var(--admin-text)]">{value}</p>
+          <p className="mt-1 text-2xl font-bold tabular-nums text-[var(--admin-gold-light)]">{value}</p>
           {hint ? (
             <p
               className={cn(
                 "mt-1.5 text-xs",
-                hintTone === "down" ? "text-red-300" : hintTone === "neutral" ? "text-[var(--admin-text-muted)]" : "admin-trend-up",
+                hintTone === "down" ? "text-red-300/90" : "text-[var(--admin-text-muted)]",
               )}
             >
               {hint}

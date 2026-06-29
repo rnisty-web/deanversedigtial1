@@ -1,4 +1,4 @@
-import { GlassCard } from "@/components/ui/GlassCard";
+import { AdminCard } from "@/components/admin/AdminCard";
 import { cn } from "@/lib/utils";
 
 export function PortalCard({
@@ -6,7 +6,6 @@ export function PortalCard({
   className,
   hover = false,
   padding = "md",
-  variant = "default",
 }: {
   children: React.ReactNode;
   className?: string;
@@ -15,13 +14,24 @@ export function PortalCard({
   variant?: "default" | "strong";
 }) {
   return (
-    <GlassCard
-      hover={hover}
-      padding={padding}
-      variant={variant}
-      className={cn("rounded-2xl", className)}
-    >
+    <AdminCard hover={hover} padding={padding} className={className}>
       {children}
-    </GlassCard>
+    </AdminCard>
+  );
+}
+
+export function PortalSectionCard({
+  children,
+  className,
+  id,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  id?: string;
+}) {
+  return (
+    <section id={id} className={cn("portal-section-card admin-luxury-card scroll-mt-28 p-5 sm:p-6", className)}>
+      {children}
+    </section>
   );
 }

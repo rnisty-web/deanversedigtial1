@@ -15,27 +15,18 @@ import {
 } from "@/components/admin/portfolio/PortfolioAdminHeader";
 import { PortfolioPagination } from "@/components/admin/portfolio/PortfolioPagination";
 import { PortfolioProjectCard } from "@/components/admin/portfolio/PortfolioProjectCard";
+import { PortfolioSidebar } from "@/components/admin/portfolio/PortfolioSidebar";
 import { Button } from "@/components/ui/Button";
 import type { PortfolioCaseStudy } from "@/types";
+import {
+  computePortfolioStats,
+  filterPortfolioItems,
+  monthGrowthHint,
+  pct,
+  type PortfolioRecord,
+  type PortfolioTab,
+} from "@/lib/portfolio/utils";
 import { cn } from "@/lib/utils";
-
-type PortfolioItem = {
-  id: string;
-  title: string;
-  slug: string;
-  description: string | null;
-  image_url: string | null;
-  live_url: string | null;
-  github_url: string | null;
-  tags: string[];
-  industry: string | null;
-  case_study: PortfolioCaseStudy | null;
-  featured: boolean;
-  published: boolean;
-  sort_order: number;
-  created_at: string;
-  updated_at: string;
-};
 
 const emptyCaseStudy: PortfolioCaseStudy = {
   challenge: "",
@@ -74,30 +65,6 @@ function slugify(value: string) {
     .replace(/^-|-$/g, "");
 }
 
-function pct(part: number, total: number) {
-  if (total === 0) return "0%";
-  return `${Math.round((part / total) * 100)}%`;
-}
-
-function monthGrowthHint(items: PortfolioItem[]) {
-  const now = new Date();
-  const thisMonth = items.filter((i) => {
-    const d = new Date(i.created_at);
-    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-  }).length;
-  const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-  const lastMonth = items.filter((i) => {
-    const d = new Date(i.created_at);
-    return d.getMonth() === lastMonthDate.getMonth() && d.getFullYear() === lastMonthDate.getFullYear();
-  }).length;
-  if (lastMonth === 0) {
-    return thisMonth > 0 ? `+ ${thisMonth} this month` : "No new projects this month";
-  }
-  const growth = Math.round(((thisMonth - lastMonth) / lastMonth) * 100);
-  const sign = growth >= 0 ? "+" : "";
-  return `${sign} ${growth}% this month`;
-}
-
 const statIcons = {
   total: (
     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -128,14 +95,14 @@ const statIcons = {
 };
 
 export default function AdminPortfolioPage() {
-  const [items, setItems] = useState<PortfolioItem[]>([]);
+  const [items, setItems] = useState<PortfolioRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [tagFilter, setTagFilter] = useState("all");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState<PortfolioTab>("all");
   const [timeFilter, setTimeFilter] = useState("all");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [page, setPage] = useState(1);
@@ -183,38 +150,32 @@ export default function AdminPortfolioPage() {
     return Array.from(set).sort();
   }, [items]);
 
-  const stats = useMemo(() => {
-    const total = items.length;
-    const published = items.filter((i) => i.published).length;
-    const drafts = items.filter((i) => !i.published).length;
-    const featured = items.filter((i) => i.featured).length;
-    return { total, published, drafts, featured, categories: categories.length };
-  }, [items, categories.length]);
+  const stats = useMemo(
+    () => computePortfolioStats(items, categories.length),
+    [items, categories.length],
+  );
 
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    const now = Date.now();
+  const tabCounts = useMemo(
+    () => ({
+      all: items.length,
+      published: items.filter((i) => i.published).length,
+      draft: items.filter((i) => !i.published).length,
+      featured: items.filter((i) => i.featured).length,
+    }),
+    [items],
+  );
 
-    return items.filter((item) => {
-      if (categoryFilter !== "all" && item.industry !== categoryFilter) return false;
-      if (tagFilter !== "all" && !item.tags.includes(tagFilter)) return false;
-      if (statusFilter === "published" && !item.published) return false;
-      if (statusFilter === "draft" && item.published) return false;
-      if (statusFilter === "featured" && !item.featured) return false;
-
-      if (timeFilter !== "all") {
-        const updated = new Date(item.updated_at).getTime();
-        const days =
-          timeFilter === "30d" ? 30 : timeFilter === "90d" ? 90 : timeFilter === "year" ? 365 : 0;
-        if (days && now - updated > days * 86400000) return false;
-      }
-
-      if (!q) return true;
-      return [item.title, item.description, item.industry, item.slug, ...item.tags]
-        .filter(Boolean)
-        .some((v) => String(v).toLowerCase().includes(q));
-    });
-  }, [items, search, categoryFilter, tagFilter, statusFilter, timeFilter]);
+  const filtered = useMemo(
+    () =>
+      filterPortfolioItems(items, {
+        search,
+        categoryFilter,
+        tagFilter,
+        statusFilter,
+        timeFilter,
+      }),
+    [items, search, categoryFilter, tagFilter, statusFilter, timeFilter],
+  );
 
   const paginated = useMemo(() => {
     const start = (page - 1) * perPage;
@@ -228,7 +189,7 @@ export default function AdminPortfolioPage() {
     setShowForm(true);
   }
 
-  function startEdit(item: PortfolioItem) {
+  function startEdit(item: PortfolioRecord) {
     const cs = item.case_study ?? emptyCaseStudy;
     setEditId(item.id);
     setForm({
@@ -347,7 +308,7 @@ export default function AdminPortfolioPage() {
     setMessage(data.error ?? "Failed to import portfolio items");
   }
 
-  async function togglePublish(item: PortfolioItem) {
+  async function togglePublish(item: PortfolioRecord) {
     await fetch("/api/admin/portfolio", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -363,6 +324,9 @@ export default function AdminPortfolioPage() {
         search={search}
         onSearchChange={setSearch}
         onAddProject={openCreate}
+        tab={statusFilter}
+        onTabChange={setStatusFilter}
+        counts={tabCounts}
       />
 
       <AdminPageContent>
@@ -377,7 +341,7 @@ export default function AdminPortfolioPage() {
           </AdminAlert>
         )}
 
-        <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           <PortfolioStatCard
             label="Total Projects"
             value={stats.total}
@@ -387,19 +351,19 @@ export default function AdminPortfolioPage() {
           <PortfolioStatCard
             label="Published"
             value={stats.published}
-            hint={`+ ${pct(stats.published, stats.total)} of total`}
+            hint={`${pct(stats.published, stats.total)} of total`}
             icon={statIcons.published}
           />
           <PortfolioStatCard
             label="Drafts"
             value={stats.drafts}
-            hint={`+ ${pct(stats.drafts, stats.total)} of total`}
+            hint={`${pct(stats.drafts, stats.total)} of total`}
             icon={statIcons.drafts}
           />
           <PortfolioStatCard
             label="Featured"
             value={stats.featured}
-            hint={`+ ${pct(stats.featured, stats.total)} of total`}
+            hint={`${pct(stats.featured, stats.total)} of total`}
             icon={statIcons.featured}
           />
           <PortfolioStatCard
@@ -410,169 +374,159 @@ export default function AdminPortfolioPage() {
           />
         </div>
 
-        <div className="admin-portfolio-toolbar">
-          <div className="flex flex-wrap gap-2">
-            <PortfolioSelect
-              value={categoryFilter}
-              onChange={setCategoryFilter}
-              options={[
-                { value: "all", label: "All Categories" },
-                ...categories.map((c) => ({ value: c, label: c })),
-              ]}
-            />
-            <PortfolioSelect
-              value={tagFilter}
-              onChange={setTagFilter}
-              options={[
-                { value: "all", label: "All Tags" },
-                ...allTags.map((t) => ({ value: t, label: t })),
-              ]}
-            />
-            <PortfolioSelect
-              value={statusFilter}
-              onChange={setStatusFilter}
-              options={[
-                { value: "all", label: "All Status" },
-                { value: "published", label: "Published" },
-                { value: "draft", label: "Draft" },
-                { value: "featured", label: "Featured" },
-              ]}
-            />
-            <PortfolioSelect
-              value={timeFilter}
-              onChange={setTimeFilter}
-              options={[
-                { value: "all", label: "All Time" },
-                { value: "30d", label: "Last 30 days" },
-                { value: "90d", label: "Last 90 days" },
-                { value: "year", label: "Last year" },
-              ]}
-            />
-          </div>
+        <div className="admin-portfolio-layout">
+          <div className="admin-portfolio-main min-w-0">
+            <div className="admin-portfolio-toolbar">
+              <div className="flex flex-wrap gap-2">
+                <PortfolioSelect
+                  value={categoryFilter}
+                  onChange={setCategoryFilter}
+                  options={[
+                    { value: "all", label: "All Categories" },
+                    ...categories.map((c) => ({ value: c, label: c })),
+                  ]}
+                />
+                <PortfolioSelect
+                  value={tagFilter}
+                  onChange={setTagFilter}
+                  options={[
+                    { value: "all", label: "All Tags" },
+                    ...allTags.map((t) => ({ value: t, label: t })),
+                  ]}
+                />
+                <PortfolioSelect
+                  value={timeFilter}
+                  onChange={setTimeFilter}
+                  options={[
+                    { value: "all", label: "All Time" },
+                    { value: "30d", label: "Last 30 days" },
+                    { value: "90d", label: "Last 90 days" },
+                    { value: "year", label: "Last year" },
+                  ]}
+                />
+              </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="admin-portfolio-view-toggle">
-              <button
-                type="button"
-                title="Grid view"
-                onClick={() => setViewMode("grid")}
-                className={cn(
-                  "admin-portfolio-view-btn",
-                  viewMode === "grid" && "admin-portfolio-view-btn-active",
-                )}
-              >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
-                </svg>
-              </button>
-              <button
-                type="button"
-                title="List view"
-                onClick={() => setViewMode("list")}
-                className={cn(
-                  "admin-portfolio-view-btn",
-                  viewMode === "list" && "admin-portfolio-view-btn-active",
-                )}
-              >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.008 5.25h.007v.008H3.758V12zm.008 5.25h.007v.008H3.766v-.008z" />
-                </svg>
-              </button>
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="admin-portfolio-view-toggle">
+                  <button
+                    type="button"
+                    title="Masonry grid"
+                    onClick={() => setViewMode("grid")}
+                    className={cn(
+                      "admin-portfolio-view-btn",
+                      viewMode === "grid" && "admin-portfolio-view-btn-active",
+                    )}
+                  >
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    title="List view"
+                    onClick={() => setViewMode("list")}
+                    className={cn(
+                      "admin-portfolio-view-btn",
+                      viewMode === "list" && "admin-portfolio-view-btn-active",
+                    )}
+                  >
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.008 5.25h.007v.008H3.758V12zm.008 5.25h.007v.008H3.766v-.008z" />
+                    </svg>
+                  </button>
+                </div>
+                <span className="text-xs text-[var(--admin-text-muted)]">
+                  {filtered.length} {filtered.length === 1 ? "project" : "projects"}
+                </span>
+              </div>
             </div>
-            <button
-              type="button"
-              className="admin-btn-ghost inline-flex items-center gap-1.5 px-3 py-2 text-xs"
-              onClick={() => {
-                const el = document.querySelector(".admin-portfolio-toolbar");
-                el?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-              }}
-            >
-              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z" />
-              </svg>
-              Filters
-            </button>
-            {items.length === 0 && (
-              <button type="button" className="admin-btn-ghost text-xs" onClick={importDefaults} disabled={seeding}>
-                {seeding ? "Importing…" : "Import defaults"}
-              </button>
+
+            {loading ? (
+              <div className="admin-portfolio-masonry">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="admin-portfolio-masonry-item">
+                    <div className="admin-luxury-card h-72 animate-pulse rounded-2xl" />
+                  </div>
+                ))}
+              </div>
+            ) : filtered.length === 0 ? (
+              <AdminEmptyState
+                title="No portfolio projects"
+                description="Import your public site defaults or add a new case study from scratch."
+                actionLabel={items.length === 0 ? "Import defaults" : "Add New Project"}
+                onAction={items.length === 0 ? importDefaults : openCreate}
+              />
+            ) : viewMode === "grid" ? (
+              <div className="admin-portfolio-masonry">
+                {paginated.map((item) => (
+                  <div key={item.id} className="admin-portfolio-masonry-item">
+                    <PortfolioProjectCard
+                      item={item}
+                      onEdit={() => startEdit(item)}
+                      onTogglePublish={() => togglePublish(item)}
+                      onDelete={() => deleteItem(item.id)}
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {paginated.map((item) => (
+                  <div key={item.id} className="admin-portfolio-list-row">
+                    <div className="relative h-14 w-20 shrink-0 overflow-hidden rounded-lg bg-[var(--admin-panel)]">
+                      {item.image_url ? (
+                        <Image src={item.image_url} alt="" fill className="object-cover" unoptimized />
+                      ) : null}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-emerald-400/90">
+                        {item.industry || "Project"}
+                      </p>
+                      <p className="truncate font-medium text-[var(--admin-text)]">{item.title}</p>
+                      <p className="truncate text-xs text-[var(--admin-text-muted)]">
+                        {item.description || "No description"}
+                      </p>
+                    </div>
+                    <span
+                      className={cn(
+                        "admin-content-status-badge shrink-0",
+                        item.published ? "admin-content-status-published" : "admin-content-status-draft",
+                      )}
+                    >
+                      {item.published ? "Published" : "Draft"}
+                    </span>
+                    <div className="flex shrink-0 gap-1">
+                      <button type="button" className="admin-btn-ghost px-2 py-1 text-xs" onClick={() => startEdit(item)}>
+                        Edit
+                      </button>
+                      <button type="button" className="admin-btn-ghost px-2 py-1 text-xs" onClick={() => togglePublish(item)}>
+                        {item.published ? "Unpublish" : "Publish"}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {!loading && filtered.length > 0 && (
+              <PortfolioPagination
+                page={page}
+                perPage={perPage}
+                total={filtered.length}
+                onPageChange={setPage}
+                onPerPageChange={setPerPage}
+              />
             )}
           </div>
+
+          <PortfolioSidebar
+            items={items}
+            onAddProject={openCreate}
+            onImportDefaults={importDefaults}
+            showImport={items.length === 0}
+            importing={seeding}
+          />
         </div>
-
-        {loading ? (
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="admin-luxury-card h-72 animate-pulse rounded-2xl" />
-            ))}
-          </div>
-        ) : filtered.length === 0 ? (
-          <AdminEmptyState
-            title="No portfolio projects"
-            description="Import your public site defaults or add a new case study from scratch."
-            actionLabel={items.length === 0 ? "Import defaults" : "Add New Project"}
-            onAction={items.length === 0 ? importDefaults : openCreate}
-          />
-        ) : viewMode === "grid" ? (
-          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-            {paginated.map((item) => (
-              <PortfolioProjectCard
-                key={item.id}
-                item={item}
-                onEdit={() => startEdit(item)}
-                onTogglePublish={() => togglePublish(item)}
-                onDelete={() => deleteItem(item.id)}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {paginated.map((item) => (
-              <div key={item.id} className="admin-portfolio-list-row">
-                <div className="relative h-14 w-20 shrink-0 overflow-hidden rounded-lg bg-[var(--admin-panel)]">
-                  {item.image_url ? (
-                    <Image src={item.image_url} alt="" fill className="object-cover" unoptimized />
-                  ) : null}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-emerald-400/90">
-                    {item.industry || "Project"}
-                  </p>
-                  <p className="truncate font-medium text-[var(--admin-text)]">{item.title}</p>
-                  <p className="truncate text-xs text-[var(--admin-text-muted)]">
-                    {item.description || "No description"}
-                  </p>
-                </div>
-                <span
-                  className={cn(
-                    "admin-content-status-badge shrink-0",
-                    item.published ? "admin-content-status-published" : "admin-content-status-draft",
-                  )}
-                >
-                  {item.published ? "Published" : "Draft"}
-                </span>
-                <div className="flex shrink-0 gap-1">
-                  <button type="button" className="admin-btn-ghost px-2 py-1 text-xs" onClick={() => startEdit(item)}>
-                    Edit
-                  </button>
-                  <button type="button" className="admin-btn-ghost px-2 py-1 text-xs" onClick={() => togglePublish(item)}>
-                    {item.published ? "Unpublish" : "Publish"}
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {!loading && filtered.length > 0 && (
-          <PortfolioPagination
-            page={page}
-            perPage={perPage}
-            total={filtered.length}
-            onPageChange={setPage}
-            onPerPageChange={setPerPage}
-          />
-        )}
 
         <AdminModal
           open={showForm}

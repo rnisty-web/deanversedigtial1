@@ -154,3 +154,49 @@ export function filterEventsByType(
   if (types === "all") return events;
   return events.filter((e) => types.includes(e.event_type));
 }
+
+export type CalendarStats = {
+  total: number;
+  today: number;
+  thisWeek: number;
+  upcoming: number;
+  meetings: number;
+};
+
+export function computeCalendarStats(events: CalendarEvent[]): CalendarStats {
+  const today = new Date();
+  const weekStart = startOfWeek(today);
+  const weekEnd = endOfWeek(today);
+  const todayEnd = endOfDay(today);
+
+  return {
+    total: events.length,
+    today: eventsForDay(events, today).length,
+    thisWeek: eventsInRange(events, weekStart, weekEnd).length,
+    upcoming: events.filter((e) => new Date(e.starts_at).getTime() > todayEnd.getTime()).length,
+    meetings: events.filter((e) => e.event_type === "meeting").length,
+  };
+}
+
+export function countByEventType(events: CalendarEvent[]) {
+  return {
+    meeting: events.filter((e) => e.event_type === "meeting").length,
+    call: events.filter((e) => e.event_type === "call").length,
+    deadline: events.filter((e) => e.event_type === "deadline").length,
+    internal: events.filter((e) => e.event_type === "internal").length,
+  };
+}
+
+export function monthEventsHint(events: CalendarEvent[]) {
+  const now = new Date();
+  const thisMonth = events.filter((e) => {
+    const d = new Date(e.starts_at);
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  }).length;
+  return thisMonth > 0 ? `${thisMonth} scheduled this month` : "No events this month";
+}
+
+export function pct(part: number, total: number) {
+  if (total === 0) return "0%";
+  return `${Math.round((part / total) * 100)}%`;
+}

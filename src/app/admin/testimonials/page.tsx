@@ -15,21 +15,17 @@ import {
   TestimonialsAdminHeader,
 } from "@/components/admin/testimonials/TestimonialsAdminHeader";
 import { TestimonialsPagination } from "@/components/admin/testimonials/TestimonialsPagination";
+import { TestimonialsSidebar } from "@/components/admin/testimonials/TestimonialsSidebar";
 import { Button } from "@/components/ui/Button";
+import {
+  computeTestimonialStats,
+  filterTestimonials,
+  monthGrowthHint,
+  pct,
+  type TestimonialRecord,
+  type TestimonialTab,
+} from "@/lib/testimonials/utils";
 import { cn } from "@/lib/utils";
-
-type Testimonial = {
-  id: string;
-  client_name: string;
-  client_company: string | null;
-  client_image: string | null;
-  content: string;
-  rating: number | null;
-  featured: boolean;
-  published: boolean;
-  created_at: string;
-  updated_at: string;
-};
 
 const emptyForm = {
   client_name: "",
@@ -40,36 +36,6 @@ const emptyForm = {
   featured: false,
   published: false,
 };
-
-function pct(part: number, total: number) {
-  if (total === 0) return "0%";
-  return `${Math.round((part / total) * 100)}%`;
-}
-
-function monthGrowthHint(items: Testimonial[]) {
-  const now = new Date();
-  const thisMonth = items.filter((i) => {
-    const d = new Date(i.created_at);
-    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-  }).length;
-  const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-  const lastMonth = items.filter((i) => {
-    const d = new Date(i.created_at);
-    return d.getMonth() === lastMonthDate.getMonth() && d.getFullYear() === lastMonthDate.getFullYear();
-  }).length;
-  if (lastMonth === 0) {
-    return thisMonth > 0 ? `+ ${thisMonth} this month` : "No new reviews this month";
-  }
-  const growth = Math.round(((thisMonth - lastMonth) / lastMonth) * 100);
-  const sign = growth >= 0 ? "+" : "";
-  return `${sign} ${growth}% this month`;
-}
-
-function averageRating(items: Testimonial[]) {
-  if (items.length === 0) return "—";
-  const sum = items.reduce((acc, i) => acc + (i.rating ?? 5), 0);
-  return (sum / items.length).toFixed(1);
-}
 
 const statIcons = {
   total: (
@@ -100,13 +66,13 @@ const statIcons = {
 };
 
 export default function AdminTestimonialsPage() {
-  const [items, setItems] = useState<Testimonial[]>([]);
+  const [items, setItems] = useState<TestimonialRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState<TestimonialTab>("all");
   const [ratingFilter, setRatingFilter] = useState("all");
   const [timeFilter, setTimeFilter] = useState("all");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
@@ -140,41 +106,28 @@ export default function AdminTestimonialsPage() {
     setPage(1);
   }, [search, statusFilter, ratingFilter, timeFilter, perPage]);
 
-  const stats = useMemo(() => {
-    const total = items.length;
-    const published = items.filter((i) => i.published).length;
-    const drafts = items.filter((i) => !i.published).length;
-    const featured = items.filter((i) => i.featured).length;
-    return { total, published, drafts, featured, avgRating: averageRating(items) };
-  }, [items]);
+  const stats = useMemo(() => computeTestimonialStats(items), [items]);
 
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    const now = Date.now();
+  const tabCounts = useMemo(
+    () => ({
+      all: items.length,
+      published: items.filter((i) => i.published).length,
+      draft: items.filter((i) => !i.published).length,
+      featured: items.filter((i) => i.featured).length,
+    }),
+    [items],
+  );
 
-    return items.filter((item) => {
-      if (statusFilter === "published" && !item.published) return false;
-      if (statusFilter === "draft" && item.published) return false;
-      if (statusFilter === "featured" && !item.featured) return false;
-
-      if (ratingFilter !== "all") {
-        const r = parseInt(ratingFilter, 10);
-        if ((item.rating ?? 5) !== r) return false;
-      }
-
-      if (timeFilter !== "all") {
-        const updated = new Date(item.updated_at ?? item.created_at).getTime();
-        const days =
-          timeFilter === "30d" ? 30 : timeFilter === "90d" ? 90 : timeFilter === "year" ? 365 : 0;
-        if (days && now - updated > days * 86400000) return false;
-      }
-
-      if (!q) return true;
-      return [item.client_name, item.client_company, item.content]
-        .filter(Boolean)
-        .some((v) => String(v).toLowerCase().includes(q));
-    });
-  }, [items, search, statusFilter, ratingFilter, timeFilter]);
+  const filtered = useMemo(
+    () =>
+      filterTestimonials(items, {
+        search,
+        statusFilter,
+        ratingFilter,
+        timeFilter,
+      }),
+    [items, search, statusFilter, ratingFilter, timeFilter],
+  );
 
   const paginated = useMemo(() => {
     const start = (page - 1) * perPage;
@@ -188,7 +141,7 @@ export default function AdminTestimonialsPage() {
     setShowForm(true);
   }
 
-  function startEdit(item: Testimonial) {
+  function startEdit(item: TestimonialRecord) {
     setEditId(item.id);
     setForm({
       client_name: item.client_name,
@@ -263,7 +216,7 @@ export default function AdminTestimonialsPage() {
     setMessage(data.error ?? "Failed to import testimonials");
   }
 
-  async function togglePublish(item: Testimonial) {
+  async function togglePublish(item: TestimonialRecord) {
     await fetch("/api/admin/testimonials", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -279,6 +232,9 @@ export default function AdminTestimonialsPage() {
         search={search}
         onSearchChange={setSearch}
         onAddTestimonial={openCreate}
+        tab={statusFilter}
+        onTabChange={setStatusFilter}
+        counts={tabCounts}
       />
 
       <AdminPageContent>
@@ -293,7 +249,7 @@ export default function AdminTestimonialsPage() {
           </AdminAlert>
         )}
 
-        <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           <TestimonialStatCard
             label="Total Reviews"
             value={stats.total}
@@ -303,19 +259,19 @@ export default function AdminTestimonialsPage() {
           <TestimonialStatCard
             label="Published"
             value={stats.published}
-            hint={`+ ${pct(stats.published, stats.total)} of total`}
+            hint={`${pct(stats.published, stats.total)} of total`}
             icon={statIcons.published}
           />
           <TestimonialStatCard
             label="Drafts"
             value={stats.drafts}
-            hint={`+ ${pct(stats.drafts, stats.total)} of total`}
+            hint={`${pct(stats.drafts, stats.total)} of total`}
             icon={statIcons.drafts}
           />
           <TestimonialStatCard
             label="Featured"
             value={stats.featured}
-            hint={`+ ${pct(stats.featured, stats.total)} of total`}
+            hint={`${pct(stats.featured, stats.total)} of total`}
             icon={statIcons.featured}
           />
           <TestimonialStatCard
@@ -326,172 +282,163 @@ export default function AdminTestimonialsPage() {
           />
         </div>
 
-        <div className="admin-testimonials-toolbar">
-          <div className="flex flex-wrap gap-2">
-            <TestimonialSelect
-              value={statusFilter}
-              onChange={setStatusFilter}
-              options={[
-                { value: "all", label: "All Status" },
-                { value: "published", label: "Published" },
-                { value: "draft", label: "Draft" },
-                { value: "featured", label: "Featured" },
-              ]}
-            />
-            <TestimonialSelect
-              value={ratingFilter}
-              onChange={setRatingFilter}
-              options={[
-                { value: "all", label: "All Ratings" },
-                { value: "5", label: "5 Stars" },
-                { value: "4", label: "4 Stars" },
-                { value: "3", label: "3 Stars" },
-                { value: "2", label: "2 Stars" },
-                { value: "1", label: "1 Star" },
-              ]}
-            />
-            <TestimonialSelect
-              value={timeFilter}
-              onChange={setTimeFilter}
-              options={[
-                { value: "all", label: "All Time" },
-                { value: "30d", label: "Last 30 days" },
-                { value: "90d", label: "Last 90 days" },
-                { value: "year", label: "Last year" },
-              ]}
-            />
-          </div>
+        <div className="admin-testimonials-layout">
+          <div className="admin-testimonials-main min-w-0">
+            <div className="admin-testimonials-toolbar">
+              <div className="flex flex-wrap gap-2">
+                <TestimonialSelect
+                  value={ratingFilter}
+                  onChange={setRatingFilter}
+                  options={[
+                    { value: "all", label: "All Ratings" },
+                    { value: "5", label: "5 Stars" },
+                    { value: "4", label: "4 Stars" },
+                    { value: "3", label: "3 Stars" },
+                    { value: "2", label: "2 Stars" },
+                    { value: "1", label: "1 Star" },
+                  ]}
+                />
+                <TestimonialSelect
+                  value={timeFilter}
+                  onChange={setTimeFilter}
+                  options={[
+                    { value: "all", label: "All Time" },
+                    { value: "30d", label: "Last 30 days" },
+                    { value: "90d", label: "Last 90 days" },
+                    { value: "year", label: "Last year" },
+                  ]}
+                />
+              </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="admin-testimonials-view-toggle">
-              <button
-                type="button"
-                title="Grid view"
-                onClick={() => setViewMode("grid")}
-                className={cn(
-                  "admin-testimonials-view-btn",
-                  viewMode === "grid" && "admin-testimonials-view-btn-active",
-                )}
-              >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
-                </svg>
-              </button>
-              <button
-                type="button"
-                title="List view"
-                onClick={() => setViewMode("list")}
-                className={cn(
-                  "admin-testimonials-view-btn",
-                  viewMode === "list" && "admin-testimonials-view-btn-active",
-                )}
-              >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.008 5.25h.007v.008H3.758V12zm.008 5.25h.007v.008H3.766v-.008z" />
-                </svg>
-              </button>
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="admin-testimonials-view-toggle">
+                  <button
+                    type="button"
+                    title="Masonry grid"
+                    onClick={() => setViewMode("grid")}
+                    className={cn(
+                      "admin-testimonials-view-btn",
+                      viewMode === "grid" && "admin-testimonials-view-btn-active",
+                    )}
+                  >
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    title="List view"
+                    onClick={() => setViewMode("list")}
+                    className={cn(
+                      "admin-testimonials-view-btn",
+                      viewMode === "list" && "admin-testimonials-view-btn-active",
+                    )}
+                  >
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.008 5.25h.007v.008H3.758V12zm.008 5.25h.007v.008H3.766v-.008z" />
+                    </svg>
+                  </button>
+                </div>
+                <span className="text-xs text-[var(--admin-text-muted)]">
+                  {filtered.length} {filtered.length === 1 ? "review" : "reviews"}
+                </span>
+              </div>
             </div>
-            <button
-              type="button"
-              className="admin-btn-ghost inline-flex items-center gap-1.5 px-3 py-2 text-xs"
-              onClick={() => {
-                const el = document.querySelector(".admin-testimonials-toolbar");
-                el?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-              }}
-            >
-              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z" />
-              </svg>
-              Filters
-            </button>
-            {items.length === 0 && (
-              <button type="button" className="admin-btn-ghost text-xs" onClick={importDefaults} disabled={seeding}>
-                {seeding ? "Importing…" : "Import site testimonials"}
-              </button>
+
+            {loading ? (
+              <div className="admin-testimonials-masonry">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="admin-testimonials-masonry-item">
+                    <div className="admin-luxury-card h-64 animate-pulse rounded-2xl" />
+                  </div>
+                ))}
+              </div>
+            ) : filtered.length === 0 ? (
+              <AdminEmptyState
+                title="No testimonials"
+                description="Import reviews from your public site or add new client feedback."
+                actionLabel={items.length === 0 ? "Import site testimonials" : "Add testimonial"}
+                onAction={items.length === 0 ? importDefaults : openCreate}
+              />
+            ) : viewMode === "grid" ? (
+              <div className="admin-testimonials-masonry">
+                {paginated.map((item) => (
+                  <div key={item.id} className="admin-testimonials-masonry-item">
+                    <TestimonialCard
+                      item={item}
+                      onEdit={() => startEdit(item)}
+                      onTogglePublish={() => togglePublish(item)}
+                      onDelete={() => deleteItem(item.id)}
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {paginated.map((item) => (
+                  <div key={item.id} className="admin-testimonials-list-row">
+                    <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-[var(--admin-border-subtle)] bg-[var(--admin-panel)]">
+                      {item.client_image ? (
+                        <Image src={item.client_image} alt={item.client_name} fill className="object-cover" unoptimized />
+                      ) : (
+                        <div className="flex h-full items-center justify-center text-sm font-semibold text-[var(--admin-gold-light)]">
+                          {item.client_name[0]?.toUpperCase()}
+                        </div>
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-emerald-400/90">
+                        {item.client_company || "Client"}
+                      </p>
+                      <p className="truncate font-medium text-[var(--admin-text)]">{item.client_name}</p>
+                      <p className="truncate text-xs text-[var(--admin-text-muted)]">
+                        &ldquo;{item.content}&rdquo;
+                      </p>
+                    </div>
+                    <span className="shrink-0 text-xs text-[var(--admin-gold-light)]">
+                      {"★".repeat(item.rating ?? 5)}
+                    </span>
+                    <span
+                      className={cn(
+                        "admin-content-status-badge shrink-0",
+                        item.published ? "admin-content-status-published" : "admin-content-status-draft",
+                      )}
+                    >
+                      {item.published ? "Published" : "Draft"}
+                    </span>
+                    <div className="flex shrink-0 gap-1">
+                      <button type="button" className="admin-btn-ghost px-2 py-1 text-xs" onClick={() => startEdit(item)}>
+                        Edit
+                      </button>
+                      <button type="button" className="admin-btn-ghost px-2 py-1 text-xs" onClick={() => togglePublish(item)}>
+                        {item.published ? "Unpublish" : "Publish"}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {!loading && filtered.length > 0 && (
+              <TestimonialsPagination
+                page={page}
+                perPage={perPage}
+                total={filtered.length}
+                onPageChange={setPage}
+                onPerPageChange={setPerPage}
+              />
             )}
           </div>
+
+          <TestimonialsSidebar
+            items={items}
+            avgRating={stats.avgRating}
+            onAddTestimonial={openCreate}
+            onImportDefaults={importDefaults}
+            showImport={items.length === 0}
+            importing={seeding}
+          />
         </div>
-
-        {loading ? (
-          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="admin-luxury-card h-64 animate-pulse rounded-2xl" />
-            ))}
-          </div>
-        ) : filtered.length === 0 ? (
-          <AdminEmptyState
-            title="No testimonials"
-            description="Import reviews from your public site or add new client feedback."
-            actionLabel={items.length === 0 ? "Import site testimonials" : "Add testimonial"}
-            onAction={items.length === 0 ? importDefaults : openCreate}
-          />
-        ) : viewMode === "grid" ? (
-          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-            {paginated.map((item) => (
-              <TestimonialCard
-                key={item.id}
-                item={item}
-                onEdit={() => startEdit(item)}
-                onTogglePublish={() => togglePublish(item)}
-                onDelete={() => deleteItem(item.id)}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {paginated.map((item) => (
-              <div key={item.id} className="admin-testimonials-list-row">
-                <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-[var(--admin-border-subtle)] bg-[var(--admin-panel)]">
-                  {item.client_image ? (
-                    <Image src={item.client_image} alt={item.client_name} fill className="object-cover" unoptimized />
-                  ) : (
-                    <div className="flex h-full items-center justify-center text-sm font-semibold text-[var(--admin-gold-light)]">
-                      {item.client_name[0]?.toUpperCase()}
-                    </div>
-                  )}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-emerald-400/90">
-                    {item.client_company || "Client"}
-                  </p>
-                  <p className="truncate font-medium text-[var(--admin-text)]">{item.client_name}</p>
-                  <p className="truncate text-xs text-[var(--admin-text-muted)]">
-                    &ldquo;{item.content}&rdquo;
-                  </p>
-                </div>
-                <span className="shrink-0 text-xs text-[var(--admin-gold-light)]">
-                  {"★".repeat(item.rating ?? 5)}
-                </span>
-                <span
-                  className={cn(
-                    "admin-content-status-badge shrink-0",
-                    item.published ? "admin-content-status-published" : "admin-content-status-draft",
-                  )}
-                >
-                  {item.published ? "Published" : "Draft"}
-                </span>
-                <div className="flex shrink-0 gap-1">
-                  <button type="button" className="admin-btn-ghost px-2 py-1 text-xs" onClick={() => startEdit(item)}>
-                    Edit
-                  </button>
-                  <button type="button" className="admin-btn-ghost px-2 py-1 text-xs" onClick={() => togglePublish(item)}>
-                    {item.published ? "Unpublish" : "Publish"}
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {!loading && filtered.length > 0 && (
-          <TestimonialsPagination
-            page={page}
-            perPage={perPage}
-            total={filtered.length}
-            onPageChange={setPage}
-            onPerPageChange={setPerPage}
-          />
-        )}
 
         <AdminModal
           open={showForm}

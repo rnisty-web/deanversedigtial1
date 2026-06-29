@@ -71,7 +71,7 @@ export function AdminProfileCard({ profile, compact = false }: AdminProfileCardP
         onClick={() => setOpen((prev) => !prev)}
         className={cn(
           "admin-sidebar-profile w-full text-left",
-          compact && "p-3",
+          compact && "admin-sidebar-profile-compact",
         )}
         aria-expanded={open}
         aria-haspopup="menu"

@@ -3,17 +3,24 @@
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
+import type { PortfolioTab } from "@/lib/portfolio/utils";
 
 type PortfolioAdminHeaderProps = {
   search: string;
   onSearchChange: (value: string) => void;
   onAddProject: () => void;
+  tab: PortfolioTab;
+  onTabChange: (tab: PortfolioTab) => void;
+  counts: { all: number; published: number; draft: number; featured: number };
 };
 
 export function PortfolioAdminHeader({
   search,
   onSearchChange,
   onAddProject,
+  tab,
+  onTabChange,
+  counts,
 }: PortfolioAdminHeaderProps) {
   const searchRef = useRef<HTMLInputElement>(null);
 
@@ -28,9 +35,16 @@ export function PortfolioAdminHeader({
     return () => document.removeEventListener("keydown", onKeyDown);
   }, []);
 
+  const tabs: { id: PortfolioTab; label: string; count: number }[] = [
+    { id: "all", label: "All", count: counts.all },
+    { id: "published", label: "Published", count: counts.published },
+    { id: "draft", label: "Draft", count: counts.draft },
+    { id: "featured", label: "Featured", count: counts.featured },
+  ];
+
   return (
-    <header className="admin-content-header shrink-0 border-b border-[var(--admin-border-subtle)] px-6 lg:px-8">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+    <header className="admin-content-header sticky top-0 z-20 shrink-0 border-b border-[var(--admin-border-subtle)] bg-[color-mix(in_srgb,var(--admin-bg)_90%,transparent)] px-6 backdrop-blur-xl lg:px-8">
+      <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-start gap-3 pt-0.5">
             <h1 className="admin-heading-serif admin-content-title text-2xl text-[var(--admin-text)] md:text-3xl">
@@ -49,11 +63,11 @@ export function PortfolioAdminHeader({
             </Link>
           </div>
           <p className="mt-1 text-sm text-[var(--admin-text-muted)]">
-            Showcase your best work and case studies.
+            Showcase your best work, case studies, and featured homepage projects.
           </p>
         </div>
 
-        <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center lg:w-auto lg:min-w-[440px]">
+        <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center lg:w-auto lg:min-w-[520px]">
           <div className="relative min-w-0 flex-1">
             <svg
               className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--admin-text-muted)]"
@@ -61,11 +75,13 @@ export function PortfolioAdminHeader({
               viewBox="0 0 24 24"
               stroke="currentColor"
               strokeWidth={1.5}
+              aria-hidden
             >
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
             </svg>
             <input
               ref={searchRef}
+              data-admin-search
               type="search"
               value={search}
               onChange={(e) => onSearchChange(e.target.value)}
@@ -76,10 +92,24 @@ export function PortfolioAdminHeader({
               ⌘ K
             </kbd>
           </div>
-          <button type="button" onClick={onAddProject} className="admin-btn-gold w-full whitespace-nowrap sm:w-auto">
-            + Add New Project
+          <button type="button" onClick={onAddProject} className="admin-btn-gold whitespace-nowrap px-4 py-2 text-sm">
+            + New Project
           </button>
         </div>
+      </div>
+
+      <div className="admin-portfolio-tabs mt-4">
+        {tabs.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            onClick={() => onTabChange(item.id)}
+            className={cn("admin-portfolio-tab", tab === item.id && "admin-portfolio-tab-active")}
+          >
+            {item.label}
+            <span className="admin-portfolio-tab-badge">{item.count}</span>
+          </button>
+        ))}
       </div>
     </header>
   );
@@ -99,12 +129,12 @@ export function PortfolioStatCard({
   return (
     <div className="admin-portfolio-stat-card">
       <div className="flex items-start justify-between gap-2">
-        <div>
+        <div className="min-w-0">
           <p className="text-[11px] font-medium uppercase tracking-wider text-[var(--admin-text-muted)]">
             {label}
           </p>
-          <p className="mt-1 text-2xl font-bold tabular-nums text-[var(--admin-text)]">{value}</p>
-          {hint ? <p className="admin-trend-up mt-1.5">{hint}</p> : null}
+          <p className="mt-1 text-2xl font-bold tabular-nums text-[var(--admin-gold-light)]">{value}</p>
+          {hint ? <p className="mt-1.5 text-xs text-[var(--admin-text-muted)]">{hint}</p> : null}
         </div>
         <div className="admin-stat-icon-glow !h-10 !w-10 [&>svg]:h-[18px] [&>svg]:w-[18px]">
           {icon}

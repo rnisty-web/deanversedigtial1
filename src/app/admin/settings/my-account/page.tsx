@@ -1,15 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
-import { AdminCard } from "@/components/admin/AdminCard";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { AdminAlert } from "@/components/admin/AdminAlert";
 import { AdminField } from "@/components/admin/AdminField";
-import { AdminHeader } from "@/components/admin/AdminHeader";
 import { AdminPageContent } from "@/components/admin/AdminPageContent";
 import { MediaPicker } from "@/components/admin/MediaPicker";
-import { Button } from "@/components/ui/Button";
-
 import { ActivityStatusPicker, useActivityStatus } from "@/components/admin/ActivityStatusPicker";
+import { AccountSidebar } from "@/components/admin/settings/AccountSidebar";
+import { SettingsAdminHeader } from "@/components/admin/settings/SettingsAdminHeader";
+import { Button } from "@/components/ui/Button";
 import { type UserRole } from "@/lib/roles";
 
 type Profile = {
@@ -21,28 +21,11 @@ type Profile = {
   role: UserRole;
 };
 
-function Alert({
-  tone,
-  children,
-}: {
-  tone: "error" | "success" | "info";
-  children: React.ReactNode;
-}) {
-  const styles = {
-    error: "border-red-500/30 bg-red-500/10 text-red-300",
-    success: "border-[#6f8f72]/30 bg-[var(--admin-gold-soft)] text-[var(--admin-gold-light)]",
-    info: "border-amber-500/30 bg-amber-500/10 text-amber-100",
-  };
-
-  return (
-    <div className={`rounded-lg border px-4 py-3 text-sm ${styles[tone]}`}>{children}</div>
-  );
-}
-
 export default function MyAccountPage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeSection, setActiveSection] = useState("profile");
 
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
@@ -69,6 +52,21 @@ export default function MyAccountPage() {
     saving: savingActivity,
     save: saveActivity,
   } = useActivityStatus();
+
+  const sections = useMemo(
+    () => [
+      { id: "profile", label: "Profile" },
+      ...(canEditActivity ? [{ id: "activity", label: "Activity" }] : []),
+      { id: "email", label: "Email" },
+      { id: "security", label: "Security" },
+    ],
+    [canEditActivity],
+  );
+
+  const scrollToSection = useCallback((id: string) => {
+    setActiveSection(id);
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, []);
 
   const fetchProfile = useCallback(async () => {
     setLoading(true);
@@ -198,190 +196,172 @@ export default function MyAccountPage() {
   }
 
   return (
-    <>
-      <AdminHeader
+    <div className="admin-settings-account-page">
+      <SettingsAdminHeader
+        search=""
+        onSearchChange={() => {}}
+        hideSearch
         title="My Account"
-        subtitle="Manage your admin profile, email, and password"
+        subtitle="Manage your admin profile, email, password, and activity status."
+        actionHref="/admin/settings"
+        actionLabel="All Settings"
+        breadcrumb={[
+          { label: "Settings", href: "/admin/settings" },
+          { label: "My Account" },
+        ]}
+        sections={sections}
+        activeSection={activeSection}
+        onSectionClick={scrollToSection}
       />
 
-      <AdminPageContent>
-        <div className="mx-auto max-w-3xl">
-        <nav className="mb-6 flex flex-wrap items-center gap-2 text-sm">
-          <Link href="/admin/settings" className="text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]">
-            Settings
-          </Link>
-          <span className="text-[var(--admin-text-muted)]">/</span>
-          <span className="text-[var(--admin-gold-light)]">My Account</span>
-        </nav>
-
-        {error && (
-          <div className="mb-6">
-            <Alert tone="error">{error}</Alert>
-          </div>
-        )}
+      <AdminPageContent className="admin-settings-account-content">
+        {error && <AdminAlert tone="error" className="mb-4">{error}</AdminAlert>}
 
         {loading ? (
-          <p className="text-[var(--admin-text-muted)]">Loading account…</p>
+          <div className="admin-settings-account-layout">
+            <div className="admin-settings-account-stack">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="admin-settings-account-card admin-luxury-card h-56 animate-pulse" />
+              ))}
+            </div>
+            <div className="admin-settings-account-sidebar">
+              <div className="admin-settings-account-sidebar-panel admin-luxury-card h-96 animate-pulse" />
+            </div>
+          </div>
         ) : profile ? (
-          <div className="space-y-6">
-            <AdminCard padding="lg">
-              <h2 className="text-lg font-semibold text-[var(--admin-text)]">Profile</h2>
-              <p className="mt-1 text-sm text-[var(--admin-text-muted)]">
-                Update your name, phone number, and avatar shown across the admin portal.
-              </p>
-
-              {profileMessage && (
-                <div className="mt-4">
-                  <Alert tone="success">{profileMessage}</Alert>
-                </div>
-              )}
-              {profileError && (
-                <div className="mt-4">
-                  <Alert tone="error">{profileError}</Alert>
-                </div>
-              )}
-
-              <form onSubmit={handleSaveProfile} className="mt-6 space-y-4">
-                <AdminField
-                  label="Full name"
-                  value={fullName}
-                  onChange={setFullName}
-                  placeholder="Your name"
-                />
-                <AdminField
-                  label="Phone number"
-                  type="tel"
-                  value={phone}
-                  onChange={setPhone}
-                  placeholder="+1 (555) 000-0000"
-                />
-                <MediaPicker
-                  label="Avatar URL"
-                  value={avatarUrl}
-                  onChange={setAvatarUrl}
-                  hint="Paste a URL or upload an image from the media library."
-                />
-                <div className="flex justify-end pt-2">
-                  <Button type="submit" size="sm" className="admin-btn-gold" disabled={savingProfile}>
-                    {savingProfile ? "Saving…" : "Save profile"}
-                  </Button>
-                </div>
-              </form>
-            </AdminCard>
-
-            {canEditActivity && (
-              <AdminCard padding="lg">
-                <h2 className="text-lg font-semibold text-[var(--admin-text)]">Activity status</h2>
+          <div className="admin-settings-account-layout">
+            <div className="admin-settings-account-stack min-w-0">
+              <div id="profile" className="admin-settings-account-card scroll-mt-28">
+                <h2 className="text-lg font-semibold text-[var(--admin-text)]">Profile</h2>
                 <p className="mt-1 text-sm text-[var(--admin-text-muted)]">
-                  Let your team and customers know what you are working on. This is separate from
-                  your online/offline presence indicator.
+                  Update your name, phone number, and avatar shown across the admin portal.
                 </p>
-                <div className="mt-6 max-w-sm">
-                  <label className="mb-1.5 block text-sm font-medium text-[var(--admin-text-muted)]">
-                    Current status
-                  </label>
-                  <ActivityStatusPicker
-                    value={activityStatus}
-                    onChange={saveActivity}
-                    disabled={savingActivity}
+
+                {profileMessage && <AdminAlert tone="success" className="mt-4">{profileMessage}</AdminAlert>}
+                {profileError && <AdminAlert tone="error" className="mt-4">{profileError}</AdminAlert>}
+
+                <form onSubmit={handleSaveProfile} className="mt-6 space-y-4">
+                  <AdminField label="Full name" value={fullName} onChange={setFullName} placeholder="Your name" />
+                  <AdminField
+                    label="Phone number"
+                    type="tel"
+                    value={phone}
+                    onChange={setPhone}
+                    placeholder="+1 (555) 000-0000"
                   />
-                </div>
-              </AdminCard>
-            )}
+                  <MediaPicker
+                    label="Avatar URL"
+                    value={avatarUrl}
+                    onChange={setAvatarUrl}
+                    hint="Paste a URL or upload an image from the media library."
+                  />
+                  <div className="flex justify-end pt-2">
+                    <Button type="submit" size="sm" className="admin-btn-gold" disabled={savingProfile}>
+                      {savingProfile ? "Saving…" : "Save profile"}
+                    </Button>
+                  </div>
+                </form>
+              </div>
 
-            <AdminCard padding="lg">
-              <h2 className="text-lg font-semibold text-[var(--admin-text)]">Email address</h2>
-              <p className="mt-1 text-sm text-[var(--admin-text-muted)]">
-                Changing your email may require confirmation before it takes effect.
-              </p>
-
-              {emailMessage && (
-                <div className="mt-4">
-                  <Alert tone={emailMessage.includes("Confirmation") ? "info" : "success"}>
-                    {emailMessage}
-                  </Alert>
-                </div>
-              )}
-              {emailError && (
-                <div className="mt-4">
-                  <Alert tone="error">{emailError}</Alert>
-                </div>
-              )}
-
-              <form onSubmit={handleSaveEmail} className="mt-6 space-y-4">
-                <AdminField
-                  label="Email"
-                  type="email"
-                  value={email}
-                  onChange={setEmail}
-                  placeholder="you@example.com"
-                />
-                <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-                  <p className="text-xs text-[var(--admin-text-muted)]">
-                    Signed in as {profile.email}
+              {canEditActivity && (
+                <div id="activity" className="admin-settings-account-card scroll-mt-28">
+                  <h2 className="text-lg font-semibold text-[var(--admin-text)]">Activity status</h2>
+                  <p className="mt-1 text-sm text-[var(--admin-text-muted)]">
+                    Let your team and customers know what you are working on. This is separate from your
+                    online/offline presence indicator.
                   </p>
-                  <Button type="submit" size="sm" className="admin-btn-gold" disabled={savingEmail}>
-                    {savingEmail ? "Saving…" : "Update email"}
-                  </Button>
-                </div>
-              </form>
-            </AdminCard>
-
-            <AdminCard padding="lg">
-              <h2 className="text-lg font-semibold text-[var(--admin-text)]">Password</h2>
-              <p className="mt-1 text-sm text-[var(--admin-text-muted)]">
-                Enter your current password to set a new one. You can also use the{" "}
-                <Link href="/forgot-password" className="text-[var(--admin-gold-light)] hover:underline">
-                  forgot password
-                </Link>{" "}
-                flow if you are signed out.
-              </p>
-
-              {passwordMessage && (
-                <div className="mt-4">
-                  <Alert tone="success">{passwordMessage}</Alert>
-                </div>
-              )}
-              {passwordError && (
-                <div className="mt-4">
-                  <Alert tone="error">{passwordError}</Alert>
+                  <div className="mt-6 max-w-sm">
+                    <label className="mb-1.5 block text-sm font-medium text-[var(--admin-text-muted)]">
+                      Current status
+                    </label>
+                    <ActivityStatusPicker
+                      value={activityStatus}
+                      onChange={saveActivity}
+                      disabled={savingActivity}
+                    />
+                  </div>
                 </div>
               )}
 
-              <form onSubmit={handleChangePassword} className="mt-6 space-y-4">
-                <AdminField
-                  label="Current password"
-                  type="password"
-                  value={currentPassword}
-                  onChange={setCurrentPassword}
-                  placeholder="••••••••"
-                />
-                <AdminField
-                  label="New password"
-                  type="password"
-                  value={newPassword}
-                  onChange={setNewPassword}
-                  hint="At least 8 characters"
-                  placeholder="••••••••"
-                />
-                <AdminField
-                  label="Confirm new password"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={setConfirmPassword}
-                  placeholder="••••••••"
-                />
-                <div className="flex justify-end pt-2">
-                  <Button type="submit" size="sm" className="admin-btn-gold" disabled={savingPassword}>
-                    {savingPassword ? "Updating…" : "Update password"}
-                  </Button>
-                </div>
-              </form>
-            </AdminCard>
+              <div id="email" className="admin-settings-account-card scroll-mt-28">
+                <h2 className="text-lg font-semibold text-[var(--admin-text)]">Email address</h2>
+                <p className="mt-1 text-sm text-[var(--admin-text-muted)]">
+                  Changing your email may require confirmation before it takes effect.
+                </p>
+
+                {emailMessage && (
+                  <AdminAlert tone={emailMessage.includes("Confirmation") ? "warning" : "success"} className="mt-4">
+                    {emailMessage}
+                  </AdminAlert>
+                )}
+                {emailError && <AdminAlert tone="error" className="mt-4">{emailError}</AdminAlert>}
+
+                <form onSubmit={handleSaveEmail} className="mt-6 space-y-4">
+                  <AdminField label="Email" type="email" value={email} onChange={setEmail} placeholder="you@example.com" />
+                  <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+                    <p className="text-xs text-[var(--admin-text-muted)]">Signed in as {profile.email}</p>
+                    <Button type="submit" size="sm" className="admin-btn-gold" disabled={savingEmail}>
+                      {savingEmail ? "Saving…" : "Update email"}
+                    </Button>
+                  </div>
+                </form>
+              </div>
+
+              <div id="security" className="admin-settings-account-card scroll-mt-28">
+                <h2 className="text-lg font-semibold text-[var(--admin-text)]">Password</h2>
+                <p className="mt-1 text-sm text-[var(--admin-text-muted)]">
+                  Enter your current password to set a new one. You can also use the{" "}
+                  <Link href="/forgot-password" className="text-[var(--admin-gold-light)] hover:underline">
+                    forgot password
+                  </Link>{" "}
+                  flow if you are signed out.
+                </p>
+
+                {passwordMessage && <AdminAlert tone="success" className="mt-4">{passwordMessage}</AdminAlert>}
+                {passwordError && <AdminAlert tone="error" className="mt-4">{passwordError}</AdminAlert>}
+
+                <form onSubmit={handleChangePassword} className="mt-6 space-y-4">
+                  <AdminField
+                    label="Current password"
+                    type="password"
+                    value={currentPassword}
+                    onChange={setCurrentPassword}
+                    placeholder="••••••••"
+                  />
+                  <AdminField
+                    label="New password"
+                    type="password"
+                    value={newPassword}
+                    onChange={setNewPassword}
+                    hint="At least 8 characters"
+                    placeholder="••••••••"
+                  />
+                  <AdminField
+                    label="Confirm new password"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={setConfirmPassword}
+                    placeholder="••••••••"
+                  />
+                  <div className="flex justify-end pt-2">
+                    <Button type="submit" size="sm" className="admin-btn-gold" disabled={savingPassword}>
+                      {savingPassword ? "Updating…" : "Update password"}
+                    </Button>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            <AccountSidebar
+              profile={profile}
+              activityStatus={canEditActivity ? activityStatus : undefined}
+              sections={sections}
+              activeSection={activeSection}
+              onSectionClick={scrollToSection}
+            />
           </div>
         ) : null}
-        </div>
       </AdminPageContent>
-    </>
+    </div>
   );
 }

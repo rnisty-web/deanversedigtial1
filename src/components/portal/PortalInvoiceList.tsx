@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
+import { AdminAlert } from "@/components/admin/AdminAlert";
 import { AdminStatusBadge } from "@/components/admin/AdminStatusBadge";
 import { PortalCard } from "@/components/portal/PortalCard";
 import { isUnpaidClientInvoice } from "@/lib/portal/client-access";
@@ -30,7 +31,7 @@ function InvoicePayButton({
     return (
       <a
         href={`mailto:${siteConfig.email}?subject=Invoice%20payment`}
-        className="text-xs text-[var(--accent)] hover:underline"
+        className="text-xs text-[var(--admin-gold-light)] hover:underline"
       >
         Contact us to pay
       </a>
@@ -68,11 +69,11 @@ function InvoicePayButton({
         type="button"
         onClick={handlePay}
         disabled={loading}
-        className="rounded-lg bg-[var(--primary)] px-4 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50 min-h-[44px]"
+        className="admin-btn-gold min-h-[44px] disabled:opacity-50"
       >
         {loading ? "Redirecting…" : "Pay now"}
       </button>
-      {error && <span className="text-[10px] text-red-400">{error}</span>}
+      {error && <span className="text-[10px] text-red-300">{error}</span>}
     </div>
   );
 }
@@ -84,17 +85,17 @@ function PaymentBanner() {
 
   if (paid) {
     return (
-      <div className="mb-6 rounded-xl border border-[var(--accent)]/30 bg-[var(--primary)]/10 px-4 py-3 text-sm text-[var(--accent)]">
+      <AdminAlert tone="success" className="mb-6">
         Thank you — your payment is being processed. Invoice status will update shortly.
-      </div>
+      </AdminAlert>
     );
   }
 
   if (cancelled) {
     return (
-      <div className="mb-6 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white/60">
+      <AdminAlert tone="warning" className="mb-6">
         Payment was cancelled. You can try again when ready.
-      </div>
+      </AdminAlert>
     );
   }
 
@@ -105,11 +106,11 @@ export function PortalInvoiceList({ invoices, stripeEnabled }: Props) {
   if (invoices.length === 0) {
     return (
       <PortalCard padding="lg" className="text-center">
-        <p className="text-white/60">No invoices yet.</p>
-        <p className="mt-2 text-sm text-white/40">
+        <p className="text-[var(--admin-text-muted)]">No invoices yet.</p>
+        <p className="mt-2 text-sm text-[var(--admin-text-muted)]">
           Invoices appear here when your project milestones are billed.
         </p>
-        <Link href="/portal/messages" className="mt-4 inline-block text-sm text-[#a3c9a8] hover:underline">
+        <Link href="/portal/messages" className="mt-4 inline-block text-sm text-[var(--admin-gold-light)] hover:underline">
           Questions about billing? Message us →
         </Link>
       </PortalCard>
@@ -122,8 +123,7 @@ export function PortalInvoiceList({ invoices, stripeEnabled }: Props) {
         <PaymentBanner />
       </Suspense>
       <PortalCard padding="none" className="overflow-hidden">
-        {/* Mobile card layout */}
-        <ul className="divide-y divide-white/[0.06] md:hidden">
+        <ul className="divide-y divide-[var(--admin-border-subtle)] md:hidden">
           {invoices.map((invoice) => {
             const canPay = isUnpaidClientInvoice(invoice.status);
             const projectTitle = Array.isArray(invoice.projects)
@@ -133,29 +133,26 @@ export function PortalInvoiceList({ invoices, stripeEnabled }: Props) {
             return (
               <li
                 key={invoice.id}
-                className={cn(
-                  "p-4",
-                  invoice.status === "overdue" && "bg-red-500/[0.04]",
-                )}
+                className={cn("p-4", invoice.status === "overdue" && "bg-red-500/[0.04]")}
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="font-semibold text-white">{invoice.invoice_number}</p>
-                    <p className="mt-1 truncate text-sm text-white/50">{projectTitle}</p>
+                    <p className="font-semibold text-[var(--admin-text)]">{invoice.invoice_number}</p>
+                    <p className="mt-1 truncate text-sm text-[var(--admin-text-muted)]">{projectTitle}</p>
                   </div>
                   <AdminStatusBadge status={invoice.status} />
                 </div>
                 <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
                   <div>
-                    <p className="text-[10px] uppercase tracking-wide text-white/35">Amount</p>
-                    <p className="font-medium text-white">${Number(invoice.amount).toLocaleString()}</p>
+                    <p className="text-[10px] uppercase tracking-wide text-[var(--admin-text-muted)]">Amount</p>
+                    <p className="font-medium text-[var(--admin-gold-light)]">
+                      ${Number(invoice.amount).toLocaleString()}
+                    </p>
                   </div>
                   <div>
-                    <p className="text-[10px] uppercase tracking-wide text-white/35">Due</p>
-                    <p className="text-white/70">
-                      {invoice.due_date
-                        ? new Date(invoice.due_date).toLocaleDateString()
-                        : "—"}
+                    <p className="text-[10px] uppercase tracking-wide text-[var(--admin-text-muted)]">Due</p>
+                    <p className="text-[var(--admin-text)]">
+                      {invoice.due_date ? new Date(invoice.due_date).toLocaleDateString() : "—"}
                     </p>
                   </div>
                 </div>
@@ -163,31 +160,28 @@ export function PortalInvoiceList({ invoices, stripeEnabled }: Props) {
                   <Link
                     href={`/portal/invoices/${invoice.id}/print`}
                     target="_blank"
-                    className="inline-flex min-h-[44px] items-center text-sm text-[var(--accent)] hover:underline"
+                    className="inline-flex min-h-[44px] items-center text-sm text-[var(--admin-gold-light)] hover:underline"
                   >
                     Download summary
                   </Link>
-                  {canPay && (
-                    <InvoicePayButton invoiceId={invoice.id} stripeEnabled={stripeEnabled} />
-                  )}
+                  {canPay && <InvoicePayButton invoiceId={invoice.id} stripeEnabled={stripeEnabled} />}
                 </div>
               </li>
             );
           })}
         </ul>
 
-        {/* Desktop table */}
-        <div className="hidden overflow-x-auto md:block">
-          <table className="w-full text-sm">
-            <thead className="border-b border-white/[0.06] bg-white/[0.03]">
-              <tr className="text-left text-white/45">
-                <th className="px-5 py-3 font-medium">Invoice</th>
-                <th className="px-5 py-3 font-medium">Project</th>
-                <th className="px-5 py-3 font-medium">Amount</th>
-                <th className="px-5 py-3 font-medium">Status</th>
-                <th className="px-5 py-3 font-medium">Due</th>
-                <th className="px-5 py-3 font-medium">Paid</th>
-                <th className="px-5 py-3 font-medium">Actions</th>
+        <div className="admin-table-wrap hidden md:block">
+          <table>
+            <thead>
+              <tr>
+                <th>Invoice</th>
+                <th>Project</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Due</th>
+                <th>Paid</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -200,41 +194,31 @@ export function PortalInvoiceList({ invoices, stripeEnabled }: Props) {
                 return (
                   <tr
                     key={invoice.id}
-                    className={cn(
-                      "border-t border-white/[0.06] text-white/80",
-                      invoice.status === "overdue" && "bg-red-500/[0.04]",
-                    )}
+                    className={cn(invoice.status === "overdue" && "bg-red-500/[0.04]")}
                   >
-                    <td className="px-5 py-4 font-medium text-white">{invoice.invoice_number}</td>
-                    <td className="px-5 py-4 text-white/55">{projectTitle}</td>
-                    <td className="px-5 py-4">${Number(invoice.amount).toLocaleString()}</td>
-                    <td className="px-5 py-4">
+                    <td className="font-medium text-[var(--admin-text)]">{invoice.invoice_number}</td>
+                    <td className="text-[var(--admin-text-muted)]">{projectTitle}</td>
+                    <td className="text-[var(--admin-gold-light)]">${Number(invoice.amount).toLocaleString()}</td>
+                    <td>
                       <AdminStatusBadge status={invoice.status} />
                     </td>
-                    <td className="px-5 py-4">
-                      {invoice.due_date
-                        ? new Date(invoice.due_date).toLocaleDateString()
-                        : "—"}
+                    <td className="text-[var(--admin-text-muted)]">
+                      {invoice.due_date ? new Date(invoice.due_date).toLocaleDateString() : "—"}
                     </td>
-                    <td className="px-5 py-4">
-                      {invoice.paid_at
-                        ? new Date(invoice.paid_at).toLocaleDateString()
-                        : "—"}
+                    <td className="text-[var(--admin-text-muted)]">
+                      {invoice.paid_at ? new Date(invoice.paid_at).toLocaleDateString() : "—"}
                     </td>
-                    <td className="px-5 py-4">
+                    <td>
                       <div className="flex flex-col items-end gap-2">
                         <Link
                           href={`/portal/invoices/${invoice.id}/print`}
                           target="_blank"
-                          className="text-xs text-white/50 hover:text-[var(--accent)]"
+                          className="text-xs text-[var(--admin-text-muted)] hover:text-[var(--admin-gold-light)]"
                         >
                           Download summary
                         </Link>
                         {canPay && (
-                          <InvoicePayButton
-                            invoiceId={invoice.id}
-                            stripeEnabled={stripeEnabled}
-                          />
+                          <InvoicePayButton invoiceId={invoice.id} stripeEnabled={stripeEnabled} />
                         )}
                       </div>
                     </td>

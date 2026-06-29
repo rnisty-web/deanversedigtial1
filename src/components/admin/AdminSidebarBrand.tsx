@@ -32,12 +32,16 @@ export function AdminSidebarBrand({ compact = false, className }: AdminSidebarBr
       <p className="mt-5 text-[10px] font-semibold uppercase tracking-[0.32em] text-[var(--admin-gold)]">
         DeanVerse Digital
       </p>
-      <p className="mt-2 text-[8px] font-medium uppercase leading-relaxed tracking-[0.2em] text-[var(--admin-gold)]/60">
-        Web Design &amp; Digital Experiences
-      </p>
-      <p className="mt-1.5 text-[8px] font-medium tracking-[0.42em] text-[var(--admin-gold)]/45">
-        D + D
-      </p>
+      {!compact ? (
+        <>
+          <p className="mt-2 text-[8px] font-medium uppercase leading-relaxed tracking-[0.2em] text-[var(--admin-gold)]/60">
+            Web Design &amp; Digital Experiences
+          </p>
+          <p className="mt-1.5 text-[8px] font-medium tracking-[0.42em] text-[var(--admin-gold)]/45">
+            D + D
+          </p>
+        </>
+      ) : null}
     </Link>
   );
 }

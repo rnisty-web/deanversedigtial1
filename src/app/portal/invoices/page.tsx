@@ -16,6 +16,10 @@ export default async function PortalInvoicesPage() {
       <PortalPageHeader
         title="Invoices & billing"
         subtitle="Track project invoices, payment status, and due dates in one place."
+        breadcrumb={[
+          { label: "Dashboard", href: "/portal" },
+          { label: "Invoices" },
+        ]}
       />
 
       <div className="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

@@ -81,7 +81,9 @@ export function LeadsPagination({
           className="admin-leads-select !w-auto py-1.5"
         >
           {[8, 16, 24, 32].map((n) => (
-            <option key={n} value={n}>{n}</option>
+            <option key={n} value={n} className="bg-[var(--admin-bg)] text-[var(--admin-text)]">
+              {n}
+            </option>
           ))}
         </select>
         per page

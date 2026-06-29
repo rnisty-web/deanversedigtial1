@@ -83,7 +83,6 @@ export default function AdminLeadsPage() {
   const [sourceFilter, setSourceFilter] = useState("all");
   const [serviceFilter, setServiceFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [assignedFilter, setAssignedFilter] = useState("all");
   const [dateFrom, setDateFrom] = useState(defaultRange.from);
   const [dateTo, setDateTo] = useState(defaultRange.to);
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
@@ -139,7 +138,7 @@ export default function AdminLeadsPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [search, sourceFilter, serviceFilter, statusFilter, assignedFilter, dateFrom, dateTo, perPage]);
+  }, [search, sourceFilter, serviceFilter, statusFilter, dateFrom, dateTo, perPage]);
 
   useEffect(() => {
     if (!detailLead) return;
@@ -431,7 +430,7 @@ export default function AdminLeadsPage() {
         {error && <AdminAlert tone="error" className="mb-4">{error}</AdminAlert>}
         {success && <AdminAlert tone="success" className="mb-4">{success}</AdminAlert>}
 
-        <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
+        <div className="mb-6 grid gap-4 grid-cols-2 md:grid-cols-3 2xl:grid-cols-6">
           {STAT_CARDS.map((card) => (
             <LeadsStatCard
               key={card.id}
@@ -452,7 +451,7 @@ export default function AdminLeadsPage() {
           <div className="admin-leads-main">
             <div className={cn("admin-leads-toolbar", !showFilters && "admin-leads-toolbar-compact")}>
               {showFilters && (
-                <div className="flex flex-wrap gap-2">
+                <div className="admin-leads-toolbar-row">
                   <LeadsSelect value={sourceFilter} onChange={setSourceFilter} options={sourceOptions} />
                   <LeadsSelect value={serviceFilter} onChange={setServiceFilter} options={serviceOptions} />
                   <LeadsSelect
@@ -466,18 +465,10 @@ export default function AdminLeadsPage() {
                       })),
                     ]}
                   />
-                  <LeadsSelect
-                    value={assignedFilter}
-                    onChange={setAssignedFilter}
-                    options={[
-                      { value: "all", label: "All Assigned" },
-                      { value: "unassigned", label: "Unassigned" },
-                    ]}
-                  />
                 </div>
               )}
 
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="admin-leads-toolbar-row admin-leads-toolbar-actions">
                 <div className="admin-leads-date-range">
                   <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="admin-leads-date-input" aria-label="From date" />
                   <span className="text-[var(--admin-text-muted)]">–</span>

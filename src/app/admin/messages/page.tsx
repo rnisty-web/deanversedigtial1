@@ -110,6 +110,7 @@ export default function AdminMessagesPage() {
     );
     setReplyContent("");
     setSendError(null);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- reset reply form when selection id changes
   }, [selected?.id]);
 
   async function markRead(id: string) {

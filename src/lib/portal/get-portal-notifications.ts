@@ -15,12 +15,6 @@ export async function getPortalNotifications(
   userId: string,
   userEmail: string,
 ): Promise<PortalNotifications> {
-  const empty: PortalNotifications = {
-    unreadMessages: 0,
-    unpaidInvoices: 0,
-    overdueInvoices: 0,
-  };
-
   const supabase = await createClient();
   const client = await resolvePortalClient(supabase, userId, userEmail);
 

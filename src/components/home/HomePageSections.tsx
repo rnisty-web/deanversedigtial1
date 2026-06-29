@@ -8,8 +8,6 @@ import { StatsStrip } from "@/components/home/StatsStrip";
 import { TestimonialsPreview } from "@/components/home/TestimonialsPreview";
 import {
   getCMSLayout,
-  getFeaturedPortfolio,
-  getFeaturedTestimonials,
   getPublishedHomepageSections,
 } from "@/lib/cms/get-content";
 import type { SectionId } from "@/lib/cms/sections";

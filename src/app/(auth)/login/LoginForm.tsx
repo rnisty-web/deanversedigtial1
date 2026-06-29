@@ -24,7 +24,7 @@ export default function LoginForm() {
     }
     return null;
   });
-  const [notice, setNotice] = useState<string | null>(() =>
+  const [notice] = useState<string | null>(() =>
     searchParams.get("registered") === "1"
       ? "Account created. Check your email to confirm, then sign in below."
       : null,

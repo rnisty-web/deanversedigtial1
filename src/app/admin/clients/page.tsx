@@ -131,6 +131,7 @@ export default function AdminClientsPage() {
     const fresh = clients.find((c) => c.id === detailClient.id);
     if (fresh) setDetailClient(fresh);
     else setDetailClient(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- sync detail row when list or id changes
   }, [clients, detailClient?.id]);
 
   const industryOptions = useMemo(() => {

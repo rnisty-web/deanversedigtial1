@@ -12,7 +12,6 @@ import {
   formatEventTime,
   formatUpcomingBlock,
   isSameDay,
-  startOfDay,
 } from "@/lib/calendar/utils";
 
 type CalendarSidebarProps = {

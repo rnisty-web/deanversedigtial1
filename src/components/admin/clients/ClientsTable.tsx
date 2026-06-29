@@ -6,7 +6,6 @@ import { AdminTableSkeleton } from "@/components/admin/AdminTableSkeleton";
 import type { ClientRecord } from "@/lib/clients/utils";
 import {
   clientDisplayName,
-  contactSubtitle,
   contactTitle,
   formatCurrencyDetailed,
   initials,
@@ -106,13 +105,12 @@ export function ClientsTable({
 
   return (
     <div className="admin-clients-table-wrap overflow-x-auto">
-      <table className="admin-clients-table w-full min-w-[1080px] text-sm">
+      <table className="admin-clients-table w-full min-w-[820px] text-sm">
         <thead>
           <tr className="text-left text-[11px] font-medium uppercase tracking-wider text-[var(--admin-text-muted)]">
             <th className="px-3 py-3">Client</th>
             <th className="px-3 py-3">Contact</th>
-            <th className="px-3 py-3">Email</th>
-            <th className="px-3 py-3">Phone</th>
+            <th className="hidden px-3 py-3 lg:table-cell">Phone</th>
             <th className="px-3 py-3">Projects</th>
             <th className="px-3 py-3">Revenue</th>
             <th className="px-3 py-3">Status</th>
@@ -139,12 +137,11 @@ export function ClientsTable({
                   <div className="admin-clients-avatar !h-8 !w-8 text-[10px]">{initials(client.name)}</div>
                   <div className="min-w-0">
                     <p className="truncate text-[var(--admin-text)]">{contactTitle(client)}</p>
-                    <p className="truncate text-xs text-[var(--admin-text-muted)]">{contactSubtitle(client)}</p>
+                    <p className="truncate text-xs text-[var(--admin-text-muted)]">{client.email}</p>
                   </div>
                 </div>
               </td>
-              <td className="px-3 py-3 text-[var(--admin-text-muted)]">{client.email}</td>
-              <td className="px-3 py-3 text-[var(--admin-text-muted)]">{client.phone ?? "—"}</td>
+              <td className="hidden px-3 py-3 text-[var(--admin-text-muted)] lg:table-cell">{client.phone ?? "—"}</td>
               <td className="px-3 py-3">
                 <p className="font-medium text-[var(--admin-text)]">{client.project_count}</p>
                 <Link href={`/admin/projects?client=${client.id}`} className="text-xs text-[var(--admin-gold-light)] hover:underline">View</Link>

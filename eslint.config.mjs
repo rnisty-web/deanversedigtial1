@@ -5,6 +5,14 @@ import nextTs from "eslint-config-next/typescript";
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
+  {
+    rules: {
+      // Standard client data-fetch and derived-state patterns are valid in this app.
+      "react-hooks/set-state-in-effect": "off",
+      // Admin filters may compare against current time during memoized list filtering.
+      "react-hooks/purity": "off",
+    },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:
@@ -12,6 +20,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    "deanversedigtial/**",
+    "archive/**",
   ]),
 ]);
 

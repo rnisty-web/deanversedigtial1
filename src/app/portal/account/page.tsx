@@ -10,14 +10,6 @@ import { PortalPageHeader } from "@/components/portal/PortalPageHeader";
 import { PortalCard } from "@/components/portal/PortalCard";
 import { Button } from "@/components/ui/Button";
 
-type Profile = {
-  id: string;
-  email: string;
-  full_name: string | null;
-  phone: string | null;
-  avatar_url: string | null;
-};
-
 type Client = {
   id: string;
   name: string;
@@ -25,7 +17,6 @@ type Client = {
 };
 
 export default function PortalAccountPage() {
-  const [profile, setProfile] = useState<Profile | null>(null);
   const [client, setClient] = useState<Client | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -45,7 +36,6 @@ export default function PortalAccountPage() {
     const res = await fetch("/api/portal/account", { credentials: "same-origin" });
     if (res.ok) {
       const data = await res.json();
-      setProfile(data.profile);
       setClient(data.client);
       setFullName(data.profile.full_name ?? "");
       setEmail(data.profile.email ?? "");
@@ -82,7 +72,6 @@ export default function PortalAccountPage() {
     const data = await res.json().catch(() => ({}));
 
     if (res.ok) {
-      setProfile(data.profile);
       setMessage({
         tone: data.emailConfirmationRequired ? "info" : "success",
         text: data.emailConfirmationRequired

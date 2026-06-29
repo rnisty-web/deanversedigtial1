@@ -3,10 +3,11 @@ import { createClient } from "@/lib/supabase/server";
 import { Resend } from "resend";
 import { siteConfig } from "@/lib/constants";
 import {
+  checkRateLimit,
   getClientIp,
-  rateLimit,
   rateLimitResponse,
 } from "@/lib/rate-limit";
+import { isTurnstileConfigured, verifyTurnstileToken } from "@/lib/turnstile";
 
 const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
@@ -27,7 +28,7 @@ const LEADS_WINDOW_MS = 60 * 60 * 1000;
 export async function POST(request: Request) {
   try {
     const ip = getClientIp(request);
-    const limit = rateLimit(`leads:${ip}`, LEADS_LIMIT, LEADS_WINDOW_MS);
+    const limit = await checkRateLimit(`leads:${ip}`, LEADS_LIMIT, LEADS_WINDOW_MS);
     if (!limit.success) {
       return rateLimitResponse(limit.resetAt);
     }
@@ -43,7 +44,23 @@ export async function POST(request: Request) {
       budget,
       project_type,
       source,
+      website,
+      turnstile_token,
     } = body;
+
+    if (typeof website === "string" && website.trim().length > 0) {
+      return NextResponse.json({ lead: { id: "ok" } }, { status: 201 });
+    }
+
+    if (isTurnstileConfigured()) {
+      const verified = await verifyTurnstileToken(turnstile_token, ip);
+      if (!verified) {
+        return NextResponse.json(
+          { error: "Security check failed. Please refresh and try again." },
+          { status: 400 },
+        );
+      }
+    }
 
     if (!name || !email) {
       return NextResponse.json(

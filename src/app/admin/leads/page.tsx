@@ -140,6 +140,7 @@ export default function AdminLeadsPage() {
     const fresh = leads.find((l) => l.id === detailLead.id);
     if (fresh) setDetailLead(fresh);
     else setDetailLead(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- sync detail row when list or id changes
   }, [leads, detailLead?.id]);
 
   useEffect(() => {

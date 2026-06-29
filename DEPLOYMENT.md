@@ -83,11 +83,13 @@ NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
 NEXT_PUBLIC_SUPABASE_REDIRECT_URL=http://localhost:3000/auth/callback
-ADMIN_EMAIL=your-email@gmail.com
+ADMIN_OWNER_EMAIL=your-email@gmail.com
 CONTACT_FORM_TO=your-email@gmail.com
 ```
 
 Use the values from Part A4. `.env.local` stays on your machine — never commit it to GitHub.
+
+`ADMIN_EMAIL` is also accepted as a fallback if `ADMIN_OWNER_EMAIL` is not set.
 
 **B2. Install and test**
 
@@ -352,9 +354,22 @@ STRIPE_WEBHOOK_SECRET=
 # Analytics (optional)
 NEXT_PUBLIC_GA_MEASUREMENT_ID=
 
-# Admin bootstrap
+# Admin bootstrap (founder-only actions — either name works; ADMIN_OWNER_EMAIL preferred)
+ADMIN_OWNER_EMAIL=adean2440@gmail.com
 ADMIN_EMAIL=adean2440@gmail.com
+
+# Rate limiting (recommended for production — Upstash Redis free tier)
+UPSTASH_REDIS_REST_URL=https://YOUR_UPSTASH_URL.upstash.io
+UPSTASH_REDIS_REST_TOKEN=your-upstash-token
+
+# Contact form CAPTCHA (optional — Cloudflare Turnstile, free)
+NEXT_PUBLIC_TURNSTILE_SITE_KEY=
+TURNSTILE_SECRET_KEY=
 ```
+
+**Rate limiting:** Without Upstash vars, `/api/leads` and `/api/analytics` use an in-memory limiter (fine locally, not reliable on serverless). Create a free database at [upstash.com](https://upstash.com/), copy the REST URL and token into Vercel/Cloudflare env, and redeploy.
+
+**Turnstile:** Create a widget at [Cloudflare Turnstile](https://developers.cloudflare.com/turnstile/). Add your site domain. When both keys are set, the contact form shows a CAPTCHA and `/api/leads` verifies the token. Without keys, a honeypot field still blocks basic bots.
 
 For production on Cloudflare, set the same keys with production values (`NEXT_PUBLIC_SITE_URL=https://deanversedigital.com`, etc.) in **GitHub Actions secrets** and/or the **Cloudflare Workers dashboard** (Settings → Variables and Secrets).
 

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { budgetRanges, projectTypes } from "@/lib/data/fallbacks";
 import { cn } from "@/lib/utils";
+import { isTurnstileEnabled, TurnstileField } from "@/components/contact/TurnstileField";
 
 const inputStyles =
   "w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/30 transition-colors focus:border-[#a3c9a8]/50 focus:outline-none focus:ring-2 focus:ring-[#a3c9a8]/20";
@@ -25,6 +26,8 @@ export function LeadForm() {
 
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const turnstileRequired = isTurnstileEnabled();
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -32,6 +35,12 @@ export function LeadForm() {
     setErrorMessage("");
 
     const formData = new FormData(event.currentTarget);
+
+    if (turnstileRequired && !turnstileToken) {
+      setStatus("error");
+      setErrorMessage("Please complete the security check before submitting.");
+      return;
+    }
 
     const payload = {
       name: formData.get("name") as string,
@@ -42,6 +51,8 @@ export function LeadForm() {
       project_type: formData.get("project_type") as string,
       service_interest: formData.get("project_type") as string,
       message: formData.get("description") as string,
+      website: formData.get("website") as string,
+      turnstile_token: turnstileToken || undefined,
     };
 
     try {
@@ -72,7 +83,7 @@ export function LeadForm() {
 
   return (
     <GlassCard hover={false} padding="lg">
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="relative space-y-5">
         <div className="grid gap-5 sm:grid-cols-2">
           <div>
             <label htmlFor="name" className="mb-2 block text-sm font-medium text-white/80">
@@ -195,6 +206,28 @@ export function LeadForm() {
             placeholder="Tell me about your project, goals, and timeline..."
           />
         </div>
+
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -left-[9999px] h-0 w-0 overflow-hidden opacity-0"
+        >
+          <label htmlFor="website">Website</label>
+          <input
+            id="website"
+            name="website"
+            type="text"
+            tabIndex={-1}
+            autoComplete="off"
+          />
+        </div>
+
+        {turnstileRequired && (
+          <TurnstileField
+            onToken={setTurnstileToken}
+            onExpire={() => setTurnstileToken("")}
+            onError={() => setTurnstileToken("")}
+          />
+        )}
 
         {status === "error" && (
           <p className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">

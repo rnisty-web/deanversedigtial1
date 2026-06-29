@@ -86,7 +86,11 @@ export async function requireCustomer(): Promise<Profile> {
 }
 
 export function getOwnerEmail(): string {
-  return (process.env.ADMIN_OWNER_EMAIL ?? siteConfig.email).trim().toLowerCase();
+  const configured =
+    process.env.ADMIN_OWNER_EMAIL?.trim() ||
+    process.env.ADMIN_EMAIL?.trim() ||
+    siteConfig.email;
+  return configured.toLowerCase();
 }
 
 export function isOwnerEmail(email: string | null | undefined): boolean {

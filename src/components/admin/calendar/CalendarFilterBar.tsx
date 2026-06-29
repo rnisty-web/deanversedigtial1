@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import type { CalendarEvent, CalendarEventType } from "@/lib/calendar/types";
+import type { CalendarEventType } from "@/lib/calendar/types";
 import { EVENT_TYPE_LABELS } from "@/lib/calendar/types";
 
 type CalendarFilterBarProps = {

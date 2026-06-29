@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import {
+  checkRateLimit,
   getClientIp,
-  rateLimit,
   rateLimitResponse,
 } from "@/lib/rate-limit";
 
@@ -12,7 +12,7 @@ const ANALYTICS_WINDOW_MS = 60 * 1000;
 export async function POST(request: Request) {
   try {
     const ip = getClientIp(request);
-    const limit = rateLimit(`analytics:${ip}`, ANALYTICS_LIMIT, ANALYTICS_WINDOW_MS);
+    const limit = await checkRateLimit(`analytics:${ip}`, ANALYTICS_LIMIT, ANALYTICS_WINDOW_MS);
     if (!limit.success) {
       return rateLimitResponse(limit.resetAt);
     }

@@ -182,6 +182,21 @@ body {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  min-height: 0;
+}
+
+/* Framer motion wrapper must participate in the flex height chain */
+.admin-main-scroll:has(.admin-content-page) > * {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  width: 100%;
+}
+
+/* Content editor uses full main height — hide footer to avoid clipping */
+.admin-theme > .flex.min-h-0.flex-1.flex-col:has(.admin-content-page) > footer {
+  display: none;
 }
 
 .admin-content-page {
@@ -189,6 +204,7 @@ body {
   min-height: 0;
   flex: 1;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .admin-luxury-card {
@@ -737,6 +753,11 @@ body {
 /* ─── Site Content editor ─── */
 .admin-content-editor {
   background: var(--admin-bg);
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .admin-content-header {
@@ -801,17 +822,29 @@ body {
 
 .admin-content-body {
   min-height: 0;
+  flex: 1;
+  overflow: hidden;
 }
 
 .admin-content-body-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
 }
 
 @media (min-width: 1280px) {
   .admin-content-body-grid {
     grid-template-columns: minmax(280px, 340px) minmax(0, 1fr) 280px;
+    grid-template-rows: minmax(0, 1fr);
   }
+}
+
+.admin-content-body-grid > main {
+  min-height: 0;
+  overflow: hidden;
 }
 
 .admin-cms-stats {
@@ -841,6 +874,7 @@ body {
   display: none;
   flex-direction: column;
   gap: 0.875rem;
+  min-height: 0;
   overflow-y: auto;
   border-left: 1px solid var(--admin-border-subtle);
   background: rgba(8, 8, 8, 0.45);
@@ -971,6 +1005,8 @@ body {
 
 .admin-content-sidebar {
   background: rgba(8, 8, 8, 0.6);
+  min-height: 0;
+  overflow: hidden;
 }
 
 .admin-content-section-item {
@@ -1090,10 +1126,6 @@ body {
 }
 
 @media (max-width: 1023px) {
-  .admin-content-body {
-    flex-direction: column;
-  }
-
   .admin-content-sidebar {
     max-width: none;
     max-height: min(40vh, 320px);

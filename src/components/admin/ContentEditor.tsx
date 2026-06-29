@@ -348,14 +348,14 @@ export function ContentEditor() {
 
   if (loading) {
     return (
-      <div className="flex flex-1 items-center justify-center p-8">
+      <div className="flex min-h-0 flex-1 items-center justify-center p-8">
         <p className="text-[var(--admin-text-muted)]">Loading content…</p>
       </div>
     );
   }
 
   return (
-    <div className="admin-content-editor flex min-h-0 flex-1 flex-col">
+    <div className="admin-content-editor flex min-h-0 flex-1 flex-col overflow-hidden">
       <ContentEditorHeader
         search={search}
         onSearchChange={setSearch}
@@ -390,8 +390,8 @@ export function ContentEditor() {
         </div>
       )}
 
-      <div className="admin-content-body admin-content-body-grid flex min-h-0 flex-1 overflow-hidden">
-        <aside className="admin-content-sidebar flex w-full max-w-[340px] shrink-0 flex-col border-r border-[var(--admin-border-subtle)]">
+      <div className="admin-content-body admin-content-body-grid min-h-0 flex-1 overflow-hidden">
+        <aside className="admin-content-sidebar flex w-full max-w-[340px] shrink-0 flex-col overflow-hidden border-r border-[var(--admin-border-subtle)]">
           {!listReorderEnabled && (
             <p className="border-b border-[var(--admin-border-subtle)] px-4 py-2 text-[11px] text-[var(--admin-text-muted)]">
               Clear search and select All Sections to drag-reorder the list.
@@ -410,7 +410,7 @@ export function ContentEditor() {
           />
         </aside>
 
-        <main className="flex min-w-0 flex-1 flex-col overflow-hidden">
+        <main className="flex min-h-0 min-w-0 flex-col overflow-hidden">
           {activeDef && (
             <div className="admin-content-panel-header shrink-0 border-b border-[var(--admin-border-subtle)] px-6 py-4 lg:px-8">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">

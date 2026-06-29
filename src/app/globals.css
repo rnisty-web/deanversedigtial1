@@ -2799,8 +2799,6 @@ body {
 
 .admin-clients-table-row:hover { background: rgba(255, 255, 255, 0.025); }
 
-.admin-clients-table-row td:last-child { position: relative; }
-
 .admin-clients-avatar {
   display: flex;
   height: 2.25rem;
@@ -2851,19 +2849,35 @@ body {
   color: var(--admin-text);
 }
 
+.admin-clients-action-btn-text {
+  min-width: auto;
+  padding: 0 0.75rem;
+  font-size: 0.75rem;
+}
+
 .admin-clients-menu {
   position: absolute;
   right: 0;
-  bottom: 100%;
+  top: 100%;
   z-index: 50;
-  margin-bottom: 0.25rem;
+  margin-top: 0.25rem;
   min-width: 11rem;
-  overflow: hidden;
+  max-height: min(18rem, 70vh);
+  overflow-y: auto;
+  overflow-x: hidden;
   border-radius: 12px;
   border: 1px solid var(--admin-border);
   background: rgba(12, 12, 12, 0.98);
   box-shadow: 0 12px 40px -8px rgba(0, 0, 0, 0.75);
   padding: 0.375rem;
+}
+
+.admin-clients-menu-floating {
+  position: fixed;
+  right: auto;
+  top: auto;
+  margin-top: 0;
+  z-index: 80;
 }
 
 .admin-clients-menu button,
@@ -2875,6 +2889,7 @@ body {
   text-align: left;
   font-size: 0.8125rem;
   color: var(--admin-text-muted);
+  transition: all 0.12s ease;
 }
 
 .admin-clients-menu button:hover,

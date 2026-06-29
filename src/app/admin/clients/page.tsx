@@ -173,6 +173,7 @@ export default function AdminClientsPage() {
   }
 
   function openEdit(client: ClientRecord) {
+    setDetailClient(null);
     setForm({
       name: client.name,
       email: client.email,
@@ -414,7 +415,7 @@ export default function AdminClientsPage() {
         size="lg"
         footer={
           detailClient ? (
-            <div className="flex flex-wrap justify-end gap-2 border-t border-[var(--admin-border-subtle)] px-6 py-4">
+            <div className="flex flex-wrap justify-end gap-2 border-t border-[var(--admin-border-subtle)] px-6 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
               <Button size="sm" href={`/admin/projects?client=${detailClient.id}`} variant="secondary" className="admin-btn-ghost">View projects</Button>
               <Button size="sm" href={`/admin/invoices?client=${detailClient.id}`} variant="secondary" className="admin-btn-ghost">View invoices</Button>
               <Button size="sm" variant="secondary" className="admin-btn-ghost" onClick={() => openEdit(detailClient)}>Edit client</Button>
@@ -432,6 +433,7 @@ export default function AdminClientsPage() {
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div><p className="text-xs uppercase tracking-wider text-[var(--admin-text-muted)]">Contact</p><p className="text-sm text-[var(--admin-text)]">{detailClient.name}</p></div>
+              <div><p className="text-xs uppercase tracking-wider text-[var(--admin-text-muted)]">Company</p><p className="text-sm text-[var(--admin-text)]">{detailClient.company ?? "—"}</p></div>
               <div><p className="text-xs uppercase tracking-wider text-[var(--admin-text-muted)]">Email</p><p className="text-sm text-[var(--admin-text)]">{detailClient.email}</p></div>
               <div><p className="text-xs uppercase tracking-wider text-[var(--admin-text-muted)]">Phone</p><p className="text-sm text-[var(--admin-text)]">{detailClient.phone ?? "—"}</p></div>
               <div><p className="text-xs uppercase tracking-wider text-[var(--admin-text-muted)]">Industry</p><p className="text-sm text-[var(--admin-text)]">{detailClient.industry}</p></div>
@@ -460,8 +462,9 @@ export default function AdminClientsPage() {
         open={showForm}
         onClose={closeForm}
         title={editId ? "Edit Client" : "Add Client"}
+        size="lg"
         footer={
-          <div className="flex justify-end gap-2 border-t border-[var(--admin-border-subtle)] px-6 py-4">
+          <div className="flex justify-end gap-2 border-t border-[var(--admin-border-subtle)] px-6 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
             <Button variant="ghost" size="sm" className="admin-btn-ghost" onClick={closeForm}>Cancel</Button>
             <Button size="sm" className="admin-btn-gold" disabled={saving || !form.name || !form.email} onClick={handleSubmit}>
               {saving ? "Saving…" : editId ? "Update" : "Add Client"}
@@ -478,7 +481,7 @@ export default function AdminClientsPage() {
             <label className="mb-1.5 block text-sm font-medium text-[var(--admin-text-muted)]">Status</label>
             <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className="admin-input w-full text-sm">
               {CLIENT_STATUSES.map((s) => (
-                <option key={s} value={s}>{statusStyle(s).label}</option>
+                <option key={s} value={s} className="bg-[var(--admin-bg)]">{statusStyle(s).label}</option>
               ))}
             </select>
           </div>

@@ -137,7 +137,9 @@ export function ClientsSelect({
   return (
     <select value={value} onChange={(e) => onChange(e.target.value)} className={cn("admin-clients-select", className)}>
       {options.map((opt) => (
-        <option key={opt.value} value={opt.value}>{opt.label}</option>
+        <option key={opt.value} value={opt.value} className="bg-[var(--admin-bg)] text-[var(--admin-text)]">
+          {opt.label}
+        </option>
       ))}
     </select>
   );

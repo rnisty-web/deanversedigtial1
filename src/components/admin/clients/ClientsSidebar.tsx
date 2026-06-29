@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useMemo, useRef } from "react";
 import { StatsChart } from "@/components/admin/StatsChart";
 import type { ClientRecord } from "@/lib/clients/utils";
-import { isThisMonth, pct } from "@/lib/clients/utils";
+import { CLIENT_STATUSES, isThisMonth, pct, statusStyle } from "@/lib/clients/utils";
 import { cn } from "@/lib/utils";
 
 type ClientsSidebarProps = {
@@ -31,9 +31,8 @@ export function ClientsSidebar({
   const importRef = useRef<HTMLInputElement>(null);
 
   const overview = useMemo(() => {
-    const labels = ["Active", "On Hold", "Inactive"];
-    const keys = ["active", "inactive", "archived"];
-    const data = keys.map((k) => clients.filter((c) => c.status === k).length);
+    const labels = CLIENT_STATUSES.map((s) => statusStyle(s).label);
+    const data = CLIENT_STATUSES.map((k) => clients.filter((c) => c.status === k).length);
     return { labels, data, total: clients.length };
   }, [clients]);
 

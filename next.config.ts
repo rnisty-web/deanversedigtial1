@@ -1,9 +1,20 @@
 import type { NextConfig } from "next";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
-const supabaseHostname = supabaseUrl
-  ? new URL(supabaseUrl).hostname
-  : "*.supabase.co";
+function safeHostname(raw: string | undefined, fallback: string) {
+  const value = raw?.trim();
+  if (!value) return fallback;
+
+  try {
+    return new URL(value).hostname;
+  } catch {
+    return fallback;
+  }
+}
+
+const supabaseHostname = safeHostname(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  "*.supabase.co",
+);
 
 const nextConfig: NextConfig = {
   images: {

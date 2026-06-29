@@ -24,7 +24,8 @@ export function LeadsSidebar({ leads, onAddLead, onImport, onImportError, onAddN
     const keys = ["new", "contacted", "qualified", "converted", "lost"];
     const data = keys.map((k) => leads.filter((l) => l.status === k).length);
     const total = leads.length;
-    return { labels, data, total };
+    const hasData = total > 0 && data.some((n) => n > 0);
+    return { labels, data, total, hasData };
   }, [leads]);
 
   const bySource = useMemo(() => {
@@ -111,10 +112,12 @@ export function LeadsSidebar({ leads, onAddLead, onImport, onImportError, onAddN
               variant="luxury"
               hideLegend
             />
-            <p className="admin-leads-pipeline-total">
-              <span className="text-2xl font-bold text-[var(--admin-text)]">{pipeline.total}</span>
-              <span className="block text-xs text-[var(--admin-text-muted)]">Total Leads</span>
-            </p>
+            {pipeline.hasData ? (
+              <p className="admin-leads-pipeline-total">
+                <span className="text-2xl font-bold text-[var(--admin-text)]">{pipeline.total}</span>
+                <span className="block text-xs text-[var(--admin-text-muted)]">Total Leads</span>
+              </p>
+            ) : null}
           </div>
           <ul className="admin-leads-pipeline-legend">
             {pipeline.labels.map((label, i) => (

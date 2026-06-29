@@ -2283,6 +2283,8 @@ body {
 
 .admin-leads-content {
   min-width: 0;
+  container-type: inline-size;
+  container-name: leads-content;
 }
 
 .admin-leads-content > div {
@@ -2307,13 +2309,13 @@ body {
   align-items: start;
 }
 
-@media (min-width: 1100px) {
+@container leads-content (min-width: 1080px) {
   .admin-leads-layout {
     grid-template-columns: minmax(0, 1fr) 300px;
   }
 }
 
-@media (min-width: 1400px) {
+@container leads-content (min-width: 1280px) {
   .admin-leads-layout {
     grid-template-columns: minmax(0, 1fr) 320px;
   }
@@ -2321,7 +2323,6 @@ body {
 
 .admin-leads-main {
   min-width: 0;
-  overflow: hidden;
   border-radius: var(--admin-radius);
   border: 1px solid var(--admin-border);
   background: linear-gradient(
@@ -2334,7 +2335,9 @@ body {
 
 .admin-leads-toolbar {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
   gap: 0.75rem;
   margin-bottom: 1.25rem;
   padding: 0.875rem 1rem;
@@ -2343,35 +2346,7 @@ body {
   background: rgba(17, 17, 17, 0.65);
 }
 
-.admin-leads-toolbar-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.admin-leads-toolbar-actions {
-  justify-content: space-between;
-}
-
-@media (min-width: 1024px) {
-  .admin-leads-toolbar:not(.admin-leads-toolbar-compact) {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .admin-leads-toolbar-actions {
-    justify-content: flex-end;
-    margin-left: auto;
-  }
-}
-
 .admin-leads-toolbar-compact {
-  align-items: stretch;
-}
-
-.admin-leads-toolbar-compact .admin-leads-toolbar-actions {
   justify-content: flex-end;
 }
 
@@ -2612,7 +2587,7 @@ body {
   width: 100%;
 }
 
-@media (min-width: 1100px) {
+@container leads-content (min-width: 1080px) {
   .admin-leads-sidebar {
     position: sticky;
     top: 1rem;

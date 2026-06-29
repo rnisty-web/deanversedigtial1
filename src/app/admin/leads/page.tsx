@@ -55,14 +55,9 @@ const statIcons: Record<string, React.ReactNode> = {
       <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
     </svg>
   ),
-  proposal: (
+  converted: (
     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M15.182 15.182a4.5 4.5 0 0 1-6.364 0M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75Zm-.375 4.5c.207 0 .375.336.375.75s-.168.75-.375.75-.375-.336-.375-.75.168-.75.375-.75Zm4.125-4.5c.207 0 .375.336.375.75s-.168.75-.375.75-.375-.336-.375-.75.168-.75.375-.75Zm-.375 4.5c.207 0 .375.336.375.75s-.168.75-.375.75-.375-.336-.375-.75.168-.75.375-.75Z" />
-    </svg>
-  ),
-  negotiation: (
-    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 0 1 3 3h-15a3 3 0 0 1 3-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0V7.875c0-.621-.504-1.125-1.125-1.125H9.375c-.621 0-1.125.504-1.125 1.125v3.75m8.625 0V9.375c0-.621-.504-1.125-1.125-1.125H9.375c-.621 0-1.125.504-1.125 1.125v3.75" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
     </svg>
   ),
   lost: (
@@ -430,17 +425,13 @@ export default function AdminLeadsPage() {
         {error && <AdminAlert tone="error" className="mb-4">{error}</AdminAlert>}
         {success && <AdminAlert tone="success" className="mb-4">{success}</AdminAlert>}
 
-        <div className="mb-6 grid gap-4 grid-cols-2 md:grid-cols-3 2xl:grid-cols-6">
+        <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
           {STAT_CARDS.map((card) => (
             <LeadsStatCard
               key={card.id}
               label={card.label}
               value={statCount(leads, card)}
-              hint={monthGrowthHint(
-                leads,
-                "statuses" in card ? card.statuses : undefined,
-                "match" in card ? card.match : undefined,
-              )}
+              hint={monthGrowthHint(leads, card.statuses)}
               icon={statIcons[card.id]}
               negative={"negative" in card && card.negative}
             />
@@ -451,7 +442,7 @@ export default function AdminLeadsPage() {
           <div className="admin-leads-main">
             <div className={cn("admin-leads-toolbar", !showFilters && "admin-leads-toolbar-compact")}>
               {showFilters && (
-                <div className="admin-leads-toolbar-row">
+                <div className="flex flex-wrap gap-2">
                   <LeadsSelect value={sourceFilter} onChange={setSourceFilter} options={sourceOptions} />
                   <LeadsSelect value={serviceFilter} onChange={setServiceFilter} options={serviceOptions} />
                   <LeadsSelect
@@ -468,7 +459,7 @@ export default function AdminLeadsPage() {
                 </div>
               )}
 
-              <div className="admin-leads-toolbar-row admin-leads-toolbar-actions">
+              <div className="flex flex-wrap items-center gap-2">
                 <div className="admin-leads-date-range">
                   <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="admin-leads-date-input" aria-label="From date" />
                   <span className="text-[var(--admin-text-muted)]">–</span>

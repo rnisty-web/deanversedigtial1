@@ -28,16 +28,7 @@ export const STAT_CARDS = [
   { id: "new", label: "New Leads", statuses: ["new"] as string[] },
   { id: "contacted", label: "Contacted", statuses: ["contacted"] },
   { id: "qualified", label: "Qualified", statuses: ["qualified"] },
-  {
-    id: "proposal",
-    label: "Proposal Sent",
-    match: (l: LeadRecord) => l.status === "qualified" && !!l.budget,
-  },
-  {
-    id: "negotiation",
-    label: "Negotiation",
-    match: (l: LeadRecord) => l.status === "contacted" && !!l.budget,
-  },
+  { id: "converted", label: "Won", statuses: ["converted"] },
   { id: "lost", label: "Lost", statuses: ["lost"], negative: true },
 ] as const;
 
@@ -173,14 +164,8 @@ export function monthGrowthHint(leads: LeadRecord[], statuses?: readonly string[
 }
 
 export function statCount(leads: LeadRecord[], card: (typeof STAT_CARDS)[number]) {
-  if ("match" in card && typeof card.match === "function") {
-    return leads.filter(card.match).length;
-  }
-  if ("statuses" in card && card.statuses) {
-    const statuses = card.statuses as readonly string[];
-    return leads.filter((l) => statuses.includes(l.status)).length;
-  }
-  return 0;
+  const statuses = card.statuses as readonly string[];
+  return leads.filter((l) => statuses.includes(l.status)).length;
 }
 
 export function serviceLabel(lead: LeadRecord) {

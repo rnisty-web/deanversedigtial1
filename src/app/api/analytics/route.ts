@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { page_path, event_type = "page_view", session_id } = body;
+    const { page_path, event_type = "page_view", session_id, metadata } = body;
 
     if (!page_path) {
       return NextResponse.json({ error: "page_path required" }, { status: 400 });
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
       event_type,
       page_path,
       session_id: session_id ?? null,
-      metadata: {},
+      metadata: metadata && typeof metadata === "object" ? metadata : {},
     });
 
     return NextResponse.json({ success: true });

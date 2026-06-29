@@ -3,6 +3,14 @@
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 
+function getDeviceType() {
+  if (typeof navigator === "undefined") return "Unknown";
+  const ua = navigator.userAgent;
+  if (/tablet|ipad|playbook|silk/i.test(ua)) return "Tablet";
+  if (/mobile|iphone|ipod|android|blackberry|opera mini/i.test(ua)) return "Mobile";
+  return "Desktop";
+}
+
 export function PageViewTracker() {
   const pathname = usePathname();
 
@@ -18,7 +26,11 @@ export function PageViewTracker() {
     fetch("/api/analytics", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ page_path: pathname, session_id: sessionId }),
+      body: JSON.stringify({
+        page_path: pathname,
+        session_id: sessionId,
+        metadata: { device: getDeviceType() },
+      }),
     }).catch(() => {});
   }, [pathname]);
 

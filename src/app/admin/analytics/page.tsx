@@ -4,8 +4,11 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { AdminAlert } from "@/components/admin/AdminAlert";
 import { AdminPageContent } from "@/components/admin/AdminPageContent";
 import {
+  AnalyticsActivityFeed,
   AnalyticsAdminHeader,
+  AnalyticsDeviceBreakdown,
   AnalyticsFunnel,
+  AnalyticsInsights,
   AnalyticsKpiCard,
   AnalyticsSparkline,
   AnalyticsTopPagesList,
@@ -13,6 +16,7 @@ import {
 import { AnalyticsSkeleton } from "@/components/admin/analytics/AnalyticsSkeleton";
 import { DashboardWidget } from "@/components/admin/dashboard/DashboardWidget";
 import { StatsChart } from "@/components/admin/StatsChart";
+import type { AnalyticsPeriod } from "@/lib/analytics/admin-metrics";
 
 type PerformanceMetric = {
   key: string;
@@ -22,16 +26,17 @@ type PerformanceMetric = {
   change: number;
   trend: number[];
   suffix?: string;
+  prefix?: boolean;
+  invertTrend?: boolean;
 };
 
 type AnalyticsData = {
+  period: AnalyticsPeriod;
   totalEvents: number;
   pageViewLabels: string[];
   pageViewData: number[];
   eventLabels: string[];
   eventData: number[];
-  topPageLabels: string[];
-  topPageData: number[];
   periodLabel: string;
   comparePeriodLabel: string;
   totalVisitors: number;
@@ -39,12 +44,18 @@ type AnalyticsData = {
   pageViews: number;
   leadsGenerated: number;
   conversionRate: number;
+  revenue: number;
+  avgPagesPerSession: number;
+  bounceRate: number;
   changes: {
     totalVisitors: number;
     uniqueVisitors: number;
     pageViews: number;
     leadsGenerated: number;
     conversionRate: number;
+    revenue: number;
+    avgPagesPerSession: number;
+    bounceRate: number;
   };
   trafficLabels: string[];
   trafficVisitors: number[];
@@ -53,11 +64,17 @@ type AnalyticsData = {
   leadsOverTime: number[];
   leadsBySourceLabels: string[];
   leadsBySourceData: number[];
+  leadStatusLabels: string[];
+  leadStatusData: number[];
   conversionFunnel: { stage: string; count: number }[];
   performanceMetrics: PerformanceMetric[];
   topPages: { path: string; views: number; percentage: number }[];
-  trafficBySourceLabels: string[];
-  trafficBySourceData: number[];
+  entryPages: { path: string; views: number; percentage: number }[];
+  deviceBreakdown: { device: string; count: number; percentage: number }[];
+  hourlyTrafficLabels: string[];
+  hourlyTrafficData: number[];
+  recentActivity: { type: "page_view" | "lead"; label: string; detail: string; timestamp: string }[];
+  insights: string[];
 };
 
 const kpiIcons = {
@@ -87,11 +104,32 @@ const kpiIcons = {
       <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
     </svg>
   ),
+  revenue: (
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  ),
+  session: (
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
+    </svg>
+  ),
+  bounce: (
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3 7.5L7.5 3m0 0L12 7.5M7.5 3v13.5m13.5 0L16.5 21m0 0L12 16.5m4.5 4.5V7.5" />
+    </svg>
+  ),
 };
 
-function formatMetricValue(value: number, suffix?: string) {
+function formatMetricValue(value: number, suffix?: string, prefix?: boolean) {
   if (suffix === "%") return `${value}%`;
+  if (suffix === "$") return `$${value.toLocaleString()}`;
+  if (prefix) return value.toLocaleString();
   return value.toLocaleString();
+}
+
+function formatCurrency(value: number) {
+  return `$${Math.round(value).toLocaleString()}`;
 }
 
 export default function AdminAnalyticsPage() {
@@ -99,32 +137,56 @@ export default function AdminAnalyticsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [period, setPeriod] = useState<AnalyticsPeriod>("month");
   const [exporting, setExporting] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const fetchAnalytics = useCallback(async () => {
-    setLoading(true);
+  const fetchAnalytics = useCallback(async (selectedPeriod: AnalyticsPeriod, isRefresh = false) => {
+    if (isRefresh) setRefreshing(true);
+    else setLoading(true);
     setError(null);
-    const res = await fetch("/api/admin/analytics", { credentials: "same-origin" });
+
+    const res = await fetch(`/api/admin/analytics?period=${selectedPeriod}`, {
+      credentials: "same-origin",
+    });
+
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
       setError(body.error ?? "Failed to load analytics");
       setData(null);
       setLoading(false);
+      setRefreshing(false);
       return;
     }
+
     setData(await res.json());
     setLoading(false);
+    setRefreshing(false);
   }, []);
 
   useEffect(() => {
-    fetchAnalytics();
-  }, [fetchAnalytics]);
+    fetchAnalytics(period);
+  }, [fetchAnalytics, period]);
 
   const filteredPerformance = useMemo(() => {
     if (!data) return [];
     const q = search.trim().toLowerCase();
     if (!q) return data.performanceMetrics;
     return data.performanceMetrics.filter((metric) => metric.label.toLowerCase().includes(q));
+  }, [data, search]);
+
+  const filteredTopPages = useMemo(() => {
+    if (!data) return [];
+    const q = search.trim().toLowerCase();
+    if (!q) return data.topPages;
+    return data.topPages.filter((page) => page.path.toLowerCase().includes(q));
+  }, [data, search]);
+
+  const filteredEntryPages = useMemo(() => {
+    if (!data) return [];
+    const q = search.trim().toLowerCase();
+    if (!q) return data.entryPages;
+    return data.entryPages.filter((page) => page.path.toLowerCase().includes(q));
   }, [data, search]);
 
   function handleExport() {
@@ -135,7 +197,7 @@ export default function AdminAnalyticsPage() {
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement("a");
       anchor.href = url;
-      anchor.download = `deanverse-analytics-${new Date().toISOString().slice(0, 10)}.json`;
+      anchor.download = `deanverse-analytics-${period}-${new Date().toISOString().slice(0, 10)}.json`;
       anchor.click();
       URL.revokeObjectURL(url);
     } finally {
@@ -145,24 +207,18 @@ export default function AdminAnalyticsPage() {
 
   return (
     <>
-      {!loading && data ? (
-        <AnalyticsAdminHeader
-          periodLabel={data.periodLabel}
-          comparePeriodLabel={data.comparePeriodLabel}
-          onExport={handleExport}
-          exporting={exporting}
-          search={search}
-          onSearchChange={setSearch}
-        />
-      ) : (
-        <AnalyticsAdminHeader
-          periodLabel="Loading…"
-          comparePeriodLabel="—"
-          onExport={() => undefined}
-          search={search}
-          onSearchChange={setSearch}
-        />
-      )}
+      <AnalyticsAdminHeader
+        period={period}
+        onPeriodChange={setPeriod}
+        periodLabel={data?.periodLabel ?? "Loading…"}
+        comparePeriodLabel={data?.comparePeriodLabel ?? "—"}
+        onExport={handleExport}
+        onRefresh={() => fetchAnalytics(period, true)}
+        exporting={exporting}
+        refreshing={refreshing}
+        search={search}
+        onSearchChange={setSearch}
+      />
 
       <AdminPageContent className="admin-analytics-content">
         {error ? (
@@ -177,7 +233,11 @@ export default function AdminAnalyticsPage() {
           <p className="text-[var(--admin-text-muted)]">Unable to load analytics data.</p>
         ) : (
           <div className="admin-analytics-page space-y-6">
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+            <DashboardWidget title="Key Insights" subtitle="Automated highlights for this period" padding="sm">
+              <AnalyticsInsights insights={data.insights} />
+            </DashboardWidget>
+
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-8">
               <AnalyticsKpiCard
                 label="Total Visitors"
                 value={data.totalVisitors.toLocaleString()}
@@ -208,11 +268,30 @@ export default function AdminAnalyticsPage() {
                 change={data.changes.conversionRate}
                 icon={kpiIcons.conversion}
               />
+              <AnalyticsKpiCard
+                label="Paid Revenue"
+                value={formatCurrency(data.revenue)}
+                change={data.changes.revenue}
+                icon={kpiIcons.revenue}
+              />
+              <AnalyticsKpiCard
+                label="Pages / Session"
+                value={data.avgPagesPerSession.toLocaleString()}
+                change={data.changes.avgPagesPerSession}
+                icon={kpiIcons.session}
+              />
+              <AnalyticsKpiCard
+                label="Bounce Rate"
+                value={`${data.bounceRate}%`}
+                change={data.changes.bounceRate}
+                icon={kpiIcons.bounce}
+                invertTrend
+              />
             </div>
 
             <div className="grid gap-6 xl:grid-cols-12">
               <div className="space-y-6 xl:col-span-8">
-                <DashboardWidget title="Website Traffic" subtitle="Visitors vs unique visitors this month">
+                <DashboardWidget title="Website Traffic" subtitle="Visitors vs unique visitors for selected period">
                   <StatsChart
                     type="line"
                     variant="luxury"
@@ -263,6 +342,34 @@ export default function AdminAnalyticsPage() {
                   </DashboardWidget>
                 </div>
 
+                <div className="grid gap-6 lg:grid-cols-2">
+                  <DashboardWidget title="Peak Traffic Hours" subtitle="When visitors browse your site">
+                    <StatsChart
+                      type="bar"
+                      labels={data.hourlyTrafficLabels}
+                      datasets={[
+                        {
+                          label: "Page Views",
+                          data: data.hourlyTrafficData,
+                          backgroundColor: "rgba(201, 169, 98, 0.35)",
+                          borderColor: "#c9a962",
+                        },
+                      ]}
+                      height={240}
+                      emptyMessage="No hourly traffic data yet."
+                    />
+                  </DashboardWidget>
+                  <DashboardWidget title="Lead Pipeline" subtitle="Status breakdown for current period">
+                    <StatsChart
+                      type="doughnut"
+                      labels={data.leadStatusLabels}
+                      datasets={[{ label: "Leads", data: data.leadStatusData }]}
+                      height={240}
+                      emptyMessage="No leads in this period."
+                    />
+                  </DashboardWidget>
+                </div>
+
                 <DashboardWidget title="Conversion Funnel" subtitle="Visitor to client journey">
                   <AnalyticsFunnel stages={data.conversionFunnel} />
                 </DashboardWidget>
@@ -280,23 +387,36 @@ export default function AdminAnalyticsPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {filteredPerformance.map((metric) => (
-                          <tr key={metric.key}>
-                            <td className="font-medium text-[var(--admin-text)]">{metric.label}</td>
-                            <td className="tabular-nums">{formatMetricValue(metric.thisPeriod, metric.suffix)}</td>
-                            <td className="tabular-nums text-[var(--admin-text-muted)]">
-                              {formatMetricValue(metric.previousPeriod, metric.suffix)}
-                            </td>
-                            <td>
-                              <span className={metric.change >= 0 ? "admin-trend-up" : "text-[var(--admin-danger)]"}>
-                                {metric.change >= 0 ? "↑" : "↓"} {Math.abs(metric.change)}%
-                              </span>
-                            </td>
-                            <td>
-                              <AnalyticsSparkline values={metric.trend} />
+                        {filteredPerformance.length === 0 ? (
+                          <tr>
+                            <td colSpan={5} className="text-[var(--admin-text-muted)]">
+                              No metrics match your search.
                             </td>
                           </tr>
-                        ))}
+                        ) : (
+                          filteredPerformance.map((metric) => {
+                            const positive = metric.invertTrend ? metric.change <= 0 : metric.change >= 0;
+                            return (
+                              <tr key={metric.key}>
+                                <td className="font-medium text-[var(--admin-text)]">{metric.label}</td>
+                                <td className="tabular-nums">
+                                  {formatMetricValue(metric.thisPeriod, metric.suffix, metric.prefix)}
+                                </td>
+                                <td className="tabular-nums text-[var(--admin-text-muted)]">
+                                  {formatMetricValue(metric.previousPeriod, metric.suffix, metric.prefix)}
+                                </td>
+                                <td>
+                                  <span className={positive ? "admin-trend-up" : "text-[var(--admin-danger)]"}>
+                                    {metric.change >= 0 ? "↑" : "↓"} {Math.abs(metric.change)}%
+                                  </span>
+                                </td>
+                                <td>
+                                  <AnalyticsSparkline values={metric.trend} />
+                                </td>
+                              </tr>
+                            );
+                          })
+                        )}
                       </tbody>
                     </table>
                   </div>
@@ -304,24 +424,23 @@ export default function AdminAnalyticsPage() {
               </div>
 
               <aside className="space-y-6 xl:col-span-4">
-                <DashboardWidget title="Traffic by Source" subtitle="Lead attribution channels">
-                  <StatsChart
-                    type="doughnut"
-                    labels={data.trafficBySourceLabels}
-                    datasets={[{ label: "Leads", data: data.trafficBySourceData }]}
-                    height={220}
-                    emptyMessage="No source data yet."
-                  />
-                  <p className="mt-3 text-center text-xs text-[var(--admin-text-muted)]">
-                    {data.leadsGenerated.toLocaleString()} leads this period
-                  </p>
+                <DashboardWidget title="Recent Activity" subtitle="Latest page views and leads">
+                  <AnalyticsActivityFeed items={data.recentActivity} />
                 </DashboardWidget>
 
-                <DashboardWidget title="Top Pages" subtitle="Most viewed paths (30 days)">
-                  <AnalyticsTopPagesList pages={data.topPages} />
+                <DashboardWidget title="Top Pages" subtitle="Most viewed paths">
+                  <AnalyticsTopPagesList pages={filteredTopPages} />
                 </DashboardWidget>
 
-                <DashboardWidget title="Events by Type" subtitle="Tracked activity (30 days)">
+                <DashboardWidget title="Entry Pages" subtitle="Where sessions begin">
+                  <AnalyticsTopPagesList pages={filteredEntryPages} />
+                </DashboardWidget>
+
+                <DashboardWidget title="Devices" subtitle="Desktop, mobile, and tablet split">
+                  <AnalyticsDeviceBreakdown devices={data.deviceBreakdown} />
+                </DashboardWidget>
+
+                <DashboardWidget title="Events by Type" subtitle="Tracked activity this period">
                   <StatsChart
                     type="doughnut"
                     labels={data.eventLabels}
@@ -331,7 +450,7 @@ export default function AdminAnalyticsPage() {
                   />
                 </DashboardWidget>
 
-                <DashboardWidget title="Page Views Trend" subtitle="Last 14 days">
+                <DashboardWidget title="Page Views Trend" subtitle="Last 14 days of selected period">
                   <StatsChart
                     type="bar"
                     labels={data.pageViewLabels}

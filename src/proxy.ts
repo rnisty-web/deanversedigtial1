@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { getSafeRedirectPath } from "@/lib/auth-redirect";
 import { isStaffRole } from "@/lib/roles";
-import { updateSession } from "@/lib/supabase/middleware";
+import { updateSession } from "@/lib/supabase/session";
 
 const protectedRoutes = ["/admin", "/portal"];
 const authRoutes = [

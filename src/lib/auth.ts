@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ensureUserProfile } from "@/lib/supabase/service";
 import { siteConfig } from "@/lib/constants";
 import { isFounderRole, isStaffRole, isCustomerRole, parseUserRoles, type UserRole } from "@/lib/roles";
-import { getCachedRoleCatalog } from "@/lib/roles/catalog-server";
+import { getRoleCatalogSafe } from "@/lib/roles/catalog-server";
 
 export type Profile = {
   id: string;
@@ -60,7 +60,7 @@ export async function getProfile(): Promise<Profile | null> {
 
 export async function requireAdmin(): Promise<Profile> {
   const profile = await getProfile();
-  const catalog = await getCachedRoleCatalog();
+  const catalog = await getRoleCatalogSafe();
   if (!profile || !isStaffRole(profile, catalog)) {
     redirect("/login?redirectTo=/admin");
   }
@@ -226,7 +226,7 @@ export async function verifyAdminApi() {
     .eq("id", user.id)
     .single();
 
-  const catalog = await getCachedRoleCatalog();
+  const catalog = await getRoleCatalogSafe();
 
   if (!profile || !isStaffRole(profile, catalog)) {
     return { error: "Forbidden", status: 403 as const, supabase: null, user: null };

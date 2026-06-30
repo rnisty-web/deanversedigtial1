@@ -7,7 +7,7 @@ import { AdminPageTransition } from "@/components/admin/AdminPageTransition";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { PresenceHeartbeat } from "@/components/admin/PresenceHeartbeat";
-import { getCachedDashboardTheme } from "@/lib/settings/dashboard-theme-server";
+import { getDashboardThemeSafe } from "@/lib/settings/dashboard-theme-server";
 
 const adminSerif = Cormorant_Garamond({
   subsets: ["latin"],
@@ -25,7 +25,7 @@ export default async function AdminLayout({
 }) {
   const profile = await requireAdmin();
   const supabase = await createClient();
-  const dashboardTheme = await getCachedDashboardTheme();
+  const dashboardTheme = await getDashboardThemeSafe();
   const { count: unreadMessagesCount } = await supabase
     .from("messages")
     .select("*", { count: "exact", head: true })

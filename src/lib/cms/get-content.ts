@@ -1,5 +1,5 @@
 import { unstable_cache } from "next/cache";
-import { createAdminClient, createClient } from "@/lib/supabase/server";
+import { createClient, createServiceRoleClient } from "@/lib/supabase/server";
 import { cmsDefaults } from "@/lib/cms/defaults";
 import { defaultCMSLayout, mergeLayout, getHomepageOrder, type CMSLayout } from "@/lib/cms/layout";
 import type { SectionId } from "@/lib/cms/sections";
@@ -30,9 +30,8 @@ function mergeSection<K extends CMSKey>(
 
 async function createCMSSupabaseClient() {
   // settings table is admin-only via RLS — server reads need the service role.
-  if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    return createAdminClient();
-  }
+  const serviceClient = createServiceRoleClient();
+  if (serviceClient) return serviceClient;
   return createClient();
 }
 

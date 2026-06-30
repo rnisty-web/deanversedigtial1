@@ -1,7 +1,7 @@
 import { AppearanceSettingsClient } from "@/components/admin/settings/AppearanceSettingsClient";
-import { getCachedDashboardTheme } from "@/lib/settings/dashboard-theme-server";
+import { getDashboardThemeSafe } from "@/lib/settings/dashboard-theme-server";
 
 export default async function AdminSettingsAppearancePage() {
-  const theme = await getCachedDashboardTheme();
+  const theme = await getDashboardThemeSafe();
   return <AppearanceSettingsClient initialTheme={theme} />;
 }

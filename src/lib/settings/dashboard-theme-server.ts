@@ -1,10 +1,10 @@
 import { unstable_cache } from "next/cache";
 import { revalidateTag } from "next/cache";
-import { createAdminClient } from "@/lib/supabase/server";
+import { createServiceRoleClient } from "@/lib/supabase/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
-  DASHBOARD_THEME_SETTINGS_KEY,
   DEFAULT_DASHBOARD_THEME,
+  DASHBOARD_THEME_SETTINGS_KEY,
   parseDashboardTheme,
   type DashboardThemeId,
 } from "@/lib/settings/dashboard-theme";
@@ -42,8 +42,9 @@ export async function saveDashboardTheme(
 }
 
 async function fetchDashboardThemeFromDb() {
-  const admin = await createAdminClient();
-  return fetchDashboardTheme(admin);
+  const supabase = createServiceRoleClient();
+  if (!supabase) return DEFAULT_DASHBOARD_THEME;
+  return fetchDashboardTheme(supabase);
 }
 
 export const getCachedDashboardTheme = unstable_cache(
@@ -51,6 +52,14 @@ export const getCachedDashboardTheme = unstable_cache(
   ["dashboard-theme"],
   { tags: ["dashboard-theme"] },
 );
+
+export async function getDashboardThemeSafe() {
+  try {
+    return await getCachedDashboardTheme();
+  } catch {
+    return DEFAULT_DASHBOARD_THEME;
+  }
+}
 
 export function revalidateDashboardTheme() {
   revalidateTag("dashboard-theme", { expire: 0 });

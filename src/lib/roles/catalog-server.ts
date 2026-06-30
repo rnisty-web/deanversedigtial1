@@ -1,6 +1,6 @@
 import { unstable_cache } from "next/cache";
 import { revalidateTag } from "next/cache";
-import { createAdminClient } from "@/lib/supabase/server";
+import { createAdminClient, createServiceRoleClient } from "@/lib/supabase/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   DEFAULT_ROLE_CATALOG,
@@ -80,8 +80,9 @@ export async function countUsersWithRole(supabase: SupabaseClient, slug: string)
 }
 
 async function fetchRoleCatalogFromDb() {
-  const admin = await createAdminClient();
-  return fetchRoleCatalog(admin);
+  const supabase = createServiceRoleClient();
+  if (!supabase) return DEFAULT_ROLE_CATALOG;
+  return fetchRoleCatalog(supabase);
 }
 
 export const getCachedRoleCatalog = unstable_cache(
@@ -89,6 +90,14 @@ export const getCachedRoleCatalog = unstable_cache(
   ["role-catalog"],
   { tags: ["role-catalog"] },
 );
+
+export async function getRoleCatalogSafe() {
+  try {
+    return await getCachedRoleCatalog();
+  } catch {
+    return DEFAULT_ROLE_CATALOG;
+  }
+}
 
 export function revalidateRoleCatalog() {
   revalidateTag("role-catalog", { expire: 0 });

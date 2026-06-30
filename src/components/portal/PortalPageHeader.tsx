@@ -11,6 +11,7 @@ export function PortalPageHeader({
   tabs,
   activeTab,
   onTabChange,
+  className,
 }: {
   title: string;
   subtitle?: string;
@@ -22,9 +23,9 @@ export function PortalPageHeader({
   className?: string;
 }) {
   return (
-    <header className="portal-page-header admin-content-header -mx-4 mb-6 border-b border-[var(--admin-border-subtle)] px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+    <header className={cn("portal-page-header admin-content-header -mx-4 mb-6 border-b border-[var(--admin-border-subtle)] px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8", className)}>
       {breadcrumb?.length ? (
-        <nav className="mb-3 flex flex-wrap items-center gap-2 text-sm" aria-label="Breadcrumb">
+        <nav className="portal-page-breadcrumb mb-3 flex flex-wrap items-center gap-2 text-sm" aria-label="Breadcrumb">
           {breadcrumb.map((item, index) => (
             <span key={`${item.label}-${index}`} className="flex items-center gap-2">
               {index > 0 ? <span className="text-[var(--admin-text-muted)]">/</span> : null}
@@ -47,20 +48,20 @@ export function PortalPageHeader({
           </p>
           <h1 className="admin-heading-serif mt-1 text-2xl text-[var(--admin-text)] md:text-3xl">{title}</h1>
           {subtitle ? (
-            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--admin-text-muted)]">{subtitle}</p>
+            <p className="portal-page-subtitle mt-2 max-w-2xl text-sm leading-relaxed text-[var(--admin-text-muted)]">{subtitle}</p>
           ) : null}
         </div>
         {actions ? <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div> : null}
       </div>
 
       {tabs?.length && onTabChange ? (
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="portal-page-tabs mt-4 flex gap-2 overflow-x-auto pb-1 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               type="button"
               onClick={() => onTabChange(tab.id)}
-              className={cn("admin-content-tab", activeTab === tab.id && "admin-content-tab-active")}
+              className={cn("admin-content-tab shrink-0", activeTab === tab.id && "admin-content-tab-active")}
             >
               {tab.label}
               {tab.count != null && tab.count > 0 ? (

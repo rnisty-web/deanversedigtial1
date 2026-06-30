@@ -59,7 +59,7 @@ export function UsersDetailPanel({
   return (
     <section className={cn("admin-users-detail-panel", hidden && "admin-users-panel-hidden")}>
       {onBack ? (
-        <button type="button" onClick={onBack} className="admin-users-back-btn xl:hidden">
+        <button type="button" onClick={onBack} className="admin-users-back-btn lg:hidden">
           ← Back to directory
         </button>
       ) : null}

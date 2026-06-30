@@ -14,6 +14,7 @@ type PortalAccountSidebarProps = {
   sections: { id: string; label: string }[];
   activeSection: string;
   onSectionClick: (id: string) => void;
+  className?: string;
 };
 
 export function PortalAccountSidebar({
@@ -22,12 +23,13 @@ export function PortalAccountSidebar({
   sections,
   activeSection,
   onSectionClick,
+  className,
 }: PortalAccountSidebarProps) {
   const displayName = profile.full_name?.trim() || profile.email.split("@")[0] || "Account";
   const initial = displayName[0]?.toUpperCase() ?? "A";
 
   return (
-    <aside className="portal-account-sidebar">
+    <aside className={cn("portal-account-sidebar", className)}>
       <div className="portal-account-sidebar-panel admin-luxury-card p-5">
         <div className="relative mx-auto h-20 w-20 overflow-hidden rounded-2xl border border-[var(--admin-border-subtle)] bg-[var(--admin-panel)]">
           {profile.avatar_url ? (

@@ -25,6 +25,7 @@ import {
   replySubjectForConversation,
   saveStarredKeys,
 } from "@/lib/messages/utils";
+import { cn } from "@/lib/utils";
 
 type ClientOption = { id: string; name: string; email: string };
 type ProjectOption = { id: string; title: string; client_id: string };
@@ -356,7 +357,7 @@ export default function AdminMessagesPage() {
             description="Try another tab or adjust your search."
           />
         ) : (
-          <div className="admin-messages-layout">
+          <div className={cn("admin-messages-layout dm-layout", mobileChatOpen && "dm-layout-chat-open")}>
             <MessagesConversationList
               conversations={filtered}
               selectedKey={selected?.key ?? null}

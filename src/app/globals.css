@@ -7036,7 +7036,6 @@ body {
   display: grid;
   gap: 1rem;
   min-height: 560px;
-  height: min(calc(100dvh - 280px), 720px);
 }
 
 .portal-messages-layout .dm-list-panel,
@@ -7059,7 +7058,184 @@ body {
 }
 
 .portal-theme:has(.portal-print-overlay) .admin-sidebar,
-.portal-theme:has(.portal-print-overlay) .portal-mobile-nav,
+.portal-theme:has(.portal-print-overlay) .portal-mobile-topbar,
 .portal-theme:has(.portal-print-overlay) .admin-footer {
   visibility: hidden;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Mobile polish — admin + client portal                                        */
+/* -------------------------------------------------------------------------- */
+
+@media (max-width: 1023px) {
+  .portal-page-content.portal-messages-page {
+    display: flex;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+    padding-bottom: 0;
+  }
+
+  .portal-page-content.portal-messages-page > div {
+    display: flex;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+    max-width: none;
+  }
+
+  .portal-messages-header .portal-page-breadcrumb,
+  .portal-messages-header .portal-page-subtitle {
+    display: none;
+  }
+
+  .portal-messages-header {
+    margin-bottom: 1rem;
+  }
+
+  .portal-messages-layout {
+    min-height: 0;
+    height: auto;
+    flex: 1;
+  }
+
+  .portal-messages-layout.dm-layout-chat-open {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .portal-messages-layout .dm-chat-panel,
+  .portal-messages-layout .dm-list-panel {
+    flex: 1;
+    min-height: 0;
+    height: auto;
+  }
+
+  .admin-messages-layout.dm-layout-chat-open .dm-list-panel {
+    display: none;
+  }
+
+  .admin-messages-layout:not(.dm-layout-chat-open) .dm-chat-panel {
+    display: none;
+  }
+
+  .admin-messages-layout {
+    min-height: 0;
+    flex: 1;
+  }
+
+  .admin-messages-layout.dm-layout {
+    display: flex;
+    flex-direction: column;
+    min-height: min(70dvh, 640px);
+  }
+
+  .admin-messages-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dm-back-btn,
+  .admin-users-back-btn,
+  .admin-calendar-nav-btn {
+    min-height: 2.75rem;
+    min-width: 2.75rem;
+  }
+
+  .portal-account-sidebar-panel {
+    position: static;
+  }
+
+  .admin-calendar-cell {
+    min-height: 4.5rem;
+    padding: 0.25rem;
+  }
+
+  .admin-calendar-cell-events {
+    display: none;
+  }
+
+  .admin-calendar-event-pill {
+    display: none;
+  }
+
+  .admin-calendar-cell-date {
+    font-size: 0.6875rem;
+  }
+
+  .admin-calendar-view-tabs,
+  .admin-calendar-tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .admin-calendar-view-tabs::-webkit-scrollbar,
+  .admin-calendar-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .admin-calendar-view-tab,
+  .admin-calendar-tab {
+    flex-shrink: 0;
+  }
+
+  .admin-leads-tabs,
+  .admin-clients-tabs,
+  .admin-projects-tabs,
+  .admin-invoices-tabs,
+  .admin-users-tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .admin-leads-tabs::-webkit-scrollbar,
+  .admin-clients-tabs::-webkit-scrollbar,
+  .admin-projects-tabs::-webkit-scrollbar,
+  .admin-invoices-tabs::-webkit-scrollbar,
+  .admin-users-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .admin-leads-action-btn,
+  .admin-leads-view-btn,
+  .dm-star-btn {
+    min-height: 2.75rem;
+    min-width: 2.75rem;
+  }
+
+  .portal-theme .admin-footer {
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+  }
+
+  .portal-mobile-topbar {
+    padding-top: max(0.75rem, env(safe-area-inset-top));
+  }
+}
+
+@media (max-width: 767px) {
+  .admin-calendar-week-columns {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .admin-calendar-week-columns {
+    min-width: 36rem;
+  }
+
+  .admin-content-body-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .admin-content-sidebar {
+    max-height: min(36vh, 280px);
+  }
+}
+
+@media (min-width: 1024px) {
+  .portal-messages-layout {
+    height: min(calc(100dvh - 280px), 720px);
+  }
 }

@@ -110,6 +110,16 @@ export default function AdminCalendarPage() {
     fetchEvents();
   }, [fetchEvents]);
 
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    const apply = () => {
+      if (mq.matches) setViewMode("agenda");
+    };
+    apply();
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, []);
+
   const filteredEvents = useMemo(
     () => filterEventsByType(events, typeFilter),
     [events, typeFilter],

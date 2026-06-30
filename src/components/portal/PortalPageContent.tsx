@@ -8,7 +8,7 @@ export function PortalPageContent({
   className?: string;
 }) {
   return (
-    <div className={cn("portal-page-content", className)}>
+    <div className={cn("portal-page-content pb-[max(2rem,env(safe-area-inset-bottom))]", className)}>
       <div>{children}</div>
     </div>
   );

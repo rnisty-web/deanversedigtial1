@@ -35,7 +35,7 @@ export default async function AdminLayout({
   return (
     <AdminShell>
       <div
-        className={`admin-theme ${adminSerif.variable} flex h-screen overflow-hidden`}
+        className={`admin-theme ${adminSerif.variable} flex h-dvh min-h-dvh overflow-hidden`}
         data-dashboard-theme={dashboardTheme}
       >
         <AdminSidebar profile={profile} unreadMessagesCount={unreadMessagesCount ?? 0} />

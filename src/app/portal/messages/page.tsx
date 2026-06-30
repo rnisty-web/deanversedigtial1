@@ -210,10 +210,11 @@ export default function PortalMessagesPage() {
   ];
 
   return (
-    <PortalPageContent>
+    <PortalPageContent className="portal-messages-page flex min-h-0 flex-1 flex-col">
       <PortalPageHeader
         title="Messages"
         subtitle="Chat directly with your DeanVerse project team — fast replies, one thread."
+        className="portal-messages-header"
         breadcrumb={[
           { label: "Dashboard", href: "/portal" },
           { label: "Messages" },
@@ -235,9 +236,8 @@ export default function PortalMessagesPage() {
       ) : null}
 
       {loading ? (
-        <div className="portal-messages-layout">
-          <div className="admin-luxury-card h-[560px] animate-pulse" />
-          <div className="admin-luxury-card h-[560px] animate-pulse" />
+        <div className="portal-messages-layout min-h-[40dvh] flex-1">
+          <div className="admin-luxury-card min-h-[40dvh] flex-1 animate-pulse" />
         </div>
       ) : conversations.length === 0 ? (
         <PortalCard padding="lg" className="text-center">
@@ -253,7 +253,7 @@ export default function PortalMessagesPage() {
           <p className="text-[var(--admin-text-muted)]">You&apos;re all caught up.</p>
         </PortalCard>
       ) : (
-        <div className={cn("portal-messages-layout dm-layout", mobileChatOpen && "dm-layout-chat-open")}>
+        <div className={cn("portal-messages-layout dm-layout min-h-0 flex-1", mobileChatOpen && "dm-layout-chat-open")}>
           <ConversationListPanel
             conversations={filtered}
             selectedKey={selected?.key ?? null}

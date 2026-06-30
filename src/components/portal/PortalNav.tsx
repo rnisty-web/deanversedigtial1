@@ -8,7 +8,7 @@ import { usePortalNotifications } from "@/hooks/usePortalNotifications";
 import { getNavBadgeKey, PortalNavBadge } from "@/components/portal/PortalNavBadge";
 import { portalNavIcons } from "@/components/portal/portal-nav-config";
 
-export function PortalNav() {
+export function PortalNav({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const counts = usePortalNotifications();
 
@@ -23,6 +23,7 @@ export function PortalNav() {
           <Link
             key={link.href}
             href={link.href}
+            onClick={onNavigate}
             className={cn("admin-sidebar-nav-link", isActive && "admin-sidebar-nav-link-active")}
           >
             {portalNavIcons[link.href]}

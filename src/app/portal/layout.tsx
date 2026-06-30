@@ -30,7 +30,7 @@ export default async function PortalLayout({
 
   return (
     <div
-      className={`portal-theme ${portalSerif.variable} flex h-screen overflow-hidden`}
+      className={`portal-theme ${portalSerif.variable} flex h-dvh min-h-dvh overflow-hidden`}
       data-dashboard-theme={dashboardTheme}
     >
       <PortalSidebar profile={profile} canAccessAdmin={canAccessAdmin} />
@@ -39,7 +39,7 @@ export default async function PortalLayout({
         <Suspense fallback={null}>
           <PortalNotice />
         </Suspense>
-        <main className="admin-main-scroll min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
+        <main className="admin-main-scroll flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain">
           {children}
         </main>
         <AdminFooter />

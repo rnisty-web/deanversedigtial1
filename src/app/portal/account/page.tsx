@@ -185,7 +185,7 @@ export default function PortalAccountPage() {
                 Update your name, contact details, and avatar shown in the portal.
               </p>
               <form onSubmit={saveProfile} className="mt-6 space-y-4">
-                <div className="flex items-center gap-4">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
                   <div className="relative h-16 w-16 overflow-hidden rounded-2xl border border-[var(--admin-border-subtle)] bg-[var(--admin-panel)]">
                     {avatarUrl ? (
                       <Image src={avatarUrl} alt="" fill className="object-cover" unoptimized />
@@ -265,6 +265,7 @@ export default function PortalAccountPage() {
             sections={sections}
             activeSection={activeSection}
             onSectionClick={scrollToSection}
+            className="hidden lg:block"
           />
         </div>
       ) : null}

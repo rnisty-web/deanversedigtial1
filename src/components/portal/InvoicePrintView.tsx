@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import Link from "next/link";
 
 type PrintInvoice = {
@@ -17,11 +16,6 @@ type PrintInvoice = {
 };
 
 export function InvoicePrintView({ invoice }: { invoice: PrintInvoice }) {
-  useEffect(() => {
-    const timer = setTimeout(() => window.print(), 400);
-    return () => clearTimeout(timer);
-  }, []);
-
   const lineItems = Array.isArray(invoice.line_items)
     ? (invoice.line_items as { description?: string; amount?: number; quantity?: number }[])
     : [];

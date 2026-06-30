@@ -290,7 +290,7 @@ function AdminProjectsInner() {
           </AdminAlert>
         )}
 
-        {clientFilter !== "all" && (
+        {clientSelect !== "all" && (
           <AdminAlert tone="info" className="mb-4">
             Filtering by client.{" "}
             <Link href="/admin/projects" className="underline">Show all projects</Link>

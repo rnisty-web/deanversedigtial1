@@ -107,15 +107,17 @@ export default function AdminUsersPage() {
 
   const displayFounderEmail = defaultFounderEmail(ownerEmail);
 
-  const fetchUsers = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  const fetchUsers = useCallback(async (silent = false) => {
+    if (!silent) {
+      setLoading(true);
+      setError(null);
+    }
 
     const res = await fetch("/api/admin/users", { credentials: "same-origin" });
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      setError(data.error ?? "Failed to load users");
-      setLoading(false);
+      if (!silent) setError(data.error ?? "Failed to load users");
+      if (!silent) setLoading(false);
       return;
     }
 
@@ -125,12 +127,12 @@ export default function AdminUsersPage() {
     setViewerIsFounder(Boolean(data.isFounder));
     setOwnerEmail(data.ownerEmail ?? "");
     setRoleCatalog(data.roleCatalog ?? []);
-    setLoading(false);
+    if (!silent) setLoading(false);
   }, []);
 
   useEffect(() => {
     fetchUsers();
-    const interval = setInterval(fetchUsers, 60_000);
+    const interval = setInterval(() => fetchUsers(true), 60_000);
     return () => clearInterval(interval);
   }, [fetchUsers]);
 

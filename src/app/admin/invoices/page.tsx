@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { AdminAlert } from "@/components/admin/AdminAlert";
 import { AdminField } from "@/components/admin/AdminField";
 import { AdminModal } from "@/components/admin/AdminModal";
@@ -29,7 +30,7 @@ import {
   isInDateRange,
   joinClientName,
   joinProjectTitle,
-  monthRangeLocal,
+  allTimeRangeLocal,
 } from "@/lib/invoices/utils";
 import { cn } from "@/lib/utils";
 import type { InvoiceLineItem } from "@/types";
@@ -71,12 +72,23 @@ const statIcons = {
 };
 
 export default function AdminInvoicesPage() {
-  const defaultRange = monthRangeLocal();
+  return (
+    <Suspense fallback={<AdminPageContent><div className="admin-luxury-card h-96 animate-pulse" /></AdminPageContent>}>
+      <AdminInvoicesInner />
+    </Suspense>
+  );
+}
+
+function AdminInvoicesInner() {
+  const searchParams = useSearchParams();
+  const urlClientFilter = searchParams.get("client") ?? "all";
+  const defaultRange = allTimeRangeLocal();
   const [invoices, setInvoices] = useState<InvoiceRecord[]>([]);
   const [clients, setClients] = useState<ClientRef[]>([]);
   const [projects, setProjects] = useState<ProjectRef[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [actionNotice, setActionNotice] = useState<{ tone: "success" | "error"; text: string } | null>(null);
   const [search, setSearch] = useState("");
   const [showFilters, setShowFilters] = useState(true);
   const [activeTab, setActiveTab] = useState<string>("all");
@@ -114,6 +126,12 @@ export default function AdminInvoicesPage() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  useEffect(() => {
+    if (urlClientFilter !== "all") {
+      setClientFilter(urlClientFilter);
+    }
+  }, [urlClientFilter]);
 
   useEffect(() => {
     setPage(1);
@@ -220,6 +238,7 @@ export default function AdminInvoicesPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
+    setActionNotice(null);
     const method = editId ? "PATCH" : "POST";
     const body = editId
       ? { id: editId, ...form, project_id: form.project_id || null }
@@ -236,24 +255,49 @@ export default function AdminInvoicesPage() {
     if (res.ok) {
       closeForm();
       fetchData();
+      setActionNotice({
+        tone: "success",
+        text: editId ? "Invoice updated." : "Invoice created.",
+      });
+      return;
     }
+
+    const data = await res.json().catch(() => ({}));
+    setActionNotice({ tone: "error", text: data.error ?? "Failed to save invoice" });
   }
 
   async function updateStatus(invoice: InvoiceRecord, status: string) {
+    setActionNotice(null);
     const res = await fetch("/api/admin/invoices", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       credentials: "same-origin",
       body: JSON.stringify({ id: invoice.id, status }),
     });
-    if (res.ok) fetchData();
+    if (res.ok) {
+      fetchData();
+      setActionNotice({ tone: "success", text: "Invoice status updated." });
+      return;
+    }
+    const data = await res.json().catch(() => ({}));
+    setActionNotice({ tone: "error", text: data.error ?? "Failed to update status" });
   }
 
   async function deleteInvoice(id: string) {
     if (!confirm("Delete this invoice?")) return;
-    await fetch(`/api/admin/invoices?id=${id}`, { method: "DELETE", credentials: "same-origin" });
+    setActionNotice(null);
+    const res = await fetch(`/api/admin/invoices?id=${id}`, {
+      method: "DELETE",
+      credentials: "same-origin",
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setActionNotice({ tone: "error", text: data.error ?? "Failed to delete invoice" });
+      return;
+    }
     if (detailInvoice?.id === id) setDetailInvoice(null);
     fetchData();
+    setActionNotice({ tone: "success", text: "Invoice deleted." });
   }
 
   function toggleSelect(id: string) {
@@ -290,6 +334,21 @@ export default function AdminInvoicesPage() {
         {error ? (
           <AdminAlert tone="error" className="mb-6">
             {error}
+          </AdminAlert>
+        ) : null}
+
+        {actionNotice ? (
+          <AdminAlert tone={actionNotice.tone} className="mb-6">
+            {actionNotice.text}
+          </AdminAlert>
+        ) : null}
+
+        {clientFilter !== "all" ? (
+          <AdminAlert tone="info" className="mb-6">
+            Filtering by client.{" "}
+            <Link href="/admin/invoices" className="text-[var(--admin-gold-light)] underline">
+              Show all invoices
+            </Link>
           </AdminAlert>
         ) : null}
 

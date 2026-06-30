@@ -86,7 +86,12 @@ export function MessagesComposeModal({
           </select>
         </div>
 
-        <AdminField label="Subject" value={subject} onChange={onSubjectChange} />
+        <AdminField
+          label="Topic (optional)"
+          value={subject}
+          onChange={onSubjectChange}
+          placeholder="Only needed for a new thread"
+        />
         <AdminField label="Message" value={content} onChange={onContentChange} multiline rows={5} />
 
         {error ? <p className="text-sm text-red-400">{error}</p> : null}

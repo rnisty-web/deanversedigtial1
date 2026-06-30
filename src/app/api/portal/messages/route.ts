@@ -18,9 +18,18 @@ async function getOwnerProfile(
 }
 
 const MESSAGE_FIELDS =
-  "id, subject, content, read, created_at, project_id, sender:profiles!messages_sender_id_fkey(full_name)" as const;
+  "id, subject, content, read, created_at, project_id, sender_id, recipient_id, sender:profiles!messages_sender_id_fkey(full_name, email), projects(title)" as const;
 
-function sanitizeMessage(message: Record<string, unknown>) {
+function sanitizeMessage(message: Record<string, unknown>, userId: string) {
+  const sender = message.sender as
+    | { full_name: string | null; email?: string }
+    | { full_name: string | null; email?: string }[]
+    | null
+    | undefined;
+
+  const senderProfile = Array.isArray(sender) ? sender[0] : sender;
+  const isOutgoing = message.sender_id === userId;
+
   return {
     id: message.id,
     subject: message.subject,
@@ -28,15 +37,16 @@ function sanitizeMessage(message: Record<string, unknown>) {
     read: message.read,
     created_at: message.created_at,
     project_id: message.project_id,
+    sender_id: message.sender_id,
+    recipient_id: message.recipient_id,
+    is_outgoing: isOutgoing,
     sender: {
-      full_name: getPortalSenderName(
-        message.sender as
-          | { full_name: string | null }
-          | { full_name: string | null }[]
-          | null
-          | undefined,
-      ),
+      full_name: isOutgoing
+        ? "You"
+        : getPortalSenderName(senderProfile),
+      email: senderProfile?.email,
     },
+    projects: message.projects ?? null,
   };
 }
 
@@ -57,7 +67,10 @@ export async function GET() {
   }
 
   return NextResponse.json({
-    messages: (messages ?? []).map((msg) => sanitizeMessage(msg as Record<string, unknown>)),
+    userId: auth.user!.id,
+    messages: (messages ?? []).map((msg) =>
+      sanitizeMessage(msg as Record<string, unknown>, auth.user!.id),
+    ),
   });
 }
 
@@ -133,7 +146,7 @@ export async function POST(request: Request) {
   });
 
   return NextResponse.json(
-    { message: sanitizeMessage(message as Record<string, unknown>) },
+    { message: sanitizeMessage(message as Record<string, unknown>, auth.user!.id) },
     { status: 201 },
   );
 }
@@ -172,5 +185,7 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ message: sanitizeMessage(message as Record<string, unknown>) });
+  return NextResponse.json({
+    message: sanitizeMessage(message as Record<string, unknown>, auth.user!.id),
+  });
 }

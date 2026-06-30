@@ -61,13 +61,14 @@ export function mergeLayout(saved: Partial<CMSLayout> | null | undefined, defaul
 
   if (saved?.meta) {
     for (const [key, value] of Object.entries(saved.meta)) {
-      if (key in base.meta && value) {
-        meta[key] = {
-          ...base.meta[key],
-          ...value,
-          status: value.status === "draft" ? "draft" : "published",
-        };
-      }
+      if (!value || typeof value !== "object") continue;
+
+      const baseEntry = base.meta[key] ?? { status: "published" as SectionStatus };
+      meta[key] = {
+        ...baseEntry,
+        ...value,
+        status: value.status === "draft" ? "draft" : "published",
+      };
     }
   }
 
@@ -87,6 +88,17 @@ export function getHomepageOrder(layout: CMSLayout): SectionId[] {
   }
 
   return ordered;
+}
+
+export function isHomepageSectionPublished(
+  layout: CMSLayout,
+  id: SectionId,
+): boolean {
+  return (layout.meta[id]?.status ?? "published") !== "draft";
+}
+
+export function getPublishedHomepageSections(layout: CMSLayout): SectionId[] {
+  return getHomepageOrder(layout).filter((id) => isHomepageSectionPublished(layout, id));
 }
 
 /** Rebuild full section order after reordering homepage chips. */

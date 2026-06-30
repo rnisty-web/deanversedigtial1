@@ -35,7 +35,7 @@ export default async function PortalLayout({
     >
       <PortalSidebar profile={profile} canAccessAdmin={canAccessAdmin} />
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-        <PortalMobileNav canAccessAdmin={canAccessAdmin} />
+        <PortalMobileNav profile={profile} canAccessAdmin={canAccessAdmin} />
         <Suspense fallback={null}>
           <PortalNotice />
         </Suspense>

@@ -27,6 +27,7 @@ export default function PortalAccountPage() {
   const [client, setClient] = useState<Client | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [passwordSaving, setPasswordSaving] = useState(false);
   const [activeSection, setActiveSection] = useState("profile");
@@ -55,6 +56,7 @@ export default function PortalAccountPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
+    setLoadError(null);
     const res = await fetch("/api/portal/account", { credentials: "same-origin" });
     if (res.ok) {
       const data = await res.json();
@@ -65,6 +67,9 @@ export default function PortalAccountPage() {
       setPhone(data.profile.phone ?? "");
       setCompany(data.client?.company ?? "");
       setAvatarUrl(data.profile.avatar_url ?? "");
+    } else {
+      const data = await res.json().catch(() => ({}));
+      setLoadError(data.error ?? "Failed to load account settings");
     }
     setLoading(false);
   }, []);
@@ -164,6 +169,13 @@ export default function PortalAccountPage() {
             <div className="admin-luxury-card h-96 animate-pulse" />
           </div>
         </div>
+      ) : loadError ? (
+        <AdminAlert tone="error">
+          {loadError}{" "}
+          <button type="button" className="underline" onClick={() => void load()}>
+            Try again
+          </button>
+        </AdminAlert>
       ) : profile ? (
         <div className="portal-account-layout">
           <div className="portal-account-stack">

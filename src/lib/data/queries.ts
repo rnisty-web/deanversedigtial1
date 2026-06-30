@@ -13,13 +13,22 @@ function hasSupabaseConfig() {
   );
 }
 
-export async function getFeaturedPortfolio(limit = 3): Promise<PortfolioItem[]> {
+type FeaturedQueryOptions = {
+  /** When false, return an empty list instead of demo fallback content. */
+  useFallback?: boolean;
+};
+
+export async function getFeaturedPortfolio(
+  limit = 3,
+  options: FeaturedQueryOptions = {},
+): Promise<PortfolioItem[]> {
+  const useFallback = options.useFallback ?? true;
   const featuredFallback = fallbackPortfolio
     .filter((item) => item.featured)
     .slice(0, limit);
 
   if (!hasSupabaseConfig()) {
-    return featuredFallback;
+    return useFallback ? featuredFallback : [];
   }
 
   try {
@@ -33,22 +42,26 @@ export async function getFeaturedPortfolio(limit = 3): Promise<PortfolioItem[]> 
       .limit(limit);
 
     if (error || !data?.length) {
-      return featuredFallback;
+      return useFallback ? featuredFallback : [];
     }
 
     return data as PortfolioItem[];
   } catch {
-    return featuredFallback;
+    return useFallback ? featuredFallback : [];
   }
 }
 
-export async function getFeaturedTestimonials(limit = 3): Promise<Testimonial[]> {
+export async function getFeaturedTestimonials(
+  limit = 3,
+  options: FeaturedQueryOptions = {},
+): Promise<Testimonial[]> {
+  const useFallback = options.useFallback ?? true;
   const featuredFallback = fallbackTestimonials
     .filter((item) => item.featured)
     .slice(0, limit);
 
   if (!hasSupabaseConfig()) {
-    return featuredFallback;
+    return useFallback ? featuredFallback : [];
   }
 
   try {
@@ -62,12 +75,12 @@ export async function getFeaturedTestimonials(limit = 3): Promise<Testimonial[]>
       .limit(limit);
 
     if (error || !data?.length) {
-      return featuredFallback;
+      return useFallback ? featuredFallback : [];
     }
 
     return data as Testimonial[];
   } catch {
-    return featuredFallback;
+    return useFallback ? featuredFallback : [];
   }
 }
 

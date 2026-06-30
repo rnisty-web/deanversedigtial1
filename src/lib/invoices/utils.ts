@@ -105,6 +105,16 @@ export function monthRangeLocal() {
   };
 }
 
+export function allTimeRangeLocal() {
+  const now = new Date();
+  const from = new Date(2000, 0, 1);
+  const to = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  return {
+    from: from.toISOString().slice(0, 10),
+    to: to.toISOString().slice(0, 10),
+  };
+}
+
 export function isInDateRange(dateStr: string, from: string, to: string) {
   const day = dateStr.slice(0, 10);
   return day >= from && day <= to;

@@ -1,8 +1,7 @@
 import { unstable_cache } from "next/cache";
 import { createClient, createServiceRoleClient } from "@/lib/supabase/server";
 import { cmsDefaults } from "@/lib/cms/defaults";
-import { defaultCMSLayout, mergeLayout, getHomepageOrder, type CMSLayout } from "@/lib/cms/layout";
-import type { SectionId } from "@/lib/cms/sections";
+import { defaultCMSLayout, mergeLayout, type CMSLayout } from "@/lib/cms/layout";
 import type { CMSContent, CMSKey, PublicSiteConfig } from "@/lib/cms/types";
 import { siteConfig } from "@/lib/constants";
 
@@ -139,9 +138,7 @@ export const getCMSLayout = unstable_cache(
   { tags: ["cms"] },
 );
 
-export function getPublishedHomepageSections(layout: CMSLayout): SectionId[] {
-  return getHomepageOrder(layout).filter((id) => layout.meta[id]?.status !== "draft");
-}
+export { getPublishedHomepageSections, isHomepageSectionPublished } from "@/lib/cms/layout";
 
 export async function getPublicSiteConfig(): Promise<PublicSiteConfig> {
   const cms = await getCMSContent();

@@ -115,6 +115,7 @@ export default function AdminLeadsPage() {
 
   const fetchLeads = useCallback(async () => {
     setLoading(true);
+    setError(null);
     const res = await fetch("/api/admin/leads", { credentials: "same-origin" });
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));

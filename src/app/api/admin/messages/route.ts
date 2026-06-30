@@ -21,7 +21,7 @@ export async function GET(request: Request) {
     .order("created_at", { ascending: false });
 
   if (unreadOnly) {
-    query = query.eq("read", false);
+    query = query.eq("read", false).eq("recipient_id", auth.user!.id);
   }
 
   const { data: messages, error } = await query;
@@ -150,6 +150,24 @@ export async function PATCH(request: Request) {
 
   if (!id) {
     return NextResponse.json({ error: "Message id is required" }, { status: 400 });
+  }
+
+  const { data: existing, error: fetchError } = await auth.supabase!
+    .from("messages")
+    .select("id, recipient_id")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (fetchError) {
+    return NextResponse.json({ error: fetchError.message }, { status: 500 });
+  }
+
+  if (!existing) {
+    return NextResponse.json({ error: "Message not found" }, { status: 404 });
+  }
+
+  if (existing.recipient_id !== auth.user!.id) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const { data: message, error } = await auth.supabase!

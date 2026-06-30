@@ -105,6 +105,7 @@ export default function AdminClientsPage() {
 
   const fetchClients = useCallback(async () => {
     setLoading(true);
+    setError(null);
     const res = await fetch("/api/admin/clients", { credentials: "same-origin" });
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));

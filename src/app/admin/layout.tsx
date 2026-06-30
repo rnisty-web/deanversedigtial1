@@ -29,7 +29,8 @@ export default async function AdminLayout({
   const { count: unreadMessagesCount } = await supabase
     .from("messages")
     .select("*", { count: "exact", head: true })
-    .eq("read", false);
+    .eq("read", false)
+    .eq("recipient_id", profile.id);
 
   return (
     <AdminShell>

@@ -5542,16 +5542,364 @@ body {
   border-color: rgba(201, 169, 98, 0.35);
 }
 
-@media (max-width: 1023px) {
-  .admin-messages-layout .admin-messages-chat-panel:not(.admin-messages-panel-hidden) {
-    display: flex;
-  }
 
-  .admin-messages-layout .admin-messages-list-panel.admin-messages-panel-hidden,
-  .admin-messages-layout .admin-messages-contact-panel.admin-messages-panel-hidden {
-    display: none;
+/* Direct message / iMessage-style chat UI (admin + portal) */
+.dm-layout {
+  display: grid;
+  gap: 1rem;
+  min-height: 560px;
+  align-items: stretch;
+}
+
+@container messages-content (min-width: 1024px) {
+  .dm-layout {
+    grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
   }
 }
+
+@media (min-width: 1024px) {
+  .portal-messages-layout.dm-layout {
+    grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
+  }
+}
+
+.dm-list-panel,
+.dm-chat-panel {
+  min-width: 0;
+  border-radius: var(--admin-radius);
+  border: 1px solid var(--admin-border);
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.02) 0%, rgba(18, 23, 21, 0.96) 100%);
+  overflow: hidden;
+}
+
+.dm-list-panel { display: flex; flex-direction: column; }
+.dm-chat-panel { display: flex; flex-direction: column; }
+
+.dm-panel-hidden { display: none; }
+
+@container messages-content (min-width: 1024px) {
+  .dm-panel-hidden { display: flex; }
+}
+
+@media (min-width: 1024px) {
+  .portal-messages-layout .dm-panel-hidden { display: flex; }
+}
+
+@media (max-width: 1023px) {
+  .portal-messages-layout.dm-layout-chat-open .dm-list-panel { display: none; }
+  .portal-messages-layout:not(.dm-layout-chat-open) .dm-chat-panel { display: none; }
+}
+
+.dm-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--admin-border-subtle);
+  padding: 0.875rem 1rem;
+}
+
+.dm-list-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--admin-text-muted);
+}
+
+.dm-list-count { font-size: 0.75rem; color: var(--admin-text-muted); }
+
+.dm-list {
+  flex: 1;
+  overflow-y: auto;
+  max-height: min(70vh, 640px);
+}
+
+.dm-list-item {
+  display: flex;
+  align-items: stretch;
+  border-bottom: 1px solid var(--admin-border-subtle);
+}
+
+.dm-list-item-unread { border-left: 2px solid var(--admin-emerald); }
+.dm-list-item-active { background: color-mix(in srgb, var(--admin-gold) 10%, transparent); }
+
+.dm-list-item-main {
+  display: flex;
+  gap: 0.75rem;
+  min-width: 0;
+  flex: 1;
+  padding: 0.875rem 0.75rem 0.875rem 1rem;
+  text-align: left;
+  transition: background 0.15s ease;
+}
+
+.dm-list-item-main:hover { background: var(--admin-panel-hover); }
+
+.dm-list-item-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.5rem 0.625rem 0.5rem 0;
+}
+
+.dm-list-empty { padding: 2rem 1rem; text-align: center; color: var(--admin-text-muted); font-size: 0.875rem; }
+
+.dm-star-btn {
+  display: inline-flex;
+  height: 1.75rem;
+  width: 1.75rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  color: var(--admin-text-muted);
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.dm-star-btn svg { height: 0.95rem; width: 0.95rem; }
+.dm-star-btn:hover,
+.dm-star-btn-active { color: var(--admin-gold-light); background: var(--admin-gold-soft); }
+
+.dm-unread-badge {
+  border-radius: 9999px;
+  background: var(--admin-emerald);
+  min-width: 1.25rem;
+  padding: 0.125rem 0.35rem;
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-align: center;
+  color: var(--admin-text);
+}
+
+.dm-avatar {
+  display: flex;
+  height: 2.5rem;
+  width: 2.5rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 1px solid color-mix(in srgb, var(--admin-gold) 25%, transparent);
+  background: linear-gradient(145deg, rgba(201, 169, 98, 0.18), rgba(18, 23, 21, 0.95));
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--admin-gold-light);
+}
+
+.dm-avatar-lg { height: 3rem; width: 3rem; font-size: 0.8125rem; }
+
+.dm-chat-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-bottom: 1px solid var(--admin-border-subtle);
+  padding: 0.875rem 1rem;
+  background: rgba(8, 10, 9, 0.35);
+}
+
+.dm-back-btn {
+  display: inline-flex;
+  height: 2.25rem;
+  width: 2.25rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 1px solid var(--admin-border-subtle);
+  color: var(--admin-gold-light);
+  font-size: 1rem;
+}
+
+.dm-thread {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem 1rem 0.5rem;
+  max-height: min(52vh, 520px);
+  background:
+    radial-gradient(circle at top, rgba(111, 143, 114, 0.06), transparent 42%),
+    rgba(8, 10, 9, 0.2);
+}
+
+.dm-chat-thread {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+  overflow-y: auto;
+}
+
+.dm-date-separator {
+  display: flex;
+  justify-content: center;
+  margin: 0.5rem 0 1rem;
+}
+
+.dm-date-separator span {
+  border-radius: 9999px;
+  background: rgba(8, 10, 9, 0.82);
+  padding: 0.3rem 0.75rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--admin-text-muted);
+}
+
+.dm-group { display: flex; flex-direction: column; align-items: flex-start; margin-bottom: 0.875rem; max-width: min(100%, 560px); }
+.dm-group-out { align-items: flex-end; margin-left: auto; }
+
+.dm-thread-subject {
+  margin-bottom: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--admin-gold-light);
+}
+
+.dm-bubble-stack { display: flex; flex-direction: column; gap: 0.2rem; max-width: 100%; }
+
+.dm-bubble {
+  position: relative;
+  max-width: min(100%, 420px);
+  padding: 0.625rem 0.875rem;
+  color: var(--admin-text);
+}
+
+.dm-bubble-text {
+  white-space: pre-wrap;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+}
+
+.dm-bubble-in {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: var(--admin-text);
+}
+
+.dm-bubble-out {
+  background: linear-gradient(145deg, rgba(111, 143, 114, 0.92), rgba(79, 121, 88, 0.92));
+  border: 1px solid rgba(163, 201, 168, 0.22);
+  color: #f8fff9;
+}
+
+.dm-bubble-single { border-radius: 18px; }
+.dm-bubble-first { border-radius: 18px 18px 18px 6px; }
+.dm-bubble-middle { border-radius: 6px 18px 18px 6px; }
+.dm-bubble-last { border-radius: 6px 18px 18px 18px; }
+
+.dm-group-out .dm-bubble-first { border-radius: 18px 18px 6px 18px; }
+.dm-group-out .dm-bubble-middle { border-radius: 18px 6px 6px 18px; }
+.dm-group-out .dm-bubble-last { border-radius: 18px 6px 18px 18px; }
+.dm-group-out .dm-bubble-single { border-radius: 18px; }
+
+.dm-group-time {
+  margin-top: 0.25rem;
+  padding: 0 0.35rem;
+  font-size: 0.625rem;
+  color: var(--admin-text-muted);
+}
+
+.dm-composer {
+  border-top: 1px solid var(--admin-border-subtle);
+  padding: 0.75rem 1rem 0.875rem;
+  background: rgba(8, 10, 9, 0.55);
+}
+
+.dm-composer-shell {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.625rem;
+  border-radius: 9999px;
+  border: 1px solid var(--admin-border-subtle);
+  background: rgba(255, 255, 255, 0.04);
+  padding: 0.45rem 0.45rem 0.45rem 1rem;
+}
+
+.dm-composer-input {
+  flex: 1;
+  min-height: 1.5rem;
+  max-height: 132px;
+  resize: none;
+  border: 0;
+  background: transparent;
+  padding: 0.35rem 0;
+  font-size: 0.9375rem;
+  line-height: 1.4;
+  color: var(--admin-text);
+}
+
+.dm-composer-input:focus { outline: none; }
+.dm-composer-input::placeholder { color: var(--admin-text-muted); }
+
+.dm-composer-send {
+  display: inline-flex;
+  height: 2.25rem;
+  width: 2.25rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: linear-gradient(145deg, var(--admin-gold-light), var(--admin-emerald));
+  color: #0f1a17;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.dm-composer-send svg { height: 1rem; width: 1rem; }
+.dm-composer-send:disabled { opacity: 0.45; cursor: not-allowed; }
+.dm-composer-send:not(:disabled):hover { transform: scale(1.04); }
+
+.dm-composer-spinner {
+  height: 0.95rem;
+  width: 0.95rem;
+  border-radius: 9999px;
+  border: 2px solid rgba(15, 26, 23, 0.25);
+  border-top-color: #0f1a17;
+  animation: dm-spin 0.8s linear infinite;
+}
+
+@keyframes dm-spin { to { transform: rotate(360deg); } }
+
+.dm-composer-hint {
+  margin-top: 0.45rem;
+  font-size: 0.6875rem;
+  color: var(--admin-text-muted);
+}
+
+.dm-composer-error { margin-top: 0.45rem; font-size: 0.8125rem; color: #f87171; }
+
+.dm-chat-empty {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+}
+
+.dm-chat-empty-icon {
+  display: flex;
+  height: 3.5rem;
+  width: 3.5rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 1px solid var(--admin-border-subtle);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--admin-gold-light);
+  margin-bottom: 1rem;
+}
+
+.dm-chat-empty-icon svg { height: 1.75rem; width: 1.75rem; }
+
+.dm-chat-panel-portal .dm-bubble-out,
+.dm-composer-portal .dm-composer-send {
+  background: linear-gradient(145deg, rgba(201, 169, 98, 0.95), rgba(163, 201, 168, 0.88));
+}
+
+@media (max-width: 1023px) {
+  .admin-messages-layout .dm-chat-panel:not(.dm-panel-hidden) { display: flex; }
+  .admin-messages-layout .dm-list-panel.dm-panel-hidden { display: none; }
+}
+
 
 /* -------------------------------------------------------------------------- */
 /* Admin Settings                                                             */
@@ -6687,33 +7035,14 @@ body {
 .portal-messages-layout {
   display: grid;
   gap: 1rem;
-  min-height: 480px;
+  min-height: 560px;
+  height: min(calc(100dvh - 280px), 720px);
 }
 
-@media (min-width: 1024px) {
-  .portal-messages-layout {
-    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
-  }
-}
-
-.portal-message-list-item {
-  width: 100%;
-  border-bottom: 1px solid var(--admin-border-subtle);
-  padding: 0.875rem 1rem;
-  text-align: left;
-  transition: background 0.15s ease;
-}
-
-.portal-message-list-item:hover {
-  background: rgba(255, 255, 255, 0.03);
-}
-
-.portal-message-list-item-active {
-  background: color-mix(in srgb, var(--admin-gold) 8%, transparent);
-}
-
-.portal-message-list-item-unread {
-  border-left: 2px solid var(--admin-gold);
+.portal-messages-layout .dm-list-panel,
+.portal-messages-layout .dm-chat-panel {
+  min-height: 0;
+  height: 100%;
 }
 
 .portal-list-row {

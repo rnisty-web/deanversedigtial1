@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { AdminAlert } from "@/components/admin/AdminAlert";
 import { AdminEmptyState } from "@/components/admin/AdminEmptyState";
 import { AdminPageContent } from "@/components/admin/AdminPageContent";
@@ -68,6 +69,7 @@ const statIcons = {
 };
 
 export default function AdminMessagesPage() {
+  const router = useRouter();
   const [messages, setMessages] = useState<MessageRecord[]>([]);
   const [adminId, setAdminId] = useState<string | null>(null);
   const [clients, setClients] = useState<ClientOption[]>([]);
@@ -204,6 +206,8 @@ export default function AdminMessagesPage() {
         }
       }),
     );
+
+    router.refresh();
   }
 
   async function handleSelect(key: string) {
@@ -363,12 +367,10 @@ export default function AdminMessagesPage() {
             />
             <MessagesChatPanel
               conversation={selected}
-              adminId={adminId}
-              replySubject={replySubject}
+              userId={adminId}
               replyContent={replyContent}
               sending={sending}
               sendError={sendError}
-              onReplySubjectChange={setReplySubject}
               onReplyContentChange={setReplyContent}
               onSubmit={handleReply}
               onBack={() => setMobileChatOpen(false)}

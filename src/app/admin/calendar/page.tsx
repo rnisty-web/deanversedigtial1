@@ -233,10 +233,15 @@ export default function AdminCalendarPage() {
   async function deleteEvent() {
     if (!editEvent) return;
     if (!confirm("Delete this event?")) return;
-    await fetch(`/api/admin/calendar?id=${editEvent.id}`, {
+    const res = await fetch(`/api/admin/calendar?id=${editEvent.id}`, {
       method: "DELETE",
       credentials: "same-origin",
     });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setFormError(data.error ?? "Failed to delete event");
+      return;
+    }
     closeForm();
     fetchEvents();
     setMessage("Event deleted.");

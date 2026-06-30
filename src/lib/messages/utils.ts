@@ -180,6 +180,82 @@ export function threadMessages(conversation: Conversation) {
   );
 }
 
+export type ThreadBubble = {
+  id: string;
+  content: string;
+  created_at: string;
+  subject?: string | null;
+  isOutgoing: boolean;
+};
+
+export type BubbleGroup = {
+  isOutgoing: boolean;
+  bubbles: ThreadBubble[];
+  timestamp: string;
+};
+
+export type ThreadSegment =
+  | { type: "date"; label: string }
+  | { type: "group"; group: BubbleGroup; showSubject: boolean };
+
+export function toThreadBubble(
+  msg: Pick<MessageRecord, "id" | "content" | "created_at" | "subject" | "sender_id">,
+  userId: string | null,
+): ThreadBubble {
+  return {
+    id: msg.id,
+    content: msg.content,
+    created_at: msg.created_at,
+    subject: msg.subject,
+    isOutgoing: userId ? msg.sender_id === userId : false,
+  };
+}
+
+export function groupConsecutiveBubbles(messages: ThreadBubble[]): BubbleGroup[] {
+  const groups: BubbleGroup[] = [];
+
+  for (const message of messages) {
+    const last = groups[groups.length - 1];
+    if (last && last.isOutgoing === message.isOutgoing) {
+      last.bubbles.push(message);
+      last.timestamp = message.created_at;
+    } else {
+      groups.push({
+        isOutgoing: message.isOutgoing,
+        bubbles: [message],
+        timestamp: message.created_at,
+      });
+    }
+  }
+
+  return groups;
+}
+
+export function buildThreadSegments(messages: ThreadBubble[]): ThreadSegment[] {
+  const segments: ThreadSegment[] = [];
+  let lastDate = "";
+  let shownSubject = false;
+
+  for (const group of groupConsecutiveBubbles(messages)) {
+    const dateLabel = formatMessageDate(group.bubbles[0].created_at);
+    if (dateLabel !== lastDate) {
+      segments.push({ type: "date", label: dateLabel });
+      lastDate = dateLabel;
+    }
+
+    const showSubject =
+      !shownSubject &&
+      !group.isOutgoing &&
+      Boolean(group.bubbles[0]?.subject);
+
+    if (showSubject) shownSubject = true;
+
+    segments.push({ type: "group", group, showSubject });
+  }
+
+  return segments;
+}
+
 export function filterConversations(
   conversations: Conversation[],
   search: string,

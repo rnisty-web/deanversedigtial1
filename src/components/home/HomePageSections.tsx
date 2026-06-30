@@ -7,19 +7,22 @@ import { ServicesPreview } from "@/components/home/ServicesPreview";
 import { StatsStrip } from "@/components/home/StatsStrip";
 import { TestimonialsPreview } from "@/components/home/TestimonialsPreview";
 import {
-  getCMSLayout,
   getPublishedHomepageSections,
+  isHomepageSectionPublished,
 } from "@/lib/cms/get-content";
+import type { CMSLayout } from "@/lib/cms/layout";
 import type { SectionId } from "@/lib/cms/sections";
 import type { PortfolioItem, Testimonial } from "@/types";
 
 type HomePageSectionsProps = {
+  layout: CMSLayout;
   projects: PortfolioItem[];
   testimonials: Testimonial[];
 };
 
 function renderHomepageSection(
   id: SectionId,
+  layout: CMSLayout,
   projects: PortfolioItem[],
   testimonials: Testimonial[],
 ) {
@@ -31,10 +34,16 @@ function renderHomepageSection(
     case "services":
       return <ServicesPreview key={id} />;
     case "portfolio":
+      if (!isHomepageSectionPublished(layout, "portfolio") || projects.length === 0) {
+        return null;
+      }
       return <PortfolioPreview key={id} projects={projects} />;
     case "process":
       return <ProcessSection key={id} />;
     case "testimonials":
+      if (!isHomepageSectionPublished(layout, "testimonials") || testimonials.length === 0) {
+        return null;
+      }
       return <TestimonialsPreview key={id} testimonials={testimonials} />;
     case "pricing":
       return <PricingPreview key={id} />;
@@ -45,13 +54,16 @@ function renderHomepageSection(
   }
 }
 
-export async function HomePageSections({ projects, testimonials }: HomePageSectionsProps) {
-  const layout = await getCMSLayout();
+export function HomePageSections({
+  layout,
+  projects,
+  testimonials,
+}: HomePageSectionsProps) {
   const sections = getPublishedHomepageSections(layout);
 
   return (
     <>
-      {sections.map((id) => renderHomepageSection(id, projects, testimonials))}
+      {sections.map((id) => renderHomepageSection(id, layout, projects, testimonials))}
     </>
   );
 }

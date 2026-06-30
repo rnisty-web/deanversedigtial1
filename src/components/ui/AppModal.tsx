@@ -132,8 +132,8 @@ export function AppModal({
           {children}
         </div>
 
-        {footer ? (
-          <div className="shrink-0">{footer}</div>
+        {footer !== undefined ? (
+          footer ? <div className="shrink-0">{footer}</div> : null
         ) : (
           <div
             className={cn(

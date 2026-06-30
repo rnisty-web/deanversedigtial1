@@ -106,6 +106,8 @@ function PortalFilesInner() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectFilter, setProjectFilter] = useState(initialProject);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadState, setUploadState] = useState<UploadState>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -114,6 +116,7 @@ function PortalFilesInner() {
 
   const fetchFiles = useCallback(async () => {
     setLoading(true);
+    setLoadError(null);
     const query = projectFilter ? `?project_id=${projectFilter}` : "";
     const res = await fetch(`/api/portal/files${query}`, { credentials: "same-origin" });
     if (res.ok) {
@@ -123,6 +126,9 @@ function PortalFilesInner() {
       if (!projectFilter && data.projects?.length === 1) {
         setProjectFilter(data.projects[0].id);
       }
+    } else {
+      const data = await res.json().catch(() => ({}));
+      setLoadError(data.error ?? "Failed to load files");
     }
     setLoading(false);
   }, [projectFilter]);
@@ -175,10 +181,15 @@ function PortalFilesInner() {
   }
 
   async function handleDownload(filePath: string) {
+    setDownloadError(null);
     const res = await fetch(`/api/portal/files?download=${encodeURIComponent(filePath)}`, {
       credentials: "same-origin",
     });
-    if (!res.ok) return;
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setDownloadError(data.error ?? "Download failed");
+      return;
+    }
 
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
@@ -274,6 +285,19 @@ function PortalFilesInner() {
         {uploadError && (
           <AdminAlert tone="error" className="mt-3">
             {uploadError}
+          </AdminAlert>
+        )}
+        {loadError && (
+          <AdminAlert tone="error" className="mt-3">
+            {loadError}{" "}
+            <button type="button" className="underline" onClick={() => void fetchFiles()}>
+              Try again
+            </button>
+          </AdminAlert>
+        )}
+        {downloadError && (
+          <AdminAlert tone="error" className="mt-3">
+            {downloadError}
           </AdminAlert>
         )}
       </PortalCard>

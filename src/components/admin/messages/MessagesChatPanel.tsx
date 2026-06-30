@@ -1,72 +1,52 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
-import { AdminField } from "@/components/admin/AdminField";
-import { Button } from "@/components/ui/Button";
+import { useMemo } from "react";
+import { MessageAvatar } from "@/components/messages/MessageAvatar";
+import { MessageBubbleThread } from "@/components/messages/MessageBubbleThread";
+import { MessageComposer } from "@/components/messages/MessageComposer";
 import type { Conversation } from "@/lib/messages/utils";
 import {
-  formatMessageDate,
-  formatMessageTime,
   profileName,
   threadMessages,
+  toThreadBubble,
 } from "@/lib/messages/utils";
 import { cn } from "@/lib/utils";
 
 type MessagesChatPanelProps = {
   conversation: Conversation | null;
-  adminId: string | null;
-  replySubject: string;
+  userId: string | null;
   replyContent: string;
   sending: boolean;
   sendError: string | null;
-  onReplySubjectChange: (value: string) => void;
   onReplyContentChange: (value: string) => void;
   onSubmit: (e: React.FormEvent) => void;
   onBack?: () => void;
   hidden?: boolean;
+  variant?: "admin" | "portal";
 };
 
 export function MessagesChatPanel({
   conversation,
-  adminId,
-  replySubject,
+  userId,
   replyContent,
   sending,
   sendError,
-  onReplySubjectChange,
   onReplyContentChange,
   onSubmit,
   onBack,
   hidden,
+  variant = "admin",
 }: MessagesChatPanelProps) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const thread = useMemo(
-    () => (conversation ? threadMessages(conversation) : []),
-    [conversation],
-  );
-
-  const threadWithDates = useMemo(
-    () =>
-      thread.map((msg, index) => {
-        const dateLabel = formatMessageDate(msg.created_at);
-        const showDate =
-          index === 0 || dateLabel !== formatMessageDate(thread[index - 1].created_at);
-        return { msg, dateLabel, showDate };
-      }),
-    [thread],
-  );
-
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    el.scrollTop = el.scrollHeight;
-  }, [conversation?.key, thread.length]);
+  const thread = useMemo(() => {
+    if (!conversation) return [];
+    return threadMessages(conversation).map((msg) => toThreadBubble(msg, userId));
+  }, [conversation, userId]);
 
   if (!conversation) {
     return (
-      <section className={cn("admin-messages-chat-panel", hidden && "admin-messages-panel-hidden")}>
-        <div className="admin-messages-chat-empty">
-          <div className="admin-messages-chat-empty-icon" aria-hidden>
+      <section className={cn("dm-chat-panel", hidden && "dm-panel-hidden")}>
+        <div className="dm-chat-empty">
+          <div className="dm-chat-empty-icon" aria-hidden>
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.25}>
               <path
                 strokeLinecap="round"
@@ -77,7 +57,7 @@ export function MessagesChatPanel({
           </div>
           <h2 className="text-lg font-semibold text-[var(--admin-text)]">Select a conversation</h2>
           <p className="mt-2 max-w-sm text-sm text-[var(--admin-text-muted)]">
-            Choose a thread from the list to read messages and reply to your client.
+            Pick a thread to read messages and reply in real time.
           </p>
         </div>
       </section>
@@ -87,71 +67,46 @@ export function MessagesChatPanel({
   const counterpartName = profileName(conversation.counterpart);
 
   return (
-    <section className={cn("admin-messages-chat-panel", hidden && "admin-messages-panel-hidden")}>
-      <div className="admin-messages-chat-header">
+    <section
+      className={cn(
+        "dm-chat-panel",
+        variant === "portal" && "dm-chat-panel-portal",
+        hidden && "dm-panel-hidden",
+      )}
+    >
+      <div className="dm-chat-header">
         {onBack ? (
-          <button type="button" onClick={onBack} className="admin-messages-back-btn xl:hidden">
-            ← Back
+          <button type="button" onClick={onBack} className="dm-back-btn lg:hidden">
+            ←
           </button>
         ) : null}
+        <MessageAvatar name={counterpartName} size="md" />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-base font-semibold text-[var(--admin-text)]">{counterpartName}</p>
+          <p className="truncate text-base font-semibold text-[var(--admin-text)]">
+            {counterpartName}
+          </p>
           <p className="truncate text-xs text-[var(--admin-text-muted)]">
-            {conversation.subject ?? "No subject"}
-            {conversation.projectTitle ? ` · ${conversation.projectTitle}` : ""}
+            {conversation.projectTitle ?? "Direct message"}
           </p>
         </div>
       </div>
 
-      <div ref={scrollRef} className="admin-messages-chat-thread">
-        {threadWithDates.map(({ msg, dateLabel, showDate }) => {
-          const outgoing = adminId ? msg.sender_id === adminId : false;
+      <MessageBubbleThread
+        messages={thread}
+        variant={variant}
+        scrollKey={conversation.key}
+        className="dm-chat-thread"
+      />
 
-          return (
-            <div key={msg.id}>
-              {showDate ? (
-                <div className="admin-messages-date-separator">
-                  <span>{dateLabel}</span>
-                </div>
-              ) : null}
-              <div className={cn("admin-messages-bubble-row", outgoing && "admin-messages-bubble-row-out")}>
-                <div className={cn("admin-messages-bubble", outgoing ? "admin-messages-bubble-out" : "admin-messages-bubble-in")}>
-                  {!outgoing && msg.subject ? (
-                    <p className="admin-messages-bubble-subject">{msg.subject}</p>
-                  ) : null}
-                  <p className="whitespace-pre-wrap text-sm leading-relaxed">{msg.content}</p>
-                  <p className="admin-messages-bubble-time">{formatMessageTime(msg.created_at)}</p>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      <form onSubmit={onSubmit} className="admin-messages-compose">
-        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--admin-gold-light)]">
-          Reply to {counterpartName}
-        </p>
-        <AdminField label="Subject" value={replySubject} onChange={onReplySubjectChange} />
-        <AdminField
-          label="Message"
-          value={replyContent}
-          onChange={onReplyContentChange}
-          multiline
-          rows={4}
-        />
-        {sendError ? <p className="text-sm text-red-400">{sendError}</p> : null}
-        <div className="flex justify-end">
-          <Button
-            size="sm"
-            className="admin-btn-gold"
-            type="submit"
-            disabled={sending || !replyContent.trim()}
-          >
-            {sending ? "Sending…" : "Send reply"}
-          </Button>
-        </div>
-      </form>
+      <MessageComposer
+        value={replyContent}
+        onChange={onReplyContentChange}
+        onSubmit={onSubmit}
+        sending={sending}
+        error={sendError}
+        placeholder={`Message ${counterpartName.split(" ")[0] ?? "team"}…`}
+        variant={variant}
+      />
     </section>
   );
 }

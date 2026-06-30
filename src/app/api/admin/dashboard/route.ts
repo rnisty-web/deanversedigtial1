@@ -38,6 +38,7 @@ type RecentMessageRow = {
   subject: string;
   read: boolean;
   created_at: string;
+  recipient_id: string;
   sender: { full_name: string | null; email: string } | { full_name: string | null; email: string }[] | null;
 };
 
@@ -144,7 +145,8 @@ export async function GET() {
     supabase
       .from("messages")
       .select("*", { count: "exact", head: true })
-      .eq("read", false),
+      .eq("read", false)
+      .eq("recipient_id", auth.user!.id),
     supabase.from("invoices").select("amount, status"),
     supabase
       .from("invoices")
@@ -177,8 +179,9 @@ export async function GET() {
     supabase
       .from("messages")
       .select(
-        "id, subject, read, created_at, sender:profiles!messages_sender_id_fkey(full_name, email)",
+        "id, subject, read, created_at, recipient_id, sender:profiles!messages_sender_id_fkey(full_name, email)",
       )
+      .eq("recipient_id", auth.user!.id)
       .order("created_at", { ascending: false })
       .limit(4),
   ]);
@@ -271,13 +274,14 @@ export async function GET() {
       event_type: event.event_type,
     })) ?? [];
 
+  const adminId = auth.user!.id;
   const recentMessages =
     (recentMessagesRaw as RecentMessageRow[] | null)?.map((msg) => {
       const sender = Array.isArray(msg.sender) ? msg.sender[0] : msg.sender;
       return {
         id: msg.id,
         subject: msg.subject,
-        read: msg.read,
+        read: msg.read || msg.recipient_id !== adminId,
         created_at: msg.created_at,
         sender_name: sender?.full_name?.trim() || sender?.email?.split("@")[0] || "Unknown",
       };

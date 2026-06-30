@@ -1,8 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ActivityStatusQuickPicker } from "@/components/admin/ActivityStatusPicker";
+import { PortalSwitcher } from "@/components/shared/PortalSwitcher";
 import { cn } from "@/lib/utils";
 
 interface AdminHeaderProps {
@@ -55,9 +57,10 @@ export function AdminHeader({
           <div className="flex flex-wrap items-center gap-2">
             {showActivityPicker && <ActivityStatusQuickPicker />}
             {actions}
-            <a href="/portal" className="admin-btn-ghost hidden px-4 sm:inline-flex">
+            <PortalSwitcher className="hidden sm:grid" />
+            <Link href="/portal" className="admin-btn-ghost hidden px-4 lg:inline-flex">
               Client Portal
-            </a>
+            </Link>
             <button type="button" onClick={handleSignOut} className="admin-btn-ghost px-4">
               Sign out
             </button>

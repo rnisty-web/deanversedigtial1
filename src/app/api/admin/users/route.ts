@@ -14,14 +14,17 @@ import {
   persistRoles,
   type UserRole,
 } from "@/lib/roles";
+import { fetchRoleCatalog } from "@/lib/roles/catalog-server";
+import { getActiveRoleCatalog } from "@/lib/roles/catalog";
 
 function normalizeRolesInput(
   roles: UserRole[] | undefined,
   role: UserRole | undefined,
-): UserRole[] {
-  if (roles?.length) return persistRoles(roles);
-  if (role !== undefined) return persistRoles([role]);
-  return persistRoles(["customer"]);
+  catalog: Awaited<ReturnType<typeof fetchRoleCatalog>>,
+) {
+  if (roles?.length) return persistRoles(roles, undefined, catalog);
+  if (role !== undefined) return persistRoles([role], undefined, catalog);
+  return persistRoles(["customer"], undefined, catalog);
 }
 
 export async function GET() {
@@ -49,6 +52,7 @@ export async function GET() {
   );
 
   const { data: users, error } = await fetchAdminUsers(auth.supabase!);
+  const roleCatalog = getActiveRoleCatalog(await fetchRoleCatalog(auth.supabase!));
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -59,6 +63,7 @@ export async function GET() {
     canManageUsers: canManage,
     isFounder: assignerIsFounder,
     ownerEmail: getOwnerEmail(),
+    roleCatalog,
   });
 }
 
@@ -91,9 +96,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Password must be at least 8 characters" }, { status: 400 });
   }
 
-  const assignedRoles = normalizeRolesInput(roles, role);
+  const roleCatalog = await fetchRoleCatalog(auth.supabase!);
+  const assignedRoles = normalizeRolesInput(roles, role, roleCatalog);
 
-  if (!canAssignRoles(assignedRoles, assignerIsFounder)) {
+  if (!canAssignRoles(assignedRoles, assignerIsFounder, roleCatalog)) {
     return NextResponse.json(
       { error: "Only the founder can assign the Founder role" },
       { status: 403 },
@@ -207,9 +213,10 @@ export async function PATCH(request: Request) {
       );
     }
 
-    const nextRoles = normalizeRolesInput(roles, role);
+    const roleCatalog = await fetchRoleCatalog(auth.supabase!);
+    const nextRoles = normalizeRolesInput(roles, role, roleCatalog);
 
-    if (!canAssignRoles(nextRoles, assignerIsFounder)) {
+    if (!canAssignRoles(nextRoles, assignerIsFounder, roleCatalog)) {
       return NextResponse.json(
         { error: "Only the founder can assign the Founder role" },
         { status: 403 },

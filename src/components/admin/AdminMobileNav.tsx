@@ -7,6 +7,7 @@ import type { Profile } from "@/lib/auth";
 import { AdminNavGroups } from "@/components/admin/AdminNavGroups";
 import { AdminProfileCard } from "@/components/admin/AdminProfileCard";
 import { AdminSidebarBrand } from "@/components/admin/AdminSidebarBrand";
+import { PortalSwitcher } from "@/components/shared/PortalSwitcher";
 import { BrandLogo } from "@/components/ui/BrandLogo";
 import { cn } from "@/lib/utils";
 
@@ -86,7 +87,14 @@ export function AdminMobileNav({ profile, unreadMessagesCount = 0 }: AdminMobile
               onNavigate={() => setOpen(false)}
             />
           </div>
-          <div className="shrink-0 px-3 pb-4 pt-2">
+          <div className="shrink-0 space-y-2 px-3 pb-4 pt-2">
+            <Link href="/" className="admin-back-to-site" onClick={() => setOpen(false)}>
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+              </svg>
+              Back to Website
+            </Link>
+            <PortalSwitcher />
             <AdminProfileCard profile={profile} compact />
           </div>
         </aside>

@@ -6,14 +6,17 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import type { Profile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/client";
-import { isStaffRole } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 
-export function PortalProfileCard({ profile }: { profile: Profile }) {
+type PortalProfileCardProps = {
+  profile: Profile;
+  canAccessAdmin: boolean;
+};
+
+export function PortalProfileCard({ profile, canAccessAdmin }: PortalProfileCardProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
-  const isStaff = isStaffRole(profile);
   const name = profile.full_name ?? profile.email.split("@")[0];
   const initial = name.charAt(0).toUpperCase();
 
@@ -72,7 +75,7 @@ export function PortalProfileCard({ profile }: { profile: Profile }) {
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold text-[var(--admin-gold-light)]">{name}</p>
           <p className="truncate text-[11px] text-[var(--admin-gold)]/55">
-            {isStaff ? "Staff preview" : "Client account"}
+            {canAccessAdmin ? "Staff preview" : "Client account"}
           </p>
         </div>
 
@@ -99,9 +102,9 @@ export function PortalProfileCard({ profile }: { profile: Profile }) {
           <Link href="/portal/account" className="admin-sidebar-menu-item" role="menuitem" onClick={() => setOpen(false)}>
             Account settings
           </Link>
-          {isStaff ? (
+          {canAccessAdmin ? (
             <Link href="/admin" className="admin-sidebar-menu-item" role="menuitem" onClick={() => setOpen(false)}>
-              Admin portal
+              Admin Portal
             </Link>
           ) : null}
           <Link href="/" className="admin-sidebar-menu-item" role="menuitem" onClick={() => setOpen(false)}>

@@ -62,6 +62,9 @@ export function SettingsOverviewPanel({
           <Link href="/admin/content" className="admin-settings-quick-btn">
             Site CMS
           </Link>
+          <Link href="/admin/settings/appearance" className="admin-settings-quick-btn">
+            Appearance
+          </Link>
           <Link href="/" className="admin-settings-quick-btn">
             View site
           </Link>

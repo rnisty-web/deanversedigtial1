@@ -103,6 +103,23 @@ export const settingsCategories: SettingsCategory[] = [
     ),
   },
   {
+    id: "appearance",
+    section: "Platform",
+    title: "Dashboard Appearance",
+    description: "Switch between three luxury color palettes for the admin and client portals.",
+    href: "/admin/settings/appearance",
+    cta: "Choose theme",
+    statLabel: "Theme",
+    statFallback: "Gold & Emerald",
+    tags: ["appearance", "theme", "colors", "dashboard", "portal", "ui"],
+    tone: "gold",
+    icon: (
+      <svg className={iconClass} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9.53 16.122a3 3 0 00-5.78 1.128 2.25 2.25 0 01-2.897 2.13l-.002.003a2.252 2.252 0 01-.88-1.823V8.25A2.25 2.25 0 016 6h12a2.25 2.25 0 012.25 2.25v8.568a2.252 2.252 0 01-.88 1.823l-.002.003a2.25 2.25 0 01-2.897-2.13 3 3 0 00-5.78-1.128" />
+      </svg>
+    ),
+  },
+  {
     id: "security",
     section: "Platform",
     title: "Security",

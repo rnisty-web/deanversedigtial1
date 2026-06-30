@@ -1,10 +1,24 @@
+import {
+  DEFAULT_ROLE_CATALOG,
+  getActiveRoleCatalog,
+  getAssignableRoleDefinitions,
+  getRoleDefinition,
+  getStaffRoleSlugs,
+  roleStyleFromDefinition,
+  type RoleDefinition,
+} from "@/lib/roles/catalog";
+
 export type UserRole =
   | "admin"
   | "lead_web_designer"
   | "lead_developer"
   | "customer"
   | "client"
-  | "founder";
+  | "founder"
+  | (string & {});
+
+export type { RoleDefinition } from "@/lib/roles/catalog";
+export { DEFAULT_ROLE_CATALOG } from "@/lib/roles/catalog";
 
 /** @deprecated Use UserRole — kept for backward compatibility during migration */
 export type LegacyUserRole = UserRole;
@@ -42,6 +56,7 @@ export type RoleStyle = {
   badge: string;
   dot: string;
   selectBg: string;
+  color?: string;
 };
 
 const ROLE_STYLE_MAP: Record<string, RoleStyle> = {
@@ -170,10 +185,13 @@ export function isStaffRole(
     | { role?: UserRole | string | null; roles?: UserRole[] | string[] | null }
     | null
     | undefined,
+  catalog: RoleDefinition[] = DEFAULT_ROLE_CATALOG,
 ): boolean {
+  const staffSlugs = new Set(getStaffRoleSlugs(catalog));
   return parseUserRoles(input).some((role) => {
-    if (role === "admin") return true;
-    return STAFF_ROLES.includes(role);
+    const resolved = resolveRole(role);
+    if (resolved === "admin") return true;
+    return staffSlugs.has(resolved) || staffSlugs.has(role);
   });
 }
 
@@ -205,11 +223,15 @@ export function isFounderRole(
   );
 }
 
-export function getRoleLabel(role: UserRole | string): string {
+export function getRoleLabel(role: UserRole | string, catalog: RoleDefinition[] = DEFAULT_ROLE_CATALOG): string {
+  const definition = getRoleDefinition(catalog, resolveRole(role));
+  if (definition) return definition.label;
   return ROLE_STYLE_MAP[resolveRole(role)]?.label ?? String(role);
 }
 
-export function getRoleStyle(role: UserRole | string): RoleStyle {
+export function getRoleStyle(role: UserRole | string, catalog: RoleDefinition[] = DEFAULT_ROLE_CATALOG): RoleStyle {
+  const definition = getRoleDefinition(catalog, resolveRole(role));
+  if (definition) return roleStyleFromDefinition(definition);
   return ROLE_STYLE_MAP[resolveRole(role)] ?? ROLE_STYLE_MAP.customer;
 }
 
@@ -221,9 +243,12 @@ export function getRoleSelectClass(role: UserRole | string): string {
   return getRoleStyle(role).selectBg;
 }
 
-export function toAssignableRole(role: UserRole | string | null | undefined): UserRole {
+export function toAssignableRole(
+  role: UserRole | string | null | undefined,
+  catalog: RoleDefinition[] = DEFAULT_ROLE_CATALOG,
+): UserRole {
   const resolved = resolveRole(role);
-  if (ASSIGNABLE_ROLES.includes(resolved)) return resolved;
+  if (getRoleDefinition(catalog, resolved)) return resolved;
   return "customer";
 }
 
@@ -235,50 +260,62 @@ export function toAssignableRoles(
     | { role?: UserRole | string | null; roles?: UserRole[] | string[] | null }
     | null
     | undefined,
+  catalog: RoleDefinition[] = DEFAULT_ROLE_CATALOG,
 ): UserRole[] {
   const parsed = parseUserRoles(input);
   const assignable = parsed
-    .map((role) => toAssignableRole(role))
+    .map((role) => toAssignableRole(role, catalog))
     .filter((role, index, self) => self.indexOf(role) === index);
   return assignable.length > 0 ? assignable : ["customer"];
 }
 
-export function isValidAssignableRole(role: string): role is UserRole {
-  return ASSIGNABLE_ROLES.includes(role as UserRole);
+export function isValidAssignableRole(
+  role: string,
+  catalog: RoleDefinition[] = DEFAULT_ROLE_CATALOG,
+): role is UserRole {
+  return getActiveRoleCatalog(catalog).some((item) => item.slug === resolveRole(role));
 }
 
 export function canAssignRole(
   role: UserRole | string,
   assignerIsFounder: boolean,
+  catalog: RoleDefinition[] = DEFAULT_ROLE_CATALOG,
 ): boolean {
   const resolved = resolveRole(role);
-  if (!isValidAssignableRole(resolved)) return false;
-  if (FOUNDER_ONLY_ASSIGNABLE_ROLES.includes(resolved)) {
-    return assignerIsFounder;
-  }
-  return true;
+  return getAssignableRoleDefinitions(catalog, assignerIsFounder).some(
+    (item) => item.slug === resolved,
+  );
 }
 
-export function canAssignRoles(roles: UserRole[], assignerIsFounder: boolean): boolean {
+export function canAssignRoles(
+  roles: UserRole[],
+  assignerIsFounder: boolean,
+  catalog: RoleDefinition[] = DEFAULT_ROLE_CATALOG,
+): boolean {
   if (roles.length === 0) return false;
-  return roles.every((role) => canAssignRole(role, assignerIsFounder));
+  return roles.every((role) => canAssignRole(role, assignerIsFounder, catalog));
 }
 
-export function getAssignableRolesForUser(assignerIsFounder: boolean): UserRole[] {
-  return ASSIGNABLE_ROLES.filter((role) => canAssignRole(role, assignerIsFounder));
+export function getAssignableRolesForUser(
+  assignerIsFounder: boolean,
+  catalog: RoleDefinition[] = DEFAULT_ROLE_CATALOG,
+): UserRole[] {
+  return getAssignableRoleDefinitions(catalog, assignerIsFounder).map((role) => role.slug as UserRole);
 }
 
 /** Normalize and validate roles for persistence */
 export function persistRoles(
   roles: UserRole[] | undefined,
   fallback?: UserRole | string | null,
+  catalog: RoleDefinition[] = DEFAULT_ROLE_CATALOG,
 ): UserRole[] {
   const parsed = parseUserRoles(roles?.length ? roles : fallback ?? "customer");
   const persisted = parsed
     .map((role) => {
       const resolved = resolveRole(role);
       if (resolved === "admin") return "admin" as UserRole;
-      if (isValidAssignableRole(resolved)) return resolved;
+      if (isValidAssignableRole(resolved, catalog)) return resolved;
+      if (getRoleDefinition(catalog, resolved)) return resolved;
       return "customer" as UserRole;
     })
     .filter((role, index, self) => self.indexOf(role) === index);
@@ -286,6 +323,9 @@ export function persistRoles(
   return persisted.length > 0 ? persisted : ["customer"];
 }
 
-export function formatRolesLabel(roles: UserRole[] | string[]): string {
-  return parseUserRoles(roles).map((role) => getRoleLabel(role)).join(", ");
+export function formatRolesLabel(
+  roles: UserRole[] | string[],
+  catalog: RoleDefinition[] = DEFAULT_ROLE_CATALOG,
+): string {
+  return parseUserRoles(roles).map((role) => getRoleLabel(role, catalog)).join(", ");
 }

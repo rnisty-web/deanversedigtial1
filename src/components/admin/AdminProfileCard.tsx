@@ -122,6 +122,14 @@ export function AdminProfileCard({ profile, compact = false }: AdminProfileCardP
           role="menu"
         >
           <Link
+            href="/portal"
+            className="admin-sidebar-menu-item"
+            role="menuitem"
+            onClick={() => setOpen(false)}
+          >
+            Client Portal
+          </Link>
+          <Link
             href="/admin/settings/my-account"
             className="admin-sidebar-menu-item"
             role="menuitem"

@@ -6,6 +6,7 @@ import { AdminNavGroups } from "@/components/admin/AdminNavGroups";
 import { AdminProfileCard } from "@/components/admin/AdminProfileCard";
 import { useAdminShell } from "@/components/admin/AdminShellProvider";
 import { AdminSidebarBrand } from "@/components/admin/AdminSidebarBrand";
+import { PortalSwitcher } from "@/components/shared/PortalSwitcher";
 import { cn } from "@/lib/utils";
 
 type AdminSidebarProps = {
@@ -52,6 +53,7 @@ export function AdminSidebar({ profile, unreadMessagesCount = 0 }: AdminSidebarP
       </div>
 
       <div className="shrink-0 space-y-2 px-3 pb-4 pt-2">
+        <PortalSwitcher compact={sidebarCollapsed} />
         {!sidebarCollapsed ? (
           <Link href="/" className="admin-back-to-site">
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden>

@@ -4,8 +4,14 @@ import { siteConfig } from "@/lib/constants";
 import { BrandLogo } from "@/components/ui/BrandLogo";
 import { PortalNav } from "@/components/portal/PortalNav";
 import { PortalProfileCard } from "@/components/portal/PortalProfileCard";
+import { PortalSwitcher } from "@/components/shared/PortalSwitcher";
 
-export function PortalSidebar({ profile }: { profile: Profile }) {
+type PortalSidebarProps = {
+  profile: Profile;
+  canAccessAdmin: boolean;
+};
+
+export function PortalSidebar({ profile, canAccessAdmin }: PortalSidebarProps) {
   return (
     <aside className="admin-sidebar relative z-20 hidden h-screen shrink-0 flex-col lg:sticky lg:top-0 lg:flex">
       <div className="flex flex-col items-center px-4 pb-4 pt-6">
@@ -22,6 +28,7 @@ export function PortalSidebar({ profile }: { profile: Profile }) {
       </div>
 
       <div className="shrink-0 space-y-2 px-3 pb-4 pt-2">
+        {canAccessAdmin ? <PortalSwitcher canAccessAdmin /> : null}
         <Link href="/" className="admin-back-to-site">
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden>
             <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
@@ -32,7 +39,7 @@ export function PortalSidebar({ profile }: { profile: Profile }) {
           Questions? Use Messages or email{" "}
           <span className="text-[var(--admin-gold-light)]">{siteConfig.email}</span>
         </p>
-        <PortalProfileCard profile={profile} />
+        <PortalProfileCard profile={profile} canAccessAdmin={canAccessAdmin} />
       </div>
     </aside>
   );

@@ -21,7 +21,7 @@ export type UserRecord = {
   activity_status: string | null;
 };
 
-export type UserFilterTab = "all" | "staff" | "clients" | "online";
+export type UserFilterTab = "all" | "staff" | "clients" | "online" | "roles";
 
 export function isProtectedFounderAccount(user: UserRecord, founderEmail: string): boolean {
   return (

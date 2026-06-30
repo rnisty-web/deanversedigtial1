@@ -18,7 +18,10 @@ import { UsersSidebar } from "@/components/admin/users/UsersSidebar";
 import { Button } from "@/components/ui/Button";
 import { RoleBadges } from "@/components/ui/RoleBadges";
 import { RoleMultiSelect } from "@/components/ui/RoleMultiSelect";
+import { RoleCatalogProvider } from "@/components/providers/RoleCatalogProvider";
+import { RolesManager } from "@/components/admin/users/RolesManager";
 import { formatRolesLabel, toAssignableRoles, type UserRole } from "@/lib/roles";
+import type { RoleDefinition } from "@/lib/roles/catalog";
 import {
   canEditUserRole,
   computeUserStats,
@@ -100,6 +103,7 @@ export default function AdminUsersPage() {
   const [tab, setTab] = useState<UserFilterTab>("all");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
+  const [roleCatalog, setRoleCatalog] = useState<RoleDefinition[]>([]);
 
   const displayFounderEmail = defaultFounderEmail(ownerEmail);
 
@@ -120,6 +124,7 @@ export default function AdminUsersPage() {
     setCanManageUsers(Boolean(data.canManageUsers));
     setViewerIsFounder(Boolean(data.isFounder));
     setOwnerEmail(data.ownerEmail ?? "");
+    setRoleCatalog(data.roleCatalog ?? []);
     setLoading(false);
   }, []);
 
@@ -142,7 +147,7 @@ export default function AdminUsersPage() {
       phone: user.phone ?? "",
       company: user.company ?? "",
       avatar_url: user.avatar_url ?? "",
-      roles: toAssignableRoles(user),
+      roles: toAssignableRoles(user, roleCatalog),
     });
     setEditError(null);
   }
@@ -239,7 +244,7 @@ export default function AdminUsersPage() {
       return;
     }
 
-    showFeedback(`${user.full_name ?? user.email} roles updated to ${formatRolesLabel(roles)}`);
+    showFeedback(`${user.full_name ?? user.email} roles updated to ${formatRolesLabel(roles, roleCatalog)}`);
     fetchUsers();
   }
 
@@ -306,6 +311,7 @@ export default function AdminUsersPage() {
   };
 
   return (
+    <RoleCatalogProvider catalog={roleCatalog}>
     <div className="admin-users-page">
       <UsersAdminHeader
         search={search}
@@ -353,6 +359,13 @@ export default function AdminUsersPage() {
 
         {loading ? (
           <AdminTableSkeleton />
+        ) : tab === "roles" ? (
+          <RolesManager
+            catalog={roleCatalog}
+            canManage={canManageUsers}
+            viewerIsFounder={viewerIsFounder}
+            onCatalogChange={setRoleCatalog}
+          />
         ) : users.length === 0 ? (
           <AdminEmptyState
             title="No users yet"
@@ -389,6 +402,8 @@ export default function AdminUsersPage() {
               users={users}
               canManageUsers={canManageUsers}
               onInviteUser={() => setShowCreateForm(true)}
+              onManageRoles={() => setTab("roles")}
+              roleCatalog={roleCatalog}
             />
           </div>
         )}
@@ -547,5 +562,6 @@ export default function AdminUsersPage() {
         ) : null}
       </AdminModal>
     </div>
+    </RoleCatalogProvider>
   );
 }

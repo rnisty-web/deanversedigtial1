@@ -1,6 +1,9 @@
 import { Cormorant_Garamond } from "next/font/google";
 import { Suspense } from "react";
 import { requireAuth } from "@/lib/auth";
+import { isStaffRole } from "@/lib/roles";
+import { getCachedRoleCatalog } from "@/lib/roles/catalog-server";
+import { getCachedDashboardTheme } from "@/lib/settings/dashboard-theme-server";
 import { AdminFooter } from "@/components/admin/AdminFooter";
 import { PortalMobileNav } from "@/components/portal/PortalMobileNav";
 import { PortalNotice } from "@/components/portal/PortalNotice";
@@ -21,12 +24,18 @@ export default async function PortalLayout({
   children: React.ReactNode;
 }) {
   const profile = await requireAuth();
+  const roleCatalog = await getCachedRoleCatalog();
+  const dashboardTheme = await getCachedDashboardTheme();
+  const canAccessAdmin = isStaffRole(profile, roleCatalog);
 
   return (
-    <div className={`portal-theme ${portalSerif.variable} flex h-screen overflow-hidden`}>
-      <PortalSidebar profile={profile} />
+    <div
+      className={`portal-theme ${portalSerif.variable} flex h-screen overflow-hidden`}
+      data-dashboard-theme={dashboardTheme}
+    >
+      <PortalSidebar profile={profile} canAccessAdmin={canAccessAdmin} />
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-        <PortalMobileNav />
+        <PortalMobileNav canAccessAdmin={canAccessAdmin} />
         <Suspense fallback={null}>
           <PortalNotice />
         </Suspense>

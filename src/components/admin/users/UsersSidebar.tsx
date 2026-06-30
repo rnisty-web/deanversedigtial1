@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { getRoleLabel } from "@/lib/roles";
+import type { RoleDefinition } from "@/lib/roles/catalog";
 import type { UserRecord } from "@/lib/users/utils";
 import { countUsersByRole, computeUserStats } from "@/lib/users/utils";
 
@@ -9,9 +10,17 @@ type UsersSidebarProps = {
   users: UserRecord[];
   canManageUsers: boolean;
   onInviteUser: () => void;
+  onManageRoles?: () => void;
+  roleCatalog: RoleDefinition[];
 };
 
-export function UsersSidebar({ users, canManageUsers, onInviteUser }: UsersSidebarProps) {
+export function UsersSidebar({
+  users,
+  canManageUsers,
+  onInviteUser,
+  onManageRoles,
+  roleCatalog,
+}: UsersSidebarProps) {
   const stats = computeUserStats(users);
   const roleCounts = countUsersByRole(users);
 
@@ -48,7 +57,7 @@ export function UsersSidebar({ users, canManageUsers, onInviteUser }: UsersSideb
           <ul className="admin-users-role-list">
             {roleCounts.map(({ role, count }) => (
               <li key={role} className="admin-users-role-item">
-                <span className="text-sm text-[var(--admin-text-muted)]">{getRoleLabel(role)}</span>
+                <span className="text-sm text-[var(--admin-text-muted)]">{getRoleLabel(role, roleCatalog)}</span>
                 <span className="text-sm font-semibold tabular-nums text-[var(--admin-gold-light)]">{count}</span>
               </li>
             ))}
@@ -62,6 +71,11 @@ export function UsersSidebar({ users, canManageUsers, onInviteUser }: UsersSideb
           {canManageUsers ? (
             <button type="button" className="admin-users-quick-btn" onClick={onInviteUser}>
               + Invite user
+            </button>
+          ) : null}
+          {canManageUsers && onManageRoles ? (
+            <button type="button" className="admin-users-quick-btn" onClick={onManageRoles}>
+              Manage roles
             </button>
           ) : null}
           <Link href="/admin/settings" className="admin-users-quick-btn">

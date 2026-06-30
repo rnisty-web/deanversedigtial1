@@ -37,11 +37,12 @@ export function UsersAdminHeader({
     return () => document.removeEventListener("keydown", onKeyDown);
   }, []);
 
-  const tabs: { id: UserFilterTab; label: string; count: number }[] = [
+  const tabs: { id: UserFilterTab; label: string; count?: number }[] = [
     { id: "all", label: "All", count: counts.all },
     { id: "staff", label: "Staff", count: counts.staff },
     { id: "clients", label: "Clients", count: counts.clients },
     { id: "online", label: "Live", count: counts.online },
+    { id: "roles", label: "Roles" },
   ];
 
   return (
@@ -103,7 +104,9 @@ export function UsersAdminHeader({
             className={cn("admin-users-tab", tab === item.id && "admin-users-tab-active")}
           >
             {item.label}
-            <span className="admin-users-tab-badge">{item.count}</span>
+            {typeof item.count === "number" ? (
+              <span className="admin-users-tab-badge">{item.count}</span>
+            ) : null}
           </button>
         ))}
       </div>

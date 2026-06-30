@@ -7,6 +7,7 @@ import { AdminPageTransition } from "@/components/admin/AdminPageTransition";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { PresenceHeartbeat } from "@/components/admin/PresenceHeartbeat";
+import { getCachedDashboardTheme } from "@/lib/settings/dashboard-theme-server";
 
 const adminSerif = Cormorant_Garamond({
   subsets: ["latin"],
@@ -24,6 +25,7 @@ export default async function AdminLayout({
 }) {
   const profile = await requireAdmin();
   const supabase = await createClient();
+  const dashboardTheme = await getCachedDashboardTheme();
   const { count: unreadMessagesCount } = await supabase
     .from("messages")
     .select("*", { count: "exact", head: true })
@@ -31,7 +33,10 @@ export default async function AdminLayout({
 
   return (
     <AdminShell>
-      <div className={`admin-theme ${adminSerif.variable} flex h-screen overflow-hidden`}>
+      <div
+        className={`admin-theme ${adminSerif.variable} flex h-screen overflow-hidden`}
+        data-dashboard-theme={dashboardTheme}
+      >
         <AdminSidebar profile={profile} unreadMessagesCount={unreadMessagesCount ?? 0} />
         <div className="flex min-h-0 min-w-0 flex-1 flex-col">
           <PresenceHeartbeat />

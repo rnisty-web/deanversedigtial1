@@ -18,14 +18,55 @@ function hasSupabase() {
   );
 }
 
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function mergeObjectSection(
+  defaults: Record<string, unknown>,
+  dbValue: Record<string, unknown>,
+): Record<string, unknown> {
+  const merged: Record<string, unknown> = { ...defaults };
+
+  for (const [field, value] of Object.entries(dbValue)) {
+    const defaultValue = defaults[field];
+
+    if (Array.isArray(defaultValue)) {
+      merged[field] = Array.isArray(value) ? value : defaultValue;
+      continue;
+    }
+
+    if (isPlainObject(defaultValue) && isPlainObject(value)) {
+      merged[field] = mergeObjectSection(defaultValue, value);
+      continue;
+    }
+
+    if (value !== undefined && value !== null) {
+      merged[field] = value;
+    }
+  }
+
+  return merged;
+}
+
 function mergeSection<K extends CMSKey>(
   key: K,
   dbValue: unknown,
 ): CMSContent[K] {
-  if (!dbValue || typeof dbValue !== "object") {
-    return cmsDefaults[key];
+  const defaults = cmsDefaults[key];
+
+  if (Array.isArray(defaults)) {
+    return (Array.isArray(dbValue) ? dbValue : defaults) as CMSContent[K];
   }
-  return { ...cmsDefaults[key], ...(dbValue as object) } as CMSContent[K];
+
+  if (!isPlainObject(dbValue)) {
+    return defaults;
+  }
+
+  return mergeObjectSection(
+    defaults as Record<string, unknown>,
+    dbValue,
+  ) as CMSContent[K];
 }
 
 async function createCMSSupabaseClient() {

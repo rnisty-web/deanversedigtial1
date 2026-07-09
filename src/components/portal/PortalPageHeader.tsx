@@ -30,11 +30,11 @@ export function PortalPageHeader({
             <span key={`${item.label}-${index}`} className="flex items-center gap-2">
               {index > 0 ? <span className="text-[var(--admin-text-muted)]">/</span> : null}
               {item.href ? (
-                <Link href={item.href} className="text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]">
+                <Link href={item.href} className="max-w-[12rem] truncate text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] sm:max-w-none">
                   {item.label}
                 </Link>
               ) : (
-                <span className="text-[var(--admin-gold-light)]">{item.label}</span>
+                <span className="max-w-[12rem] truncate text-[var(--admin-gold-light)] sm:max-w-none">{item.label}</span>
               )}
             </span>
           ))}
@@ -46,7 +46,7 @@ export function PortalPageHeader({
           <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--admin-gold)]">
             Client Portal
           </p>
-          <h1 className="admin-heading-serif mt-1 text-2xl text-[var(--admin-text)] md:text-3xl">{title}</h1>
+          <h1 className="admin-heading-serif mt-1 truncate text-2xl text-[var(--admin-text)] md:text-3xl">{title}</h1>
           {subtitle ? (
             <p className="portal-page-subtitle mt-2 max-w-2xl text-sm leading-relaxed text-[var(--admin-text-muted)]">{subtitle}</p>
           ) : null}

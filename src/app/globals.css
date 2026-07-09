@@ -7213,6 +7213,42 @@ body {
   .portal-mobile-topbar {
     padding-top: max(0.75rem, env(safe-area-inset-top));
   }
+
+  .portal-messages-layout.dm-layout {
+    display: flex;
+    flex-direction: column;
+    min-height: min(calc(100dvh - 11rem), 720px);
+  }
+
+  .portal-messages-layout .dm-list {
+    max-height: none;
+    min-height: 0;
+  }
+
+  .portal-messages-layout .dm-list-panel,
+  .portal-messages-layout .dm-chat-panel {
+    display: flex;
+    flex-direction: column;
+    min-height: min(calc(100dvh - 11rem), 720px);
+  }
+
+  .portal-theme .admin-content-tab {
+    min-height: 2.75rem;
+    padding-inline: 1.125rem;
+  }
+
+  .portal-theme .dm-composer-send {
+    height: 2.75rem;
+    width: 2.75rem;
+  }
+
+  .portal-theme .dm-list-item-main {
+    min-height: 2.75rem;
+  }
+
+  .portal-theme .portal-page-tabs .admin-content-tab {
+    min-height: 2.75rem;
+  }
 }
 
 @media (max-width: 767px) {

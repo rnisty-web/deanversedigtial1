@@ -98,17 +98,19 @@ export default async function PortalDashboardPage() {
 
       <div className="grid gap-6 lg:grid-cols-5">
         <section className="lg:col-span-3">
-          <DashboardSectionHeader
-            eyebrow="Your request"
-            title="My project"
-            subtitle="Only projects from your contact form request — never other clients"
-            actionHref="/portal/projects"
-            actionLabel="View project"
-            theme="admin"
-          />
-          {(inquiryState.isPending && data.projects.length === 0) ? null : (
-            <ProjectList projects={data.projects.slice(0, 4)} inquiryState={inquiryState} />
-          )}
+          {!(inquiryState.isPending && data.projects.length === 0) ? (
+            <>
+              <DashboardSectionHeader
+                eyebrow="Your request"
+                title="My project"
+                subtitle="Only projects from your contact form request — never other clients"
+                actionHref="/portal/projects"
+                actionLabel="View project"
+                theme="admin"
+              />
+              <ProjectList projects={data.projects.slice(0, 4)} inquiryState={inquiryState} />
+            </>
+          ) : null}
         </section>
 
         <section className="space-y-6 lg:col-span-2">

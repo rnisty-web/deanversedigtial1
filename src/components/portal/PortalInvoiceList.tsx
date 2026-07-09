@@ -131,7 +131,7 @@ export function PortalInvoiceList({ invoices, stripeEnabled }: Props) {
         <PaymentBanner />
       </Suspense>
       <PortalCard padding="none" className="overflow-hidden">
-        <ul className="divide-y divide-[var(--admin-border-subtle)] md:hidden">
+        <ul className="divide-y divide-[var(--admin-border-subtle)] lg:hidden">
           {invoices.map((invoice) => {
             const canPay = isUnpaidClientInvoice(invoice.status);
             const projectTitle = Array.isArray(invoice.projects)
@@ -179,7 +179,7 @@ export function PortalInvoiceList({ invoices, stripeEnabled }: Props) {
           })}
         </ul>
 
-        <div className="admin-table-wrap hidden md:block">
+        <div className="admin-table-wrap hidden lg:block">
           <table>
             <thead>
               <tr>

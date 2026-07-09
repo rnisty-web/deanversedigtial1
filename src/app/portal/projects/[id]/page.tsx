@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { requireAuth } from "@/lib/auth";
 import { projectStatuses } from "@/lib/constants";
 import { getProjectDetail } from "@/lib/portal/get-client-data";
+import { progressForStatus } from "@/lib/projects/utils";
 import { PortalPageContent } from "@/components/portal/PortalPageContent";
 import { PortalPageHeader } from "@/components/portal/PortalPageHeader";
 import { PortalCard } from "@/components/portal/PortalCard";
@@ -10,11 +11,7 @@ import { PortalStatCard } from "@/components/portal/PortalStatCard";
 import { AdminStatusBadge } from "@/components/admin/AdminStatusBadge";
 import { cn } from "@/lib/utils";
 
-function stageProgress(status: string) {
-  const index = projectStatuses.indexOf(status as (typeof projectStatuses)[number]);
-  if (index < 0) return 10;
-  return Math.round(((index + 1) / projectStatuses.length) * 100);
-}
+const WORKFLOW_STEPS = projectStatuses.slice(0, 5);
 
 export default async function PortalProjectDetailPage({
   params,
@@ -28,10 +25,7 @@ export default async function PortalProjectDetailPage({
   if (!detail) notFound();
 
   const { project, files, messages, invoices } = detail;
-  const progress = stageProgress(project.status);
-  const currentIndex = projectStatuses.indexOf(
-    project.status as (typeof projectStatuses)[number],
-  );
+  const progress = progressForStatus(project.status);
 
   return (
     <PortalPageContent>
@@ -99,15 +93,19 @@ export default async function PortalProjectDetailPage({
           />
         </div>
         <div className="mt-3 flex gap-1">
-          {projectStatuses.slice(0, 5).map((step, index) => (
-            <div
-              key={step}
-              className={cn(
-                "h-1 flex-1 rounded-full",
-                currentIndex >= index ? "bg-[var(--admin-emerald)]/70" : "bg-[var(--admin-panel-hover)]",
-              )}
-            />
-          ))}
+          {WORKFLOW_STEPS.map((step) => {
+            const stepProgress = progressForStatus(step);
+            const filled = progress >= stepProgress;
+            return (
+              <div
+                key={step}
+                className={cn(
+                  "h-1 flex-1 rounded-full",
+                  filled ? "bg-[var(--admin-emerald)]/70" : "bg-[var(--admin-panel-hover)]",
+                )}
+              />
+            );
+          })}
         </div>
       </PortalCard>
 
@@ -137,7 +135,7 @@ export default async function PortalProjectDetailPage({
                     </div>
                     <a
                       href={`/api/portal/files?download=${encodeURIComponent(file.file_path)}`}
-                      className="shrink-0 text-xs font-medium text-[var(--admin-gold-light)] hover:text-[var(--admin-text)]"
+                      className="inline-flex min-h-[44px] shrink-0 items-center text-xs font-medium text-[var(--admin-gold-light)] hover:text-[var(--admin-text)]"
                     >
                       Download
                     </a>
@@ -160,9 +158,11 @@ export default async function PortalProjectDetailPage({
           ) : (
             <ul className="space-y-2">
               {messages.slice(0, 5).map((msg) => (
-                <li key={msg.id} className="portal-list-row">
-                  <p className="truncate text-sm font-medium text-[var(--admin-text)]">{msg.subject ?? "No subject"}</p>
-                  <p className="mt-1 line-clamp-2 text-xs text-[var(--admin-text-muted)]">{msg.content}</p>
+                <li key={msg.id}>
+                  <Link href="/portal/messages" className="portal-list-row block">
+                    <p className="truncate text-sm font-medium text-[var(--admin-text)]">{msg.subject ?? "No subject"}</p>
+                    <p className="mt-1 line-clamp-2 text-xs text-[var(--admin-text-muted)]">{msg.content}</p>
+                  </Link>
                 </li>
               ))}
             </ul>

@@ -269,7 +269,12 @@ export default function PortalMessagesPage() {
           <p className="text-[var(--admin-text-muted)]">
             Start a conversation with your project team.
           </p>
-          <Button size="sm" className="admin-btn-gold mt-4" onClick={() => setShowCompose(true)}>
+          <Button
+            size="sm"
+            className="admin-btn-gold mt-4"
+            onClick={() => setShowCompose(true)}
+            disabled={recipients.length === 0}
+          >
             Send your first message
           </Button>
         </PortalCard>

@@ -78,7 +78,7 @@ export function MessagesChatPanel({
     >
       <div className="dm-chat-header">
         {onBack ? (
-          <button type="button" onClick={onBack} className="dm-back-btn lg:hidden">
+          <button type="button" onClick={onBack} className="dm-back-btn lg:hidden" aria-label="Back to inbox">
             ←
           </button>
         ) : null}

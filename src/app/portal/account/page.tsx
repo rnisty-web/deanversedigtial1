@@ -159,15 +159,10 @@ export default function PortalAccountPage() {
       )}
 
       {loading ? (
-        <div className="portal-account-layout">
-          <div className="portal-account-stack">
-            {Array.from({ length: 2 }).map((_, i) => (
-              <div key={i} className="admin-luxury-card h-56 animate-pulse" />
-            ))}
-          </div>
-          <div className="portal-account-sidebar">
-            <div className="admin-luxury-card h-96 animate-pulse" />
-          </div>
+        <div className="portal-account-stack">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <div key={i} className="admin-luxury-card h-56 animate-pulse" />
+          ))}
         </div>
       ) : loadError ? (
         <AdminAlert tone="error">

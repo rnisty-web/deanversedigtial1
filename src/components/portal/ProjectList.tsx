@@ -2,22 +2,18 @@ import Link from "next/link";
 import { projectStatuses } from "@/lib/constants";
 import type { ClientProject } from "@/lib/portal/get-client-projects";
 import type { PendingInquiryState } from "@/lib/portal/pending-inquiry";
+import { progressForStatus } from "@/lib/projects/utils";
 import { AdminStatusBadge } from "@/components/admin/AdminStatusBadge";
 import { cn } from "@/lib/utils";
 
-function stageProgress(status: string) {
-  const index = projectStatuses.indexOf(status as (typeof projectStatuses)[number]);
-  if (index < 0) return 10;
-  return Math.round(((index + 1) / projectStatuses.length) * 100);
-}
+const WORKFLOW_STEPS = projectStatuses.slice(0, 5);
 
 function formatStatusLabel(status: string) {
   return status.replace(/_/g, " ");
 }
 
 function ProjectStageTrack({ status }: { status: string }) {
-  const currentIndex = projectStatuses.indexOf(status as (typeof projectStatuses)[number]);
-  const progress = stageProgress(status);
+  const progress = progressForStatus(status);
 
   return (
     <div className="mt-6">
@@ -40,10 +36,11 @@ function ProjectStageTrack({ status }: { status: string }) {
         />
       </div>
 
-      <div className="mt-4 hidden gap-1 sm:flex">
-        {projectStatuses.slice(0, 5).map((step, index) => {
-          const isComplete = currentIndex >= index;
-          const isCurrent = currentIndex === index;
+      <div className="mt-4 flex gap-1">
+        {WORKFLOW_STEPS.map((step) => {
+          const stepProgress = progressForStatus(step);
+          const isCurrent = status === step || (status === "on_hold" && step === "in_progress");
+          const isComplete = progress >= stepProgress && !isCurrent;
           return (
             <div key={step} className="flex min-w-0 flex-1 flex-col items-center gap-1.5">
               <span

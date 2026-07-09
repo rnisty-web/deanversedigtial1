@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { AdminAlert } from "@/components/admin/AdminAlert";
 import { Button } from "@/components/ui/Button";
 import { PortalPageContent } from "@/components/portal/PortalPageContent";
@@ -98,6 +98,7 @@ function uploadWithProgress(
 }
 
 function PortalFilesInner() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const initialProject = searchParams.get("project") ?? "";
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -136,6 +137,22 @@ function PortalFilesInner() {
   useEffect(() => {
     fetchFiles();
   }, [fetchFiles]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (projectFilter) {
+      params.set("project", projectFilter);
+    } else {
+      params.delete("project");
+    }
+    const next = params.toString();
+    const current = searchParams.toString();
+    if (next !== current) {
+      router.replace(next ? `/portal/files?${next}` : "/portal/files", { scroll: false });
+    }
+  }, [projectFilter, router, searchParams]);
+
+  const canUpload = Boolean(projectFilter) && projects.length > 0;
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -240,7 +257,7 @@ function PortalFilesInner() {
           <label
             className={cn(
               "inline-flex cursor-pointer items-center justify-center",
-              (uploading || projects.length === 0) && "pointer-events-none opacity-50",
+              (uploading || !canUpload) && "pointer-events-none opacity-50",
             )}
           >
             <input
@@ -248,9 +265,9 @@ function PortalFilesInner() {
               type="file"
               className="hidden"
               onChange={handleUpload}
-              disabled={uploading || projects.length === 0}
+              disabled={uploading || !canUpload}
             />
-            <span className="admin-btn-gold inline-flex h-10 items-center px-4 text-sm">
+            <span className="admin-btn-gold inline-flex min-h-[44px] items-center px-4 text-sm">
               {uploading ? "Uploading…" : "Upload file"}
             </span>
           </label>
@@ -277,6 +294,11 @@ function PortalFilesInner() {
           </AdminAlert>
         )}
 
+        {projects.length > 1 && !projectFilter && (
+          <AdminAlert tone="warning" className="mt-3">
+            Select a project above before uploading files.
+          </AdminAlert>
+        )}
         {projects.length === 0 && (
           <AdminAlert tone="warning" className="mt-3">
             No projects yet — message the team to get a project workspace set up.
@@ -314,6 +336,15 @@ function PortalFilesInner() {
           <p className="mt-2 text-sm text-[var(--admin-text-muted)]">
             Upload brand assets, content, or reference materials for your project.
           </p>
+          {canUpload ? (
+            <button
+              type="button"
+              className="admin-btn-gold mt-6 inline-flex min-h-[44px] items-center px-5 text-sm"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              Upload your first file
+            </button>
+          ) : null}
         </PortalCard>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -328,7 +359,7 @@ function PortalFilesInner() {
                   </p>
                   <Button
                     size="sm"
-                    className="admin-btn-ghost mt-3 px-3 py-1.5 text-xs"
+                    className="admin-btn-ghost mt-3 min-h-[44px] px-4 py-2 text-xs"
                     onClick={() => handleDownload(file.file_path, file.name)}
                   >
                     Download

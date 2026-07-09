@@ -128,10 +128,20 @@ export default async function PortalProjectDetailPage({
             <ul className="space-y-2">
               {files.slice(0, 6).map((file) => (
                 <li key={file.id} className="portal-list-row">
-                  <p className="truncate text-sm font-medium text-[var(--admin-text)]">{file.name}</p>
-                  <p className="mt-1 text-xs text-[var(--admin-text-muted)]">
-                    {new Date(file.created_at).toLocaleDateString()}
-                  </p>
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-[var(--admin-text)]">{file.name}</p>
+                      <p className="mt-1 text-xs text-[var(--admin-text-muted)]">
+                        {new Date(file.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <a
+                      href={`/api/portal/files?download=${encodeURIComponent(file.file_path)}`}
+                      className="shrink-0 text-xs font-medium text-[var(--admin-gold-light)] hover:text-[var(--admin-text)]"
+                    >
+                      Download
+                    </a>
+                  </div>
                 </li>
               ))}
             </ul>

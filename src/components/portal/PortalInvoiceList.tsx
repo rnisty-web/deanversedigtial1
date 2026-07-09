@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
@@ -82,6 +82,14 @@ function PaymentBanner() {
   const searchParams = useSearchParams();
   const paid = searchParams.get("paid");
   const cancelled = searchParams.get("cancelled");
+
+  useEffect(() => {
+    if (!paid && !cancelled) return;
+    const url = new URL(window.location.href);
+    url.searchParams.delete("paid");
+    url.searchParams.delete("cancelled");
+    window.history.replaceState({}, "", `${url.pathname}${url.search}`);
+  }, [paid, cancelled]);
 
   if (paid) {
     return (

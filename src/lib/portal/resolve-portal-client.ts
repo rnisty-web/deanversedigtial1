@@ -58,13 +58,26 @@ async function resolvePortalClientInternal(
 
   if (!byEmail) return null;
 
-  if (!byEmail.profile_id) {
-    await supabase
-      .from("clients")
-      .update({ profile_id: userId })
-      .eq("id", byEmail.id)
-      .is("profile_id", null);
+  if (byEmail.profile_id && byEmail.profile_id !== userId) {
+    return null;
   }
 
-  return { ...byEmail, profile_id: byEmail.profile_id ?? userId };
+  if (!byEmail.profile_id) {
+    await ensurePortalClient({
+      userId,
+      email: userEmail,
+    });
+
+    const { data: linked } = await supabase
+      .from("clients")
+      .select("id, name, email, company, profile_id")
+      .eq("profile_id", userId)
+      .maybeSingle();
+
+    if (linked) return linked;
+
+    return { ...byEmail, profile_id: userId };
+  }
+
+  return byEmail;
 }

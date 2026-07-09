@@ -180,7 +180,7 @@ function PortalFilesInner() {
     }
   }
 
-  async function handleDownload(filePath: string) {
+  async function handleDownload(filePath: string, displayName: string) {
     setDownloadError(null);
     const res = await fetch(`/api/portal/files?download=${encodeURIComponent(filePath)}`, {
       credentials: "same-origin",
@@ -195,7 +195,7 @@ function PortalFilesInner() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = filePath.split("/").pop() ?? "download";
+    a.download = displayName;
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -329,7 +329,7 @@ function PortalFilesInner() {
                   <Button
                     size="sm"
                     className="admin-btn-ghost mt-3 px-3 py-1.5 text-xs"
-                    onClick={() => handleDownload(file.file_path)}
+                    onClick={() => handleDownload(file.file_path, file.name)}
                   >
                     Download
                   </Button>

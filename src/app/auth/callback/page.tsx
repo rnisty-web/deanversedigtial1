@@ -70,6 +70,32 @@ function AuthCallbackHandler() {
             .maybeSingle();
 
           destination = isStaffRole(profile) ? "/admin" : "/portal";
+
+          if (!isStaffRole(profile)) {
+            await fetch("/api/portal/provision", {
+              method: "POST",
+              credentials: "same-origin",
+            });
+          }
+        }
+      } else if (destination.startsWith("/portal")) {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (user) {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("role, roles")
+            .eq("id", user.id)
+            .maybeSingle();
+
+          if (!isStaffRole(profile)) {
+            await fetch("/api/portal/provision", {
+              method: "POST",
+              credentials: "same-origin",
+            });
+          }
         }
       }
 

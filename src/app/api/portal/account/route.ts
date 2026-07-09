@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { verifyAuthApi } from "@/lib/auth";
+import { ensurePortalClient } from "@/lib/portal/provision-portal-client";
 import { resolvePortalClient } from "@/lib/portal/resolve-portal-client";
 
 const PROFILE_FIELDS = "id, email, full_name, avatar_url, phone" as const;
@@ -92,17 +93,33 @@ export async function PATCH(request: Request) {
   }
 
   if (company !== undefined) {
-    const resolved = await resolvePortalClient(
-      auth.supabase!,
-      auth.user!.id,
-      auth.user!.email ?? auth.profile!.email,
-    );
+    const userEmail = auth.user!.email ?? auth.profile!.email;
+    let resolved = await resolvePortalClient(auth.supabase!, auth.user!.id, userEmail);
 
-    if (resolved) {
-      await auth.supabase!
-        .from("clients")
-        .update({ company: company.trim() || null })
-        .eq("id", resolved.id);
+    if (!resolved) {
+      await ensurePortalClient({
+        userId: auth.user!.id,
+        email: userEmail,
+        fullName: auth.profile!.full_name,
+        phone: auth.profile!.phone,
+      });
+      resolved = await resolvePortalClient(auth.supabase!, auth.user!.id, userEmail);
+    }
+
+    if (!resolved) {
+      return NextResponse.json(
+        { error: "Your client workspace is not ready yet. Please refresh and try again." },
+        { status: 503 },
+      );
+    }
+
+    const { error: companyError } = await auth.supabase!
+      .from("clients")
+      .update({ company: company.trim() || null })
+      .eq("id", resolved.id);
+
+    if (companyError) {
+      return NextResponse.json({ error: companyError.message }, { status: 500 });
     }
   }
 

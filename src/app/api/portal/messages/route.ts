@@ -8,13 +8,25 @@ import { resolvePortalClient } from "@/lib/portal/resolve-portal-client";
 async function getOwnerProfile(
   supabase: NonNullable<Awaited<ReturnType<typeof verifyAuthApi>>["supabase"]>,
 ) {
-  const { data } = await supabase
+  const ownerEmail = getOwnerEmail();
+  const { data: byEmail } = await supabase
     .from("profiles")
     .select("id")
-    .eq("email", getOwnerEmail())
+    .ilike("email", ownerEmail)
     .limit(1)
     .maybeSingle();
-  return data;
+
+  if (byEmail) return byEmail;
+
+  const { data: byRole } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("role", "admin")
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  return byRole;
 }
 
 const MESSAGE_FIELDS =
@@ -158,34 +170,41 @@ export async function PATCH(request: Request) {
   }
 
   const body = await request.json();
-  const { id, read } = body as { id?: string; read?: boolean };
+  const { id, ids, read } = body as { id?: string; ids?: string[]; read?: boolean };
+  const targetIds = (ids ?? (id ? [id] : [])).filter(
+    (value): value is string => typeof value === "string" && value.length > 0,
+  );
 
-  if (!id) {
+  if (targetIds.length === 0) {
     return NextResponse.json({ error: "Message id is required" }, { status: 400 });
   }
 
   const { data: existing } = await auth.supabase!
     .from("messages")
     .select("id, recipient_id")
-    .eq("id", id)
-    .maybeSingle();
+    .in("id", targetIds);
 
-  if (!existing || existing.recipient_id !== auth.user!.id) {
+  const ownedIds = (existing ?? [])
+    .filter((message) => message.recipient_id === auth.user!.id)
+    .map((message) => message.id);
+
+  if (ownedIds.length === 0) {
     return NextResponse.json({ error: "Message not found" }, { status: 404 });
   }
 
-  const { data: message, error } = await auth.supabase!
+  const { data: messages, error } = await auth.supabase!
     .from("messages")
     .update({ read: read ?? true })
-    .eq("id", id)
-    .select(MESSAGE_FIELDS)
-    .single();
+    .in("id", ownedIds)
+    .select(MESSAGE_FIELDS);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
   return NextResponse.json({
-    message: sanitizeMessage(message as Record<string, unknown>, auth.user!.id),
+    messages: (messages ?? []).map((msg) =>
+      sanitizeMessage(msg as Record<string, unknown>, auth.user!.id),
+    ),
   });
 }

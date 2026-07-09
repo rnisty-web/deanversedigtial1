@@ -112,21 +112,19 @@ export default function PortalMessagesPage() {
     );
     if (unread.length === 0) return;
 
-    await Promise.all(
-      unread.map(async (message) => {
-        const res = await fetch("/api/portal/messages", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          credentials: "same-origin",
-          body: JSON.stringify({ id: message.id, read: true }),
-        });
-        if (res.ok) {
-          setMessages((prev) =>
-            prev.map((item) => (item.id === message.id ? { ...item, read: true } : item)),
-          );
-        }
-      }),
-    );
+    const unreadIds = unread.map((message) => message.id);
+    const res = await fetch("/api/portal/messages", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify({ ids: unreadIds, read: true }),
+    });
+
+    if (res.ok) {
+      setMessages((prev) =>
+        prev.map((item) => (unreadIds.includes(item.id) ? { ...item, read: true } : item)),
+      );
+    }
   }
 
   async function handleSelect(key: string) {

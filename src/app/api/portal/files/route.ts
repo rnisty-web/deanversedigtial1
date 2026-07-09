@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { verifyAuthApi } from "@/lib/auth";
 import { escapeHtml, sendOwnerNotification } from "@/lib/email";
 import { siteConfig } from "@/lib/constants";
+import { validatePortalUpload } from "@/lib/portal/file-upload";
 import { resolvePortalClient } from "@/lib/portal/resolve-portal-client";
 
 async function getClientProjects(
@@ -119,6 +120,11 @@ export async function POST(request: Request) {
     );
   }
 
+  const validationError = validatePortalUpload(file);
+  if (validationError) {
+    return NextResponse.json({ error: validationError }, { status: 400 });
+  }
+
   const { projects } = await getClientProjects(
     auth.supabase!,
     auth.user!.id,
@@ -153,6 +159,7 @@ export async function POST(request: Request) {
     .single();
 
   if (error) {
+    await auth.supabase!.storage.from("project-files").remove([filePath]);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 

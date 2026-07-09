@@ -18,6 +18,7 @@ Run these scripts **in order** in the Supabase SQL Editor (or via CLI). Each fil
 | 10 | `dashboard-theme.sql` | Dashboard color theme setting seed |
 | 11 | `portal-auto-provision.sql` | Auto client rows on signup, invoice/lead RLS for portal users |
 | 12 | `storage-email-clients.sql` | Storage read access for email-matched clients (optional) |
+| 13 | `storage-upload-clients.sql` | Storage upload restricted to owned projects (optional) |
 
 ## Notes
 

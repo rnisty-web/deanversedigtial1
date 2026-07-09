@@ -45,7 +45,9 @@ export default async function PortalProjectsPage() {
 
       <PendingInquiryNotice state={inquiryState} />
 
-      <ProjectList projects={projects} inquiryState={inquiryState} />
+      {(inquiryState.isPending && projects.length === 0) ? null : (
+        <ProjectList projects={projects} inquiryState={inquiryState} />
+      )}
     </PortalPageContent>
   );
 }

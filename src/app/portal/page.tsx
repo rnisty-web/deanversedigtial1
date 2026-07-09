@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { requireAuth } from "@/lib/auth";
 import { getPortalDashboard } from "@/lib/portal/get-portal-dashboard";
 import { getPendingInquiryState } from "@/lib/portal/pending-inquiry";
@@ -105,7 +106,9 @@ export default async function PortalDashboardPage() {
             actionLabel="View project"
             theme="admin"
           />
-          <ProjectList projects={data.projects.slice(0, 4)} />
+          {(inquiryState.isPending && data.projects.length === 0) ? null : (
+            <ProjectList projects={data.projects.slice(0, 4)} inquiryState={inquiryState} />
+          )}
         </section>
 
         <section className="space-y-6 lg:col-span-2">
@@ -122,18 +125,20 @@ export default async function PortalDashboardPage() {
               <ul className="space-y-3">
                 {data.recentMessages.slice(0, 4).map((msg) => (
                   <li key={msg.id}>
-                    <DashboardListRow theme="admin">
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="truncate text-sm font-medium text-[var(--admin-text)]">
-                          {msg.subject ?? "No subject"}
-                        </p>
-                        {!msg.read && (
-                          <span className="admin-nav-badge shrink-0 !min-w-0 px-2 py-0.5 text-[10px]">New</span>
-                        )}
-                      </div>
-                      <p className="mt-0.5 text-xs text-[var(--admin-text-muted)]">{msg.senderName}</p>
-                      <p className="mt-1 line-clamp-2 text-xs text-[var(--admin-text-muted)]">{msg.content}</p>
-                    </DashboardListRow>
+                    <Link href="/portal/messages" className="block">
+                      <DashboardListRow theme="admin">
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="truncate text-sm font-medium text-[var(--admin-text)]">
+                            {msg.subject ?? "No subject"}
+                          </p>
+                          {!msg.read && (
+                            <span className="admin-nav-badge shrink-0 !min-w-0 px-2 py-0.5 text-[10px]">New</span>
+                          )}
+                        </div>
+                        <p className="mt-0.5 text-xs text-[var(--admin-text-muted)]">{msg.senderName}</p>
+                        <p className="mt-1 line-clamp-2 text-xs text-[var(--admin-text-muted)]">{msg.content}</p>
+                      </DashboardListRow>
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -153,22 +158,24 @@ export default async function PortalDashboardPage() {
               <ul className="space-y-2">
                 {data.upcomingInvoices.map((inv) => (
                   <li key={inv.id}>
-                    <DashboardListRow className="flex items-center justify-between gap-3 py-2.5" theme="admin">
-                      <div className="min-w-0">
-                        <p className="truncate text-sm text-[var(--admin-text)]">{inv.invoice_number}</p>
-                        <p className="text-xs text-[var(--admin-text-muted)]">
-                          {inv.due_date
-                            ? `Due ${new Date(inv.due_date).toLocaleDateString()}`
-                            : "No due date"}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm font-medium text-[var(--admin-gold-light)]">
-                          ${Number(inv.amount).toLocaleString()}
-                        </p>
-                        <AdminStatusBadge status={inv.status} />
-                      </div>
-                    </DashboardListRow>
+                    <Link href="/portal/invoices" className="block">
+                      <DashboardListRow className="flex items-center justify-between gap-3 py-2.5" theme="admin">
+                        <div className="min-w-0">
+                          <p className="truncate text-sm text-[var(--admin-text)]">{inv.invoice_number}</p>
+                          <p className="text-xs text-[var(--admin-text-muted)]">
+                            {inv.due_date
+                              ? `Due ${new Date(inv.due_date).toLocaleDateString()}`
+                              : "No due date"}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-medium text-[var(--admin-gold-light)]">
+                            ${Number(inv.amount).toLocaleString()}
+                          </p>
+                          <AdminStatusBadge status={inv.status} />
+                        </div>
+                      </DashboardListRow>
+                    </Link>
                   </li>
                 ))}
               </ul>

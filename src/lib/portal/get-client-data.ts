@@ -103,7 +103,7 @@ export async function getProjectDetail(userId: string, projectId: string) {
   const [{ data: files }, { data: messages }, { data: invoices }] = await Promise.all([
     supabase
       .from("files")
-      .select("id, name, file_size, mime_type, created_at")
+      .select("id, name, file_size, mime_type, file_path, created_at")
       .eq("project_id", projectId)
       .order("created_at", { ascending: false }),
     supabase

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { verifyAdminApi } from "@/lib/auth";
+import { sanitizeMediaObjectName, validateAdminMediaUpload } from "@/lib/admin/media-upload";
 
 export async function POST(request: Request) {
   const auth = await verifyAdminApi();
@@ -14,11 +15,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "No file provided" }, { status: 400 });
   }
 
-  if (file.size > 100 * 1024 * 1024) {
-    return NextResponse.json({ error: "File exceeds 100 MB limit" }, { status: 400 });
+  const validationError = validateAdminMediaUpload(file);
+  if (validationError) {
+    return NextResponse.json({ error: validationError }, { status: 400 });
   }
 
-  const ext = file.name.split(".").pop() ?? "bin";
+  const ext = file.name.split(".").pop()?.toLowerCase() ?? "bin";
   const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
   const { error: uploadError } = await auth.supabase!.storage
@@ -91,7 +93,12 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: "File name is required" }, { status: 400 });
   }
 
-  const { error } = await auth.supabase!.storage.from("site-media").remove([name]);
+  const safeName = sanitizeMediaObjectName(name);
+  if (!safeName) {
+    return NextResponse.json({ error: "Invalid file name" }, { status: 400 });
+  }
+
+  const { error } = await auth.supabase!.storage.from("site-media").remove([safeName]);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

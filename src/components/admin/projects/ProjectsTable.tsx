@@ -287,10 +287,12 @@ type ProjectsKanbanProps = {
 };
 
 const KANBAN_COLUMNS = [
-  { key: "overdue", label: "Overdue", match: (p: ProjectRecord) => isOverdue(p) },
-  { key: "on_hold", label: "On Hold", match: (p: ProjectRecord) => p.status === "on_hold" },
-  { key: "completed", label: "Completed", match: (p: ProjectRecord) => p.status === "completed" },
+  { key: "draft", label: "Draft", match: (p: ProjectRecord) => p.status === "draft" },
   { key: "in_progress", label: "In Progress", match: (p: ProjectRecord) => isInProgressStatus(p.status) },
+  { key: "on_hold", label: "On Hold", match: (p: ProjectRecord) => p.status === "on_hold" },
+  { key: "overdue", label: "Overdue", match: (p: ProjectRecord) => isOverdue(p) },
+  { key: "completed", label: "Completed", match: (p: ProjectRecord) => p.status === "completed" },
+  { key: "cancelled", label: "Cancelled", match: (p: ProjectRecord) => p.status === "cancelled" },
 ] as const;
 
 export function ProjectsKanban({ projects, loading, onView }: ProjectsKanbanProps) {
@@ -305,10 +307,25 @@ export function ProjectsKanban({ projects, loading, onView }: ProjectsKanbanProp
       return true;
     });
 
-  const columns = KANBAN_COLUMNS.map((column) => ({
+  const columns: Array<{
+    key: string;
+    label: string;
+    match: (p: ProjectRecord) => boolean;
+    items: ProjectRecord[];
+  }> = KANBAN_COLUMNS.map((column) => ({
     ...column,
     items: bucket(column.match),
   }));
+
+  const unassigned = projects.filter((project) => !assigned.has(project.id));
+  if (unassigned.length > 0) {
+    columns.push({
+      key: "other",
+      label: "Other",
+      match: () => true,
+      items: unassigned,
+    });
+  }
 
   return (
     <div className="admin-projects-kanban">

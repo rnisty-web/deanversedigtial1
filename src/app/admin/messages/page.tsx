@@ -86,6 +86,7 @@ export default function AdminMessagesPage() {
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
   const [mobileChatOpen, setMobileChatOpen] = useState(false);
+  const [mobileContactOpen, setMobileContactOpen] = useState(false);
   const [composeOpen, setComposeOpen] = useState(false);
   const [composeClientId, setComposeClientId] = useState("");
   const [composeProjectId, setComposeProjectId] = useState("");
@@ -214,6 +215,7 @@ export default function AdminMessagesPage() {
   async function handleSelect(key: string) {
     setSelectedKey(key);
     setMobileChatOpen(true);
+    setMobileContactOpen(false);
     await markConversationRead(key);
   }
 
@@ -374,7 +376,11 @@ export default function AdminMessagesPage() {
               sendError={sendError}
               onReplyContentChange={setReplyContent}
               onSubmit={handleReply}
-              onBack={() => setMobileChatOpen(false)}
+              onBack={() => {
+                setMobileChatOpen(false);
+                setMobileContactOpen(false);
+              }}
+              onOpenDetails={() => setMobileContactOpen(true)}
               hidden={!mobileChatOpen}
             />
             <MessagesContactPanel
@@ -383,6 +389,33 @@ export default function AdminMessagesPage() {
               onToggleStar={() => selected && handleToggleStar(selected.key)}
               hidden={!mobileChatOpen}
             />
+            {mobileContactOpen && selected ? (
+              <div className="admin-messages-contact-drawer xl:hidden">
+                <button
+                  type="button"
+                  className="admin-messages-contact-drawer-backdrop"
+                  aria-label="Close contact details"
+                  onClick={() => setMobileContactOpen(false)}
+                />
+                <div className="admin-messages-contact-drawer-panel">
+                  <div className="flex items-center justify-between border-b border-[var(--admin-border-subtle)] px-4 py-3">
+                    <p className="text-sm font-semibold text-[var(--admin-text)]">Contact details</p>
+                    <button
+                      type="button"
+                      className="admin-btn-ghost px-3 py-1.5 text-xs"
+                      onClick={() => setMobileContactOpen(false)}
+                    >
+                      Close
+                    </button>
+                  </div>
+                  <MessagesContactPanel
+                    conversation={selected}
+                    starred={starredKeys.has(selected.key)}
+                    onToggleStar={() => handleToggleStar(selected.key)}
+                  />
+                </div>
+              </div>
+            ) : null}
           </div>
         )}
       </AdminPageContent>

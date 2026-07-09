@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { getSafeRedirectPath } from "@/lib/auth-redirect";
+import { getRoleAwareRedirectPath } from "@/lib/auth-redirect";
 import { isStaffRole } from "@/lib/roles";
 
 function AuthCallbackHandler() {
@@ -55,48 +55,30 @@ function AuthCallbackHandler() {
       }
 
       const nextParam = searchParams.get("next");
-      let destination = getSafeRedirectPath(nextParam, "/portal");
+      let destination = "/portal";
+      let profile: { role?: string | null; roles?: string[] | null } | null = null;
 
-      if (!nextParam) {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-        if (user) {
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("role, roles")
-            .eq("id", user.id)
-            .maybeSingle();
+      if (user) {
+        const { data: loadedProfile } = await supabase
+          .from("profiles")
+          .select("role, roles")
+          .eq("id", user.id)
+          .maybeSingle();
+        profile = loadedProfile;
+      }
 
-          destination = isStaffRole(profile) ? "/admin" : "/portal";
+      const defaultDestination = isStaffRole(profile) ? "/admin" : "/portal";
+      destination = getRoleAwareRedirectPath(profile, nextParam, defaultDestination);
 
-          if (!isStaffRole(profile)) {
-            await fetch("/api/portal/provision", {
-              method: "POST",
-              credentials: "same-origin",
-            });
-          }
-        }
-      } else if (destination.startsWith("/portal")) {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-
-        if (user) {
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("role, roles")
-            .eq("id", user.id)
-            .maybeSingle();
-
-          if (!isStaffRole(profile)) {
-            await fetch("/api/portal/provision", {
-              method: "POST",
-              credentials: "same-origin",
-            });
-          }
-        }
+      if (!isStaffRole(profile)) {
+        await fetch("/api/portal/provision", {
+          method: "POST",
+          credentials: "same-origin",
+        });
       }
 
       if (!cancelled) {

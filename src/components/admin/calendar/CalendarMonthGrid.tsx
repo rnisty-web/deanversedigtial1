@@ -61,6 +61,11 @@ export function CalendarMonthGrid({
               )}
             >
               <span className="admin-calendar-cell-date">{date.getDate()}</span>
+              {dayEvents.length > 0 ? (
+                <span className="admin-calendar-cell-count" aria-label={`${dayEvents.length} events`}>
+                  {dayEvents.length}
+                </span>
+              ) : null}
               <div className="admin-calendar-cell-events">
                 {visible.map((event) => {
                   const styles = EVENT_TYPE_STYLES[event.event_type];

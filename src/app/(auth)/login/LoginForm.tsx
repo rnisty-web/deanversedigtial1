@@ -4,14 +4,13 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { getSafeRedirectPath } from "@/lib/auth-redirect";
+import { getRoleAwareRedirectPath } from "@/lib/auth-redirect";
 import { isStaffRole } from "@/lib/roles";
 import { Button } from "@/components/ui/Button";
 
 export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = getSafeRedirectPath(searchParams.get("redirectTo"), "/portal");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -69,15 +68,20 @@ export default function LoginForm() {
       data: { user },
     } = await supabase.auth.getUser();
 
-    let destination = redirectTo;
-    if (!searchParams.get("redirectTo") && user) {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role, roles")
-        .eq("id", user.id)
-        .maybeSingle();
-      destination = isStaffRole(profile) ? "/admin" : "/portal";
-    }
+    const { data: profile } = user
+      ? await supabase
+          .from("profiles")
+          .select("role, roles")
+          .eq("id", user.id)
+          .maybeSingle()
+      : { data: null };
+
+    const defaultDestination = isStaffRole(profile) ? "/admin" : "/portal";
+    const destination = getRoleAwareRedirectPath(
+      profile,
+      searchParams.get("redirectTo"),
+      defaultDestination,
+    );
 
     router.push(destination);
     router.refresh();

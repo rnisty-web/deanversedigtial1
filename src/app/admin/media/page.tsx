@@ -160,9 +160,28 @@ export default function AdminMediaPage() {
   }
 
   async function copyUrl(url: string) {
-    await navigator.clipboard.writeText(url);
-    setCopied(url);
-    setTimeout(() => setCopied(null), 2000);
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(url);
+      setTimeout(() => setCopied(null), 2000);
+      return;
+    } catch {
+      const textarea = document.createElement("textarea");
+      textarea.value = url;
+      textarea.style.position = "fixed";
+      textarea.style.left = "-9999px";
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand("copy");
+        setCopied(url);
+        setTimeout(() => setCopied(null), 2000);
+      } catch {
+        setError("Could not copy URL to clipboard.");
+      } finally {
+        document.body.removeChild(textarea);
+      }
+    }
   }
 
   async function deleteFile(name: string) {

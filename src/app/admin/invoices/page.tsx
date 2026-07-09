@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { AdminAlert } from "@/components/admin/AdminAlert";
@@ -30,6 +30,7 @@ import {
   isInDateRange,
   joinClientName,
   joinProjectTitle,
+  nextInvoiceNumber,
   allTimeRangeLocal,
 } from "@/lib/invoices/utils";
 import { cn } from "@/lib/utils";
@@ -82,6 +83,7 @@ export default function AdminInvoicesPage() {
 function AdminInvoicesInner() {
   const searchParams = useSearchParams();
   const urlClientFilter = searchParams.get("client") ?? "all";
+  const shouldOpenCreate = searchParams.get("create") === "1";
   const defaultRange = allTimeRangeLocal();
   const [invoices, setInvoices] = useState<InvoiceRecord[]>([]);
   const [clients, setClients] = useState<ClientRef[]>([]);
@@ -106,6 +108,7 @@ function AdminInvoicesInner() {
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyInvoiceForm);
   const [saving, setSaving] = useState(false);
+  const openedCreateRef = useRef(false);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -132,6 +135,13 @@ function AdminInvoicesInner() {
       setClientFilter(urlClientFilter);
     }
   }, [urlClientFilter]);
+
+  useEffect(() => {
+    if (!shouldOpenCreate || loading || openedCreateRef.current) return;
+    openedCreateRef.current = true;
+    openCreate(urlClientFilter !== "all" ? urlClientFilter : undefined);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- open once when deep-linked from clients
+  }, [shouldOpenCreate, loading, urlClientFilter]);
 
   useEffect(() => {
     setPage(1);
@@ -191,10 +201,15 @@ function AdminInvoicesInner() {
     [projects, form.client_id],
   );
 
-  function openCreate() {
+  function openCreate(clientId?: string) {
     setEditId(null);
-    const nextNum = `INV-${String(invoices.length + 1).padStart(4, "0")}`;
-    setForm({ ...emptyInvoiceForm, invoice_number: nextNum, line_items: [emptyLineItem()] });
+    const nextNum = nextInvoiceNumber(invoices);
+    setForm({
+      ...emptyInvoiceForm,
+      invoice_number: nextNum,
+      client_id: clientId ?? "",
+      line_items: [emptyLineItem()],
+    });
     setShowForm(true);
   }
 
@@ -466,16 +481,18 @@ function AdminInvoicesInner() {
               onStatusChange={updateStatus}
             />
 
-            <InvoicesPagination
-              page={page}
-              perPage={perPage}
-              total={filtered.length}
-              onPageChange={setPage}
-              onPerPageChange={setPerPage}
-            />
+            {!loading && filtered.length > 0 && (
+              <InvoicesPagination
+                page={page}
+                perPage={perPage}
+                total={filtered.length}
+                onPageChange={setPage}
+                onPerPageChange={setPerPage}
+              />
+            )}
           </div>
 
-          <InvoicesSidebar invoices={invoices} onNewInvoice={openCreate} onExport={() => exportInvoicesCsv(filtered)} />
+          <InvoicesSidebar invoices={invoices} onNewInvoice={() => openCreate()} onExport={() => exportInvoicesCsv(filtered)} />
         </div>
       </AdminPageContent>
 

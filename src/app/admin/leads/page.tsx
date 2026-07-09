@@ -549,6 +549,7 @@ export default function AdminLeadsPage() {
               }}
               onConvert={openConvert}
               onDelete={deleteLead}
+              emptyIsFiltered={!loading && leads.length > 0 && filtered.length === 0}
             />
 
             {!loading && filtered.length > 0 && (

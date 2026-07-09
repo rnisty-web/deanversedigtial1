@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { AdminAlert } from "@/components/admin/AdminAlert";
 import { AdminField } from "@/components/admin/AdminField";
@@ -72,6 +73,7 @@ const statIcons = {
 };
 
 export default function AdminClientsPage() {
+  const router = useRouter();
   const defaultRange = allTimeRangeLocal();
   const [clients, setClients] = useState<ClientRecord[]>([]);
   const [stats, setStats] = useState<ClientStats>({
@@ -165,6 +167,15 @@ export default function AdminClientsPage() {
     const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
     if (page > totalPages) setPage(totalPages);
   }, [filtered.length, perPage, page]);
+
+  function handleCreateInvoice() {
+    const clientId = detailClient?.id;
+    if (clientId) {
+      router.push(`/admin/invoices?client=${clientId}&create=1`);
+      return;
+    }
+    router.push("/admin/invoices?create=1");
+  }
 
   function openCreate() {
     setForm(emptyForm);
@@ -420,7 +431,7 @@ export default function AdminClientsPage() {
             onImport={importClients}
             onImportError={(message) => { setSuccess(null); setError(message); }}
             onSendEmail={handleQuickEmail}
-            onCreateInvoice={() => setSuccess(null)}
+            onCreateInvoice={handleCreateInvoice}
           />
         </div>
       </AdminPageContent>

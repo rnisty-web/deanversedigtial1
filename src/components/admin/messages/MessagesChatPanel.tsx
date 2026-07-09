@@ -21,6 +21,7 @@ type MessagesChatPanelProps = {
   onReplyContentChange: (value: string) => void;
   onSubmit: (e: React.FormEvent) => void;
   onBack?: () => void;
+  onOpenDetails?: () => void;
   hidden?: boolean;
   variant?: "admin" | "portal";
 };
@@ -34,6 +35,7 @@ export function MessagesChatPanel({
   onReplyContentChange,
   onSubmit,
   onBack,
+  onOpenDetails,
   hidden,
   variant = "admin",
 }: MessagesChatPanelProps) {
@@ -89,6 +91,15 @@ export function MessagesChatPanel({
             {conversation.projectTitle ?? "Direct message"}
           </p>
         </div>
+        {onOpenDetails ? (
+          <button
+            type="button"
+            onClick={onOpenDetails}
+            className="admin-btn-ghost shrink-0 px-3 py-1.5 text-xs xl:hidden"
+          >
+            Details
+          </button>
+        ) : null}
       </div>
 
       <MessageBubbleThread

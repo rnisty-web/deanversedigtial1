@@ -184,30 +184,64 @@ async function handleConvert(
     return NextResponse.json({ error: "Lead not found" }, { status: 404 });
   }
 
-  const { data: newClient, error: clientError } = await auth.supabase!
+  const normalizedEmail = client.email.trim();
+  const { data: existingClient } = await auth.supabase!
     .from("clients")
-    .insert({
-      name: client.name,
-      email: client.email,
-      phone: client.phone ?? null,
-      company: client.company ?? null,
-      notes: client.notes ?? lead.notes ?? null,
-      status: "active",
-    })
-    .select()
-    .single();
+    .select("*")
+    .ilike("email", normalizedEmail)
+    .maybeSingle();
 
-  if (clientError) {
-    return NextResponse.json({ error: clientError.message }, { status: 500 });
+  let newClient = existingClient;
+  let createdClient = false;
+
+  if (!existingClient) {
+    const { data: insertedClient, error: clientError } = await auth.supabase!
+      .from("clients")
+      .insert({
+        name: client.name,
+        email: normalizedEmail,
+        phone: client.phone ?? null,
+        company: client.company ?? null,
+        notes: client.notes ?? lead.notes ?? null,
+        status: "active",
+      })
+      .select()
+      .single();
+
+    if (clientError) {
+      return NextResponse.json({ error: clientError.message }, { status: 500 });
+    }
+
+    newClient = insertedClient;
+    createdClient = true;
+  } else if (client.notes || client.company || client.phone) {
+    const { data: updatedClient, error: updateClientError } = await auth.supabase!
+      .from("clients")
+      .update({
+        notes: client.notes ?? existingClient.notes ?? lead.notes ?? null,
+        company: client.company ?? existingClient.company,
+        phone: client.phone ?? existingClient.phone,
+      })
+      .eq("id", existingClient.id)
+      .select()
+      .single();
+
+    if (!updateClientError && updatedClient) {
+      newClient = updatedClient;
+    }
+  }
+
+  if (!newClient) {
+    return NextResponse.json({ error: "Failed to resolve client record" }, { status: 500 });
   }
 
   const { data: existingProfile } = await auth.supabase!
     .from("profiles")
     .select("id")
-    .ilike("email", client.email.trim())
+    .ilike("email", normalizedEmail)
     .maybeSingle();
 
-  if (existingProfile) {
+  if (existingProfile && !newClient.profile_id) {
     const { data: linkedClient } = await auth.supabase!
       .from("clients")
       .update({ profile_id: existingProfile.id })
@@ -216,7 +250,7 @@ async function handleConvert(
       .single();
 
     if (linkedClient) {
-      Object.assign(newClient, linkedClient);
+      newClient = linkedClient;
     } else {
       newClient.profile_id = existingProfile.id;
     }
@@ -244,6 +278,9 @@ async function handleConvert(
       .single();
 
     if (projectError) {
+      if (createdClient) {
+        await auth.supabase!.from("clients").delete().eq("id", newClient.id);
+      }
       return NextResponse.json({ error: projectError.message }, { status: 500 });
     }
 

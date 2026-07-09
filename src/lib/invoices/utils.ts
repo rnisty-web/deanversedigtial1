@@ -297,3 +297,12 @@ export const emptyInvoiceForm = {
   notes: "",
   line_items: [emptyLineItem()] as InvoiceLineItem[],
 };
+
+export function nextInvoiceNumber(invoices: Array<{ invoice_number: string }>) {
+  const max = invoices.reduce((highest, invoice) => {
+    const match = invoice.invoice_number.match(/INV-(\d+)/i);
+    if (!match) return highest;
+    return Math.max(highest, Number.parseInt(match[1], 10));
+  }, 0);
+  return `INV-${String(max + 1).padStart(4, "0")}`;
+}

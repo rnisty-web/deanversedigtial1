@@ -14,6 +14,7 @@ import {
   filterSettingsCategories,
   groupSettingsBySection,
   settingsCategories,
+  connectedIntegrations,
 } from "@/lib/settings/config";
 
 const statIcons = {
@@ -90,11 +91,13 @@ export default function AdminSettingsPage() {
   const profileName = profile?.full_name?.trim() || profile?.email || "Admin";
   const profileEmail = profile?.email || "—";
 
+  const integrationCount = connectedIntegrations.length;
+
   const categoryStats: Record<string, string> = {
     profile: profileEmail,
     team: teamCount !== null ? String(teamCount) : "—",
     storage: mediaCount !== null ? String(mediaCount) : "—",
-    integrations: "4 services",
+    integrations: `${integrationCount} services`,
   };
 
   return (
@@ -117,7 +120,7 @@ export default function AdminSettingsPage() {
           />
           <SettingsStatCard
             label="Integrations"
-            value="4"
+            value={integrationCount}
             hint="Core platform services"
             icon={statIcons.integrations}
           />
@@ -162,6 +165,29 @@ export default function AdminSettingsPage() {
                     Open My Account →
                   </Link>
                 </p>
+              </div>
+
+              <div id="integrations" className="admin-settings-overview-panel admin-settings-integrations-mobile">
+                <p className="admin-settings-overview-title">Connected apps</p>
+                <ul className="admin-settings-integration-list">
+                  {connectedIntegrations.map((item) => (
+                    <li key={item.name} className="admin-settings-integration-item">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-[var(--admin-text)]">{item.name}</p>
+                        <p className="text-xs text-[var(--admin-text-muted)]">{item.detail}</p>
+                      </div>
+                      <span
+                        className={
+                          item.status === "Optional"
+                            ? "admin-settings-integration-badge-muted"
+                            : "admin-settings-integration-badge"
+                        }
+                      >
+                        {item.status}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
 

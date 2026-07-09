@@ -34,6 +34,7 @@ type LeadsTableProps = {
   onStatusChange: (lead: LeadRecord, status: string) => void;
   onConvert: (lead: LeadRecord) => void;
   onDelete: (id: string) => void;
+  emptyIsFiltered?: boolean;
 };
 
 const MENU_WIDTH = 192;
@@ -64,6 +65,7 @@ export function LeadsTable({
   onStatusChange,
   onConvert,
   onDelete,
+  emptyIsFiltered = false,
 }: LeadsTableProps) {
   const [menuState, setMenuState] = useState<MenuState | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -105,9 +107,13 @@ export function LeadsTable({
   if (leads.length === 0) {
     return (
       <div className="admin-leads-empty flex flex-col items-center justify-center py-16 text-center">
-        <p className="text-sm font-medium text-[var(--admin-text)]">No leads match your filters</p>
+        <p className="text-sm font-medium text-[var(--admin-text)]">
+          {emptyIsFiltered ? "No leads match your filters" : "No leads yet"}
+        </p>
         <p className="mt-1 text-xs text-[var(--admin-text-muted)]">
-          Try widening the date range or clearing filters to see more leads.
+          {emptyIsFiltered
+            ? "Try widening the date range or clearing filters to see more leads."
+            : "New contact form submissions and manual leads will appear here."}
         </p>
       </div>
     );

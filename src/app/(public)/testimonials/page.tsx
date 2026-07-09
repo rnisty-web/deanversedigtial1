@@ -6,6 +6,8 @@ import { createPageMetadata } from "@/lib/seo/metadata";
 import { siteConfig } from "@/lib/constants";
 import type { Metadata } from "next";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata(): Promise<Metadata> {
   return createPageMetadata({
     title: "Testimonials",

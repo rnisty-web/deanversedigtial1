@@ -8,6 +8,8 @@ import { siteConfig } from "@/lib/constants";
 import { createPageMetadata } from "@/lib/seo/metadata";
 import type { Metadata } from "next";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata(): Promise<Metadata> {
   return createPageMetadata({
     title: "Portfolio",

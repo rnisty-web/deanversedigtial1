@@ -1,14 +1,17 @@
 import { unstable_cache } from "next/cache";
-import { createClient, createServiceRoleClient } from "@/lib/supabase/server";
+import { createAnonServerClient, createServiceRoleClient } from "@/lib/supabase/server";
 import { cmsDefaults } from "@/lib/cms/defaults";
 import { defaultCMSLayout, mergeLayout, type CMSLayout } from "@/lib/cms/layout";
-import type { CMSContent, CMSKey, PublicSiteConfig } from "@/lib/cms/types";
+import { mergeCMSContent } from "@/lib/cms/merge";
+import type { CMSContent, PublicSiteConfig } from "@/lib/cms/types";
 import { siteConfig } from "@/lib/constants";
 
 export {
   getFeaturedPortfolio,
   getFeaturedTestimonials,
 } from "@/lib/data/queries";
+
+const CMS_LAYOUT_KEY = "cmsLayout";
 
 function hasSupabase() {
   return Boolean(
@@ -17,62 +20,10 @@ function hasSupabase() {
   );
 }
 
-function isPlainObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function mergeObjectSection(
-  defaults: Record<string, unknown>,
-  dbValue: Record<string, unknown>,
-): Record<string, unknown> {
-  const merged: Record<string, unknown> = { ...defaults };
-
-  for (const [field, value] of Object.entries(dbValue)) {
-    const defaultValue = defaults[field];
-
-    if (Array.isArray(defaultValue)) {
-      merged[field] = Array.isArray(value) ? value : defaultValue;
-      continue;
-    }
-
-    if (isPlainObject(defaultValue) && isPlainObject(value)) {
-      merged[field] = mergeObjectSection(defaultValue, value);
-      continue;
-    }
-
-    if (value !== undefined && value !== null) {
-      merged[field] = value;
-    }
-  }
-
-  return merged;
-}
-
-function mergeSection<K extends CMSKey>(
-  key: K,
-  dbValue: unknown,
-): CMSContent[K] {
-  const defaults = cmsDefaults[key];
-
-  if (Array.isArray(defaults)) {
-    return (Array.isArray(dbValue) ? dbValue : defaults) as CMSContent[K];
-  }
-
-  if (!isPlainObject(dbValue)) {
-    return defaults;
-  }
-
-  return mergeObjectSection(
-    defaults as Record<string, unknown>,
-    dbValue,
-  ) as CMSContent[K];
-}
-
-async function createCMSSupabaseClient() {
-  // settings table is admin-only via RLS — server reads need the service role.
+function createCMSSupabaseClient() {
   const serviceClient = createServiceRoleClient();
   if (serviceClient) return serviceClient;
-  return createClient();
+  return createAnonServerClient();
 }
 
 async function fetchCMSFromDb(): Promise<CMSContent> {
@@ -80,31 +31,34 @@ async function fetchCMSFromDb(): Promise<CMSContent> {
     return cmsDefaults;
   }
 
+  const supabase = createCMSSupabaseClient();
+  if (!supabase) {
+    return cmsDefaults;
+  }
+
   try {
-    const supabase = await createCMSSupabaseClient();
     const { data, error } = await supabase.from("settings").select("key, value");
 
-    if (error || !data?.length) {
-      return cmsDefaults;
+    if (error) {
+      console.error("[cms] settings read failed:", error.message);
+      return structuredClone(cmsDefaults);
     }
 
-    const merged: Record<string, unknown> = structuredClone(cmsDefaults);
-    for (const row of data) {
-      const key = row.key as CMSKey;
-      if (key in cmsDefaults) {
-        merged[key] = mergeSection(key, row.value);
-      }
+    if (!data?.length) {
+      return structuredClone(cmsDefaults);
     }
-    return merged as CMSContent;
-  } catch {
-    return cmsDefaults;
+
+    return mergeCMSContent(data);
+  } catch (error) {
+    console.error("[cms] settings read error:", error);
+    return structuredClone(cmsDefaults);
   }
 }
 
 export const getCMSContent = unstable_cache(
   fetchCMSFromDb,
   ["cms-content"],
-  { tags: ["cms"] },
+  { tags: ["cms"], revalidate: 60 },
 );
 
 async function fetchCMSLayoutFromDb(): Promise<CMSLayout> {
@@ -114,20 +68,30 @@ async function fetchCMSLayoutFromDb(): Promise<CMSLayout> {
     return defaults;
   }
 
+  const supabase = createCMSSupabaseClient();
+  if (!supabase) {
+    return defaults;
+  }
+
   try {
-    const supabase = await createCMSSupabaseClient();
     const { data, error } = await supabase
       .from("settings")
       .select("value")
-      .eq("key", "cmsLayout")
+      .eq("key", CMS_LAYOUT_KEY)
       .maybeSingle();
 
-    if (error || !data?.value) {
+    if (error) {
+      console.error("[cms] layout read failed:", error.message);
+      return defaults;
+    }
+
+    if (!data?.value) {
       return defaults;
     }
 
     return mergeLayout(data.value as Partial<CMSLayout>, defaults);
-  } catch {
+  } catch (error) {
+    console.error("[cms] layout read error:", error);
     return defaults;
   }
 }
@@ -135,7 +99,7 @@ async function fetchCMSLayoutFromDb(): Promise<CMSLayout> {
 export const getCMSLayout = unstable_cache(
   fetchCMSLayoutFromDb,
   ["cms-layout"],
-  { tags: ["cms"] },
+  { tags: ["cms"], revalidate: 60 },
 );
 
 export { getPublishedHomepageSections, isHomepageSectionPublished } from "@/lib/cms/layout";

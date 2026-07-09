@@ -2,7 +2,6 @@ import { revalidatePath, revalidateTag } from "next/cache";
 
 /** Bust CMS data cache (unstable_cache tags in get-content.ts). */
 export function revalidateCMS() {
-  // Route handler save — expire immediately so the next page load uses fresh CMS data.
   revalidateTag("cms", { expire: 0 });
 }
 
@@ -10,7 +9,6 @@ export function revalidateCMS() {
 export function revalidateSite() {
   revalidateCMS();
 
-  // Root layout refreshes shared header/footer CMSProvider data.
   revalidatePath("/", "layout");
   revalidatePath("/");
 
@@ -28,9 +26,29 @@ export function revalidateSite() {
     "/privacy",
     "/terms",
     "/search",
+    "/thank-you",
   ];
 
   for (const path of paths) {
     revalidatePath(path);
   }
+}
+
+/** Bust portfolio list, detail pages, and homepage after admin portfolio changes. */
+export function revalidatePortfolioContent(slugs: string[] = []) {
+  revalidateTag("portfolio", { expire: 0 });
+  revalidateSite();
+  revalidatePath("/portfolio", "layout");
+
+  const uniqueSlugs = [...new Set(slugs.filter(Boolean))];
+  for (const slug of uniqueSlugs) {
+    revalidatePath(`/portfolio/${slug}`);
+  }
+}
+
+/** Bust testimonials pages and homepage after admin testimonial changes. */
+export function revalidateTestimonialsContent() {
+  revalidateTag("testimonials", { expire: 0 });
+  revalidateSite();
+  revalidatePath("/testimonials", "layout");
 }

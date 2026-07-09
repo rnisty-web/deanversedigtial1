@@ -178,9 +178,13 @@ export default function AdminTestimonialsPage() {
     setSaving(false);
 
     if (res.ok) {
+      const data = await res.json();
+      const saved = data.item as TestimonialRecord;
+      setItems((prev) =>
+        editId ? prev.map((item) => (item.id === editId ? saved : item)) : [saved, ...prev],
+      );
       closeForm();
-      fetchItems();
-      setMessage(editId ? "Testimonial updated successfully." : "Testimonial created successfully.");
+      setMessage(editId ? "Testimonial updated — live site refreshed." : "Testimonial created — live site refreshed.");
       return;
     }
 
@@ -190,11 +194,19 @@ export default function AdminTestimonialsPage() {
 
   async function deleteItem(id: string) {
     if (!confirm("Delete this testimonial?")) return;
-    await fetch(`/api/admin/testimonials?id=${id}`, {
+    const previous = items;
+    setItems((current) => current.filter((item) => item.id !== id));
+    const res = await fetch(`/api/admin/testimonials?id=${id}`, {
       method: "DELETE",
       credentials: "same-origin",
     });
-    fetchItems();
+    if (!res.ok) {
+      setItems(previous);
+      const data = await res.json().catch(() => ({}));
+      setMessage(data.error ?? "Failed to delete testimonial");
+      return;
+    }
+    setMessage("Testimonial deleted — live site refreshed.");
   }
 
   async function importDefaults() {
@@ -208,8 +220,9 @@ export default function AdminTestimonialsPage() {
     });
     setSeeding(false);
     if (res.ok) {
-      setMessage("Imported testimonials from your public site defaults.");
-      fetchItems();
+      const data = await res.json();
+      setItems(data.items ?? []);
+      setMessage("Imported testimonials — live site refreshed.");
       return;
     }
     const data = await res.json().catch(() => ({}));
@@ -217,13 +230,33 @@ export default function AdminTestimonialsPage() {
   }
 
   async function togglePublish(item: TestimonialRecord) {
-    await fetch("/api/admin/testimonials", {
+    const nextPublished = !item.published;
+    setItems((current) =>
+      current.map((entry) =>
+        entry.id === item.id ? { ...entry, published: nextPublished } : entry,
+      ),
+    );
+    const res = await fetch("/api/admin/testimonials", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       credentials: "same-origin",
-      body: JSON.stringify({ id: item.id, published: !item.published }),
+      body: JSON.stringify({ id: item.id, published: nextPublished }),
     });
-    fetchItems();
+    if (!res.ok) {
+      setItems((current) =>
+        current.map((entry) =>
+          entry.id === item.id ? { ...entry, published: item.published } : entry,
+        ),
+      );
+      const data = await res.json().catch(() => ({}));
+      setMessage(data.error ?? "Failed to update publish status");
+      return;
+    }
+    const data = await res.json();
+    setItems((current) =>
+      current.map((entry) => (entry.id === item.id ? data.item : entry)),
+    );
+    setMessage(nextPublished ? "Testimonial published — live site refreshed." : "Testimonial unpublished — live site refreshed.");
   }
 
   return (

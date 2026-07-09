@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { verifyAdminApi } from "@/lib/auth";
-import { revalidateSite } from "@/lib/cms/revalidate";
+import { revalidateTestimonialsContent } from "@/lib/cms/revalidate";
 import { getTestimonialSeedRows } from "@/lib/cms/seed-content";
+
+function revalidateAfterTestimonialChange() {
+  revalidateTestimonialsContent();
+}
 
 export async function GET() {
   const auth = await verifyAdminApi();
@@ -18,7 +22,7 @@ export async function GET() {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ items });
+  return NextResponse.json({ items: items ?? [] });
 }
 
 export async function POST(request: Request) {
@@ -50,7 +54,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    revalidateSite();
+    revalidateAfterTestimonialChange();
     return NextResponse.json({ items, message: "Testimonials imported from site defaults" });
   }
 
@@ -81,7 +85,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  revalidateSite();
+  revalidateAfterTestimonialChange();
   return NextResponse.json({ item }, { status: 201 });
 }
 
@@ -109,7 +113,7 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  revalidateSite();
+  revalidateAfterTestimonialChange();
   return NextResponse.json({ item });
 }
 
@@ -132,6 +136,6 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  revalidateSite();
+  revalidateAfterTestimonialChange();
   return NextResponse.json({ success: true });
 }

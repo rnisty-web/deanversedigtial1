@@ -1,7 +1,15 @@
 import { NextResponse } from "next/server";
 import { verifyAdminApi } from "@/lib/auth";
-import { revalidateSite } from "@/lib/cms/revalidate";
+import { revalidatePortfolioContent } from "@/lib/cms/revalidate";
 import { getPortfolioSeedRows } from "@/lib/cms/seed-content";
+
+function normalizePortfolioItem<T extends { tags?: string[] | null }>(item: T) {
+  return { ...item, tags: item.tags ?? [] };
+}
+
+function revalidateAfterPortfolioChange(slugs: string[] = []) {
+  revalidatePortfolioContent(slugs);
+}
 
 export async function GET() {
   const auth = await verifyAdminApi();
@@ -21,7 +29,7 @@ export async function GET() {
     return NextResponse.json({ error: message }, { status: 500 });
   }
 
-  return NextResponse.json({ items });
+  return NextResponse.json({ items: (items ?? []).map(normalizePortfolioItem) });
 }
 
 export async function POST(request: Request) {
@@ -56,8 +64,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: message }, { status: 500 });
     }
 
-    revalidateSite();
-    return NextResponse.json({ items, message: "Portfolio imported from site defaults" });
+    revalidateAfterPortfolioChange((items ?? []).map((item) => item.slug));
+    return NextResponse.json({
+      items: (items ?? []).map(normalizePortfolioItem),
+      message: "Portfolio imported from site defaults",
+    });
   }
 
   const {
@@ -105,8 +116,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: message }, { status: 500 });
   }
 
-  revalidateSite();
-  return NextResponse.json({ item }, { status: 201 });
+  revalidateAfterPortfolioChange([item.slug]);
+  return NextResponse.json({ item: normalizePortfolioItem(item) }, { status: 201 });
 }
 
 export async function PATCH(request: Request) {
@@ -122,6 +133,12 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Item ID is required" }, { status: 400 });
   }
 
+  const { data: previous } = await auth.supabase!
+    .from("portfolio")
+    .select("slug")
+    .eq("id", id)
+    .maybeSingle();
+
   const { data: item, error } = await auth.supabase!
     .from("portfolio")
     .update(updates)
@@ -133,8 +150,10 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  revalidateSite();
-  return NextResponse.json({ item });
+  revalidateAfterPortfolioChange(
+    [previous?.slug, item.slug].filter((value): value is string => Boolean(value)),
+  );
+  return NextResponse.json({ item: normalizePortfolioItem(item) });
 }
 
 export async function DELETE(request: Request) {
@@ -150,12 +169,18 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: "Item ID is required" }, { status: 400 });
   }
 
+  const { data: previous } = await auth.supabase!
+    .from("portfolio")
+    .select("slug")
+    .eq("id", id)
+    .maybeSingle();
+
   const { error } = await auth.supabase!.from("portfolio").delete().eq("id", id);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  revalidateSite();
+  revalidateAfterPortfolioChange(previous?.slug ? [previous.slug] : []);
   return NextResponse.json({ success: true });
 }

@@ -15,6 +15,8 @@ import { createPageMetadata } from "@/lib/seo/metadata";
 import type { PortfolioCaseStudy } from "@/types";
 import type { Metadata } from "next";
 
+export const dynamic = "force-dynamic";
+
 interface PortfolioDetailPageProps {
   params: Promise<{ slug: string }>;
 }

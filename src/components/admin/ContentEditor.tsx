@@ -64,7 +64,7 @@ export function ContentEditor() {
   const fetchContent = useCallback(async () => {
     setLoading(true);
     setMessage(null);
-    const res = await fetch("/api/admin/cms");
+    const res = await fetch("/api/admin/cms", { credentials: "same-origin" });
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
       setMessage({ type: "error", text: data.error ?? "Failed to load content" });
@@ -169,6 +169,17 @@ export function ContentEditor() {
     }));
   }
 
+  function applyServerState(data: { content?: CMSContent; layout?: CMSLayout }) {
+    if (data.content) {
+      setContent(data.content);
+      setSavedContent(structuredClone(data.content));
+    }
+    if (data.layout) {
+      setLayout(data.layout);
+      setSavedLayout(data.layout);
+    }
+  }
+
   async function handleSaveSection() {
     if (!content || !isCMSKey(activeSection)) return;
     setSaving(true);
@@ -177,6 +188,7 @@ export function ContentEditor() {
     const res = await fetch("/api/admin/cms", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
       body: JSON.stringify({ key: activeSection, value: content[activeSection] }),
     });
 
@@ -189,19 +201,11 @@ export function ContentEditor() {
     }
 
     const data = await res.json();
-    if (data.layout) {
-      setLayout(data.layout);
-      setSavedLayout(data.layout);
-    }
-
-    setSavedContent((prev) => {
-      if (!prev || !content || !isCMSKey(activeSection)) return prev;
-      return { ...prev, [activeSection]: structuredClone(content[activeSection]) };
-    });
+    applyServerState(data);
 
     setMessage({
       type: "success",
-      text: `${activeDef?.title ?? activeSection} saved — live site updated`,
+      text: `${activeDef?.title ?? activeSection} saved — live site refreshed`,
     });
   }
 
@@ -209,6 +213,7 @@ export function ContentEditor() {
     const res = await fetch("/api/admin/cms", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
       body: JSON.stringify({ layout: nextLayout }),
     });
     if (!res.ok) {
@@ -216,6 +221,7 @@ export function ContentEditor() {
       throw new Error(data.error ?? "Failed to save layout");
     }
     const data = await res.json();
+    applyServerState(data);
     return data.layout as CMSLayout;
   }
 
@@ -226,7 +232,7 @@ export function ContentEditor() {
       const saved = await handleSaveLayout(layout);
       setLayout(saved);
       setSavedLayout(saved);
-      setMessage({ type: "success", text: "Section order saved — live site updated" });
+      setMessage({ type: "success", text: "Section order saved — live site refreshed" });
     } catch (err) {
       setMessage({
         type: "error",
@@ -279,7 +285,7 @@ export function ContentEditor() {
       setLayout(saved);
       setSavedLayout(saved);
       setActiveSection(sectionId as SectionId);
-      setMessage({ type: "success", text: "Section published — live site updated" });
+      setMessage({ type: "success", text: "Section published — live site refreshed" });
     } catch {
       setMessage({ type: "error", text: "Failed to publish section" });
     }
@@ -323,6 +329,7 @@ export function ContentEditor() {
     const res = await fetch("/api/admin/cms", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
       body: JSON.stringify({ action: "seed" }),
     });
     setSeeding(false);
@@ -331,8 +338,9 @@ export function ContentEditor() {
       setMessage({ type: "error", text: data.error ?? "Failed to seed defaults" });
       return;
     }
-    setMessage({ type: "success", text: "Defaults seeded — live site updated" });
-    fetchContent();
+    const data = await res.json();
+    applyServerState(data);
+    setMessage({ type: "success", text: "Defaults seeded — live site refreshed" });
   }
 
   async function handleDuplicateObjectSection() {

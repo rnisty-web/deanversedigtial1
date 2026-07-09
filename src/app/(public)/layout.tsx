@@ -5,6 +5,8 @@ import { Header } from "@/components/layout/Header";
 import { CMSProvider } from "@/components/providers/CMSProvider";
 import { getCMSContent, getPublicSiteConfig } from "@/lib/cms/get-content";
 
+export const dynamic = "force-dynamic";
+
 export default async function PublicLayout({
   children,
 }: Readonly<{

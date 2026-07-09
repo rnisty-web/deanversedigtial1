@@ -65,6 +65,14 @@ function slugify(value: string) {
     .replace(/^-|-$/g, "");
 }
 
+function normalizePortfolioItem(item: PortfolioRecord): PortfolioRecord {
+  return {
+    ...item,
+    tags: item.tags ?? [],
+    case_study: item.case_study ?? null,
+  };
+}
+
 const statIcons = {
   total: (
     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -120,7 +128,7 @@ export default function AdminPortfolioPage() {
     const res = await fetch("/api/admin/portfolio", { credentials: "same-origin" });
     if (res.ok) {
       const data = await res.json();
-      setItems(data.items ?? []);
+      setItems((data.items ?? []).map(normalizePortfolioItem));
     } else {
       const data = await res.json().catch(() => ({}));
       setError(data.error ?? "Failed to load portfolio items");
@@ -270,9 +278,13 @@ export default function AdminPortfolioPage() {
     setSaving(false);
 
     if (res.ok) {
+      const data = await res.json();
+      const saved = normalizePortfolioItem(data.item);
+      setItems((prev) =>
+        editId ? prev.map((item) => (item.id === editId ? saved : item)) : [saved, ...prev],
+      );
       closeForm();
-      fetchItems();
-      setMessage(editId ? "Project updated successfully." : "Project created successfully.");
+      setMessage(editId ? "Project updated — live site refreshed." : "Project created — live site refreshed.");
       return;
     }
 
@@ -282,11 +294,19 @@ export default function AdminPortfolioPage() {
 
   async function deleteItem(id: string) {
     if (!confirm("Delete this portfolio project?")) return;
-    await fetch(`/api/admin/portfolio?id=${id}`, {
+    const previous = items;
+    setItems((current) => current.filter((item) => item.id !== id));
+    const res = await fetch(`/api/admin/portfolio?id=${id}`, {
       method: "DELETE",
       credentials: "same-origin",
     });
-    fetchItems();
+    if (!res.ok) {
+      setItems(previous);
+      const data = await res.json().catch(() => ({}));
+      setMessage(data.error ?? "Failed to delete project");
+      return;
+    }
+    setMessage("Project deleted — live site refreshed.");
   }
 
   async function importDefaults() {
@@ -300,8 +320,9 @@ export default function AdminPortfolioPage() {
     });
     setSeeding(false);
     if (res.ok) {
-      setMessage("Imported portfolio projects from your site defaults.");
-      fetchItems();
+      const data = await res.json();
+      setItems((data.items ?? []).map(normalizePortfolioItem));
+      setMessage("Imported portfolio projects — live site refreshed.");
       return;
     }
     const data = await res.json().catch(() => ({}));
@@ -309,13 +330,33 @@ export default function AdminPortfolioPage() {
   }
 
   async function togglePublish(item: PortfolioRecord) {
-    await fetch("/api/admin/portfolio", {
+    const nextPublished = !item.published;
+    setItems((current) =>
+      current.map((entry) =>
+        entry.id === item.id ? { ...entry, published: nextPublished } : entry,
+      ),
+    );
+    const res = await fetch("/api/admin/portfolio", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       credentials: "same-origin",
-      body: JSON.stringify({ id: item.id, published: !item.published }),
+      body: JSON.stringify({ id: item.id, published: nextPublished }),
     });
-    fetchItems();
+    if (!res.ok) {
+      setItems((current) =>
+        current.map((entry) =>
+          entry.id === item.id ? { ...entry, published: item.published } : entry,
+        ),
+      );
+      const data = await res.json().catch(() => ({}));
+      setMessage(data.error ?? "Failed to update publish status");
+      return;
+    }
+    const data = await res.json();
+    setItems((current) =>
+      current.map((entry) => (entry.id === item.id ? normalizePortfolioItem(data.item) : entry)),
+    );
+    setMessage(nextPublished ? "Project published — live site refreshed." : "Project unpublished — live site refreshed.");
   }
 
   return (

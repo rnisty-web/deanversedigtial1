@@ -29,11 +29,8 @@ function ProjectStageTrack({ status }: { status: string }) {
         <span className="text-xs tabular-nums text-[var(--admin-text-muted)]">{progress}%</span>
       </div>
 
-      <div className="relative h-1.5 overflow-hidden rounded-full bg-[var(--admin-panel-hover)] ring-1 ring-[var(--admin-border-subtle)]">
-        <div
-          className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-[var(--admin-emerald)] to-[var(--admin-gold)] transition-all duration-700"
-          style={{ width: `${progress}%` }}
-        />
+      <div className="portal-progress-track">
+        <div className="portal-progress-fill" style={{ width: `${progress}%` }} />
       </div>
 
       <div className="mt-4 flex gap-1">
@@ -45,11 +42,10 @@ function ProjectStageTrack({ status }: { status: string }) {
             <div key={step} className="flex min-w-0 flex-1 flex-col items-center gap-1.5">
               <span
                 className={cn(
-                  "h-2 w-2 rounded-full ring-2 ring-offset-2 ring-offset-transparent transition-all",
-                  isCurrent &&
-                    "scale-125 bg-[var(--admin-gold)] shadow-[0_0_12px_var(--admin-gold-glow)] ring-[var(--admin-gold)]/40",
-                  isComplete && !isCurrent && "bg-[var(--admin-emerald)] ring-[var(--admin-emerald)]/30",
-                  !isComplete && "bg-white/10 ring-white/10",
+                  "portal-stage-dot",
+                  isCurrent && "portal-stage-dot-current",
+                  isComplete && "portal-stage-dot-complete",
+                  !isComplete && !isCurrent && "portal-stage-dot-pending",
                 )}
               />
               <span
@@ -87,7 +83,7 @@ export function ProjectList({
           aria-hidden
         />
         <div className="relative mx-auto max-w-md">
-          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-[var(--admin-border-subtle)] bg-[var(--admin-gold-soft)]">
+          <div className="portal-empty-icon-ring mx-auto mb-6">
             <svg
               className="h-8 w-8 text-[var(--admin-gold-light)]"
               fill="none"

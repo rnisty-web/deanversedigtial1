@@ -33,7 +33,7 @@ export function AdminMobileNav({ profile, unreadMessagesCount = 0 }: AdminMobile
 
   return (
     <>
-      <div className="relative z-10 flex shrink-0 items-center justify-between gap-3 border-b border-[var(--admin-border-subtle)] bg-[#000000]/95 px-4 py-3 backdrop-blur-xl lg:hidden">
+      <div className="admin-mobile-topbar relative z-10 flex shrink-0 items-center justify-between gap-3 border-b border-[var(--admin-border-subtle)] bg-[color-mix(in_srgb,var(--admin-bg)_92%,transparent)] px-4 py-3 backdrop-blur-xl lg:hidden">
         <Link href="/admin" className="flex min-w-0 items-center gap-2.5">
           <div className="admin-logo-ring !h-11 !w-11 !p-1.5">
             <BrandLogo width={80} height={80} className="h-full w-full object-contain" />

@@ -27,11 +27,7 @@ export function AdminEmptyState({
         className,
       )}
     >
-      {icon && (
-        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--admin-emerald)]/15 text-[var(--admin-gold-light)]">
-          {icon}
-        </div>
-      )}
+      {icon && <div className="admin-empty-icon-ring mb-4">{icon}</div>}
       <h3 className="text-lg font-semibold text-[var(--admin-text)]">{title}</h3>
       {description && (
         <p className="mt-2 max-w-md text-sm leading-relaxed text-[var(--admin-text-muted)]">

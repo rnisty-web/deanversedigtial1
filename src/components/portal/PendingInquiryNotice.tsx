@@ -15,13 +15,11 @@ export function PendingInquiryNotice({ state }: { state: PendingInquiryState }) 
   return (
     <PortalCard
       padding="lg"
-      className="mb-8 border-[color-mix(in_srgb,var(--admin-gold)_25%,transparent)] bg-[color-mix(in_srgb,var(--admin-gold)_6%,transparent)]"
+      className="portal-featured-card mb-8 border-[color-mix(in_srgb,var(--admin-gold)_25%,transparent)] bg-[color-mix(in_srgb,var(--admin-gold)_6%,transparent)]"
     >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="max-w-2xl">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--admin-gold)]">
-            Inquiry received
-          </p>
+          <p className="portal-eyebrow">Inquiry received</p>
           <h2 className="mt-2 text-lg font-semibold text-[var(--admin-text)]">{title}</h2>
           <p className="mt-2 text-sm leading-relaxed text-[var(--admin-text-muted)]">{description}</p>
         </div>

@@ -166,6 +166,8 @@ body {
   --admin-radius: 20px;
   --admin-sidebar-width: 18.5rem;
   --admin-sidebar-collapsed-width: 5.25rem;
+  --admin-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --admin-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   background-color: var(--admin-bg);
   color: var(--admin-text);
 }
@@ -6975,6 +6977,8 @@ body {
   --admin-border-subtle: rgba(47, 93, 80, 0.14);
   --admin-radius: 20px;
   --admin-sidebar-width: 18.5rem;
+  --portal-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --portal-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   background-color: var(--admin-bg);
   color: var(--admin-text);
 }
@@ -7055,6 +7059,113 @@ body {
 .portal-list-row:hover {
   border-color: color-mix(in srgb, var(--admin-gold) 20%, transparent);
   background: rgba(255, 255, 255, 0.03);
+}
+
+.portal-progress-track {
+  position: relative;
+  height: 0.4375rem;
+  overflow: hidden;
+  border-radius: 9999px;
+  border: 1px solid var(--admin-border-subtle);
+  background: var(--admin-panel-hover);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
+.portal-progress-fill {
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  border-radius: 9999px;
+  background: linear-gradient(
+    90deg,
+    var(--admin-emerald) 0%,
+    color-mix(in srgb, var(--admin-emerald) 40%, var(--admin-gold)) 55%,
+    var(--admin-gold) 100%
+  );
+  box-shadow: 0 0 14px -2px var(--admin-gold-glow);
+  transition: width 0.85s var(--portal-ease-out, cubic-bezier(0.16, 1, 0.3, 1));
+}
+
+.portal-stage-dot {
+  height: 0.5rem;
+  width: 0.5rem;
+  border-radius: 9999px;
+  transition: all 0.4s var(--portal-ease-out, cubic-bezier(0.16, 1, 0.3, 1));
+}
+
+.portal-stage-dot-current {
+  transform: scale(1.2);
+  background: var(--admin-gold);
+  box-shadow:
+    0 0 14px var(--admin-gold-glow),
+    0 0 0 2px color-mix(in srgb, var(--admin-gold) 40%, transparent);
+}
+
+.portal-stage-dot-complete {
+  background: var(--admin-emerald);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--admin-emerald) 30%, transparent);
+}
+
+.portal-stage-dot-pending {
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+}
+
+.portal-featured-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.portal-featured-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 70% 55% at 50% 0%,
+    rgba(201, 169, 98, 0.1),
+    transparent 68%
+  );
+}
+
+.portal-eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--admin-gold);
+}
+
+.portal-empty-icon-ring {
+  display: flex;
+  height: 4rem;
+  width: 4rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1.25rem;
+  border: 1px solid color-mix(in srgb, var(--admin-gold) 28%, transparent);
+  background:
+    radial-gradient(circle at 50% 100%, rgba(47, 93, 80, 0.2), transparent 55%),
+    var(--admin-gold-soft);
+  box-shadow:
+    0 0 32px -8px var(--admin-gold-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.admin-empty-icon-ring {
+  display: flex;
+  height: 3.5rem;
+  width: 3.5rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1.25rem;
+  border: 1px solid color-mix(in srgb, var(--admin-gold) 28%, transparent);
+  background:
+    radial-gradient(circle at 50% 100%, rgba(47, 93, 80, 0.2), transparent 55%),
+    var(--admin-gold-soft);
+  box-shadow:
+    0 0 32px -8px var(--admin-gold-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 .portal-theme:has(.portal-print-overlay) .admin-sidebar,
@@ -7342,4 +7453,669 @@ body {
   .admin-invoices-table {
     min-width: 640px;
   }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Portal premium luxury polish (visual only — same layout & colors)            */
+/* -------------------------------------------------------------------------- */
+
+@keyframes portal-shimmer {
+  0%,
+  100% {
+    opacity: 0.42;
+  }
+  50% {
+    opacity: 0.78;
+  }
+}
+
+.portal-theme .admin-main-scroll {
+  scroll-behavior: smooth;
+  background:
+    radial-gradient(ellipse 85% 55% at 50% -15%, rgba(201, 169, 98, 0.07), transparent 58%),
+    radial-gradient(ellipse 55% 45% at 100% 40%, rgba(47, 93, 80, 0.05), transparent 52%),
+    radial-gradient(ellipse 45% 40% at 0% 85%, rgba(111, 143, 114, 0.04), transparent 50%),
+    var(--admin-bg);
+}
+
+.portal-theme .admin-sidebar {
+  border-right-color: color-mix(in srgb, var(--admin-gold) 10%, var(--admin-border-subtle));
+  box-shadow: 12px 0 40px -28px rgba(0, 0, 0, 0.65);
+}
+
+.portal-theme .admin-luxury-card {
+  border-color: color-mix(in srgb, var(--admin-gold) 10%, var(--admin-border));
+  background: linear-gradient(
+    162deg,
+    rgba(255, 255, 255, 0.048) 0%,
+    rgba(18, 23, 21, 0.93) 46%,
+    rgba(7, 9, 8, 0.98) 100%
+  );
+  box-shadow:
+    0 10px 44px -18px rgba(0, 0, 0, 0.78),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+  transition:
+    transform 0.42s var(--portal-ease-out),
+    box-shadow 0.42s var(--portal-ease-out),
+    border-color 0.35s ease,
+    background 0.35s ease;
+}
+
+.portal-theme .admin-luxury-card-hover:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--admin-gold) 32%, transparent);
+  box-shadow:
+    0 18px 48px -14px rgba(0, 0, 0, 0.75),
+    0 0 36px -10px var(--admin-gold-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.portal-theme .admin-luxury-card .admin-luxury-card {
+  background: rgba(255, 255, 255, 0.025);
+  border-color: var(--admin-border-subtle);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.portal-theme .admin-luxury-card .admin-luxury-card:hover {
+  transform: none;
+  border-color: color-mix(in srgb, var(--admin-gold) 20%, transparent);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.portal-theme .portal-section-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 12%;
+  right: 12%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--admin-gold) 45%, transparent),
+    transparent
+  );
+  pointer-events: none;
+}
+
+.portal-theme .portal-section-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.portal-theme .portal-page-header {
+  position: relative;
+  border-bottom-color: transparent;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.025) 0%, transparent 100%);
+}
+
+.portal-theme .portal-page-header::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--admin-gold) 55%, transparent) 22%,
+    color-mix(in srgb, var(--admin-emerald) 45%, transparent) 50%,
+    color-mix(in srgb, var(--admin-gold) 55%, transparent) 78%,
+    transparent 100%
+  );
+  opacity: 0.42;
+}
+
+.portal-theme .portal-page-header .admin-heading-serif {
+  text-shadow: 0 2px 28px rgba(201, 169, 98, 0.1);
+}
+
+.portal-theme .portal-page-subtitle {
+  line-height: 1.65;
+}
+
+.portal-theme .portal-page-tabs {
+  scroll-snap-type: x proximity;
+  -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 1.75rem), transparent);
+  mask-image: linear-gradient(90deg, #000 calc(100% - 1.75rem), transparent);
+}
+
+.portal-theme .portal-page-tabs .admin-content-tab {
+  scroll-snap-align: start;
+  transition: all 0.35s var(--portal-ease-out);
+}
+
+.portal-theme .admin-content-tab-active {
+  box-shadow:
+    0 0 24px -8px var(--admin-gold-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.portal-theme .admin-sidebar-nav-link {
+  transition: all 0.35s var(--portal-ease-out);
+}
+
+.portal-theme .admin-sidebar-nav-link:hover {
+  transform: translateX(2px);
+  background: color-mix(in srgb, var(--admin-gold) 8%, transparent);
+}
+
+.portal-theme .admin-sidebar-nav-link-active {
+  border-left: 3px solid var(--admin-gold);
+  padding-left: calc(0.875rem - 2px);
+}
+
+.portal-theme .admin-btn-gold {
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform 0.32s var(--portal-ease-out),
+    box-shadow 0.32s ease,
+    filter 0.32s ease;
+}
+
+.portal-theme .admin-btn-gold::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    115deg,
+    transparent 28%,
+    rgba(255, 255, 255, 0.28) 50%,
+    transparent 72%
+  );
+  transform: translateX(-130%);
+  transition: transform 0.65s var(--portal-ease-out);
+  pointer-events: none;
+}
+
+.portal-theme .admin-btn-gold:hover::after {
+  transform: translateX(130%);
+}
+
+.portal-theme .admin-btn-gold:active {
+  transform: scale(0.985);
+}
+
+.portal-theme .admin-btn-ghost {
+  transition: all 0.32s var(--portal-ease-out);
+}
+
+.portal-theme .admin-btn-ghost:hover {
+  border-color: color-mix(in srgb, var(--admin-gold) 28%, transparent);
+  background: color-mix(in srgb, var(--admin-gold) 6%, transparent);
+  color: var(--admin-gold-light);
+}
+
+.portal-theme .admin-input,
+.portal-theme .admin-entity-select {
+  transition:
+    border-color 0.3s ease,
+    box-shadow 0.3s ease,
+    background 0.3s ease;
+}
+
+.portal-theme .admin-input:focus,
+.portal-theme .admin-entity-select:focus {
+  border-color: color-mix(in srgb, var(--admin-gold) 50%, transparent);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--admin-gold) 14%, transparent),
+    0 0 20px -6px var(--admin-gold-glow);
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.portal-theme .portal-list-row {
+  padding: 0.875rem 1rem;
+  border-radius: 14px;
+  transition: all 0.38s var(--portal-ease-out);
+}
+
+.portal-theme .portal-list-row:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--admin-gold) 28%, transparent);
+  background: rgba(255, 255, 255, 0.045);
+  box-shadow:
+    0 10px 28px -14px rgba(0, 0, 0, 0.55),
+    0 0 22px -12px var(--admin-gold-glow);
+}
+
+.portal-theme .admin-stat-icon-glow {
+  transition: transform 0.4s var(--portal-ease-out), box-shadow 0.4s ease;
+}
+
+.portal-theme .admin-luxury-card:hover .admin-stat-icon-glow {
+  transform: scale(1.04);
+  box-shadow:
+    0 0 34px -4px var(--admin-gold-glow),
+    0 0 42px -10px rgba(111, 143, 114, 0.45);
+}
+
+.portal-theme .portal-mobile-topbar {
+  border-bottom-color: color-mix(in srgb, var(--admin-gold) 18%, var(--admin-border-subtle));
+  box-shadow: 0 10px 32px -24px rgba(0, 0, 0, 0.75);
+}
+
+.portal-theme .portal-messages-layout .dm-list-panel,
+.portal-theme .portal-messages-layout .dm-chat-panel {
+  box-shadow:
+    0 14px 52px -22px rgba(0, 0, 0, 0.68),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.portal-theme .dm-list-item-main {
+  transition: background 0.3s var(--portal-ease-out);
+}
+
+.portal-theme .dm-list-item-active {
+  background: color-mix(in srgb, var(--admin-gold) 12%, transparent);
+}
+
+.portal-theme .dm-composer-portal .dm-composer-input:focus {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--admin-gold) 22%, transparent);
+}
+
+.portal-theme .admin-luxury-card.animate-pulse {
+  animation: portal-shimmer 1.9s var(--portal-ease) infinite;
+}
+
+.portal-theme .admin-table-wrap tbody tr {
+  transition: background 0.28s ease;
+}
+
+.portal-theme .admin-footer-gold-border {
+  opacity: 0.9;
+}
+
+.portal-theme .admin-logo-ring {
+  transition: box-shadow 0.4s var(--portal-ease-out), transform 0.4s var(--portal-ease-out);
+}
+
+.portal-theme .admin-sidebar-brand:hover .admin-logo-ring,
+.portal-theme a:hover .admin-logo-ring {
+  transform: scale(1.02);
+  box-shadow:
+    0 0 48px -8px var(--admin-gold-glow),
+    inset 0 0 22px -6px rgba(111, 143, 114, 0.35);
+}
+
+.portal-theme .portal-content-shell > div {
+  animation: portal-fade-in 0.55s var(--portal-ease-out) both;
+}
+
+@keyframes portal-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Admin premium luxury polish (visual only — same layout & colors)           */
+/* -------------------------------------------------------------------------- */
+
+@keyframes admin-shimmer {
+  0%,
+  100% {
+    opacity: 0.42;
+  }
+  50% {
+    opacity: 0.78;
+  }
+}
+
+.admin-theme .admin-main-scroll {
+  scroll-behavior: smooth;
+  background:
+    radial-gradient(ellipse 85% 55% at 50% -15%, rgba(201, 169, 98, 0.07), transparent 58%),
+    radial-gradient(ellipse 55% 45% at 100% 40%, rgba(47, 93, 80, 0.05), transparent 52%),
+    radial-gradient(ellipse 45% 40% at 0% 85%, rgba(111, 143, 114, 0.04), transparent 50%),
+    var(--admin-bg);
+}
+
+.admin-theme .admin-sidebar {
+  border-right-color: color-mix(in srgb, var(--admin-gold) 10%, var(--admin-border-subtle));
+  box-shadow: 12px 0 40px -28px rgba(0, 0, 0, 0.65);
+}
+
+.admin-theme .admin-luxury-card {
+  border-color: color-mix(in srgb, var(--admin-gold) 10%, var(--admin-border));
+  background: linear-gradient(
+    162deg,
+    rgba(255, 255, 255, 0.048) 0%,
+    rgba(18, 23, 21, 0.93) 46%,
+    rgba(7, 9, 8, 0.98) 100%
+  );
+  box-shadow:
+    0 10px 44px -18px rgba(0, 0, 0, 0.78),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+  transition:
+    transform 0.42s var(--admin-ease-out),
+    box-shadow 0.42s var(--admin-ease-out),
+    border-color 0.35s ease,
+    background 0.35s ease;
+}
+
+.admin-theme .admin-luxury-card-hover:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--admin-gold) 32%, transparent);
+  box-shadow:
+    0 18px 48px -14px rgba(0, 0, 0, 0.75),
+    0 0 36px -10px var(--admin-gold-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.admin-theme .admin-luxury-card .admin-luxury-card {
+  background: rgba(255, 255, 255, 0.025);
+  border-color: var(--admin-border-subtle);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.admin-theme .admin-luxury-card .admin-luxury-card:hover {
+  transform: none;
+  border-color: color-mix(in srgb, var(--admin-gold) 20%, transparent);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.admin-theme .admin-page-header,
+.admin-theme .admin-content-header {
+  position: relative;
+  border-bottom-color: transparent;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.025) 0%, transparent 100%);
+}
+
+.admin-theme .admin-page-header::after,
+.admin-theme .admin-content-header::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--admin-gold) 55%, transparent) 22%,
+    color-mix(in srgb, var(--admin-emerald) 45%, transparent) 50%,
+    color-mix(in srgb, var(--admin-gold) 55%, transparent) 78%,
+    transparent 100%
+  );
+  opacity: 0.42;
+}
+
+.admin-theme .admin-page-header .admin-heading-serif,
+.admin-theme .admin-content-header .admin-heading-serif {
+  text-shadow: 0 2px 28px rgba(201, 169, 98, 0.1);
+}
+
+.admin-theme .admin-content-tab {
+  transition: all 0.35s var(--admin-ease-out);
+}
+
+.admin-theme .admin-content-tab-active,
+.admin-theme .admin-calendar-tab-active,
+.admin-theme .admin-calendar-view-tab-active,
+.admin-theme .admin-leads-tab-active {
+  box-shadow:
+    0 0 24px -8px var(--admin-gold-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.admin-theme .admin-sidebar-nav-link {
+  transition: all 0.35s var(--admin-ease-out);
+}
+
+.admin-theme .admin-sidebar-nav-link:hover {
+  transform: translateX(2px);
+  background: color-mix(in srgb, var(--admin-gold) 8%, transparent);
+}
+
+.admin-theme .admin-sidebar-nav-link-active {
+  border-left: 3px solid var(--admin-gold);
+  padding-left: calc(0.875rem - 2px);
+}
+
+.admin-theme .admin-btn-gold {
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform 0.32s var(--admin-ease-out),
+    box-shadow 0.32s ease,
+    filter 0.32s ease;
+}
+
+.admin-theme .admin-btn-gold::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    115deg,
+    transparent 28%,
+    rgba(255, 255, 255, 0.28) 50%,
+    transparent 72%
+  );
+  transform: translateX(-130%);
+  transition: transform 0.65s var(--admin-ease-out);
+  pointer-events: none;
+}
+
+.admin-theme .admin-btn-gold:hover::after {
+  transform: translateX(130%);
+}
+
+.admin-theme .admin-btn-gold:active {
+  transform: scale(0.985);
+}
+
+.admin-theme .admin-btn-ghost {
+  transition: all 0.32s var(--admin-ease-out);
+}
+
+.admin-theme .admin-btn-ghost:hover {
+  border-color: color-mix(in srgb, var(--admin-gold) 28%, transparent);
+  background: color-mix(in srgb, var(--admin-gold) 6%, transparent);
+  color: var(--admin-gold-light);
+}
+
+.admin-theme .admin-input,
+.admin-theme .admin-entity-select,
+.admin-theme .admin-leads-select,
+.admin-theme .admin-calendar-select {
+  transition:
+    border-color 0.3s ease,
+    box-shadow 0.3s ease,
+    background 0.3s ease;
+}
+
+.admin-theme .admin-input:focus,
+.admin-theme .admin-entity-select:focus,
+.admin-theme .admin-leads-select:focus,
+.admin-theme .admin-calendar-select:focus {
+  border-color: color-mix(in srgb, var(--admin-gold) 50%, transparent);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--admin-gold) 14%, transparent),
+    0 0 20px -6px var(--admin-gold-glow);
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.admin-theme .admin-stat-card {
+  border-color: color-mix(in srgb, var(--admin-gold) 10%, var(--admin-border));
+  background: linear-gradient(
+    162deg,
+    rgba(255, 255, 255, 0.04) 0%,
+    rgba(18, 23, 21, 0.94) 100%
+  );
+  box-shadow:
+    0 8px 36px -16px rgba(0, 0, 0, 0.7),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  transition:
+    transform 0.4s var(--admin-ease-out),
+    border-color 0.35s ease,
+    box-shadow 0.4s var(--admin-ease-out);
+}
+
+.admin-theme .admin-stat-card:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--admin-gold) 30%, transparent);
+  box-shadow:
+    0 14px 40px -12px rgba(0, 0, 0, 0.72),
+    0 0 28px -10px var(--admin-gold-glow);
+}
+
+.admin-theme .admin-stat-icon-glow {
+  transition: transform 0.4s var(--admin-ease-out), box-shadow 0.4s ease;
+}
+
+.admin-theme .admin-stat-card:hover .admin-stat-icon-glow,
+.admin-theme .admin-luxury-card:hover .admin-stat-icon-glow {
+  transform: scale(1.04);
+  box-shadow:
+    0 0 34px -4px var(--admin-gold-glow),
+    0 0 42px -10px rgba(111, 143, 114, 0.45);
+}
+
+.admin-theme .admin-projects-progress-track,
+.admin-theme .admin-analytics-progress-track {
+  height: 0.4375rem;
+  border: 1px solid var(--admin-border-subtle);
+  background: var(--admin-panel-hover);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
+.admin-theme .admin-projects-progress-fill,
+.admin-theme .admin-analytics-progress-fill {
+  box-shadow: 0 0 14px -2px var(--admin-gold-glow);
+  transition: width 0.85s var(--admin-ease-out);
+}
+
+.admin-theme .admin-analytics-progress-fill {
+  background: linear-gradient(
+    90deg,
+    var(--admin-emerald) 0%,
+    color-mix(in srgb, var(--admin-emerald) 40%, var(--admin-gold)) 55%,
+    var(--admin-gold) 100%
+  );
+}
+
+.admin-theme .admin-mobile-topbar {
+  border-bottom-color: color-mix(in srgb, var(--admin-gold) 18%, var(--admin-border-subtle));
+  box-shadow: 0 10px 32px -24px rgba(0, 0, 0, 0.75);
+}
+
+.admin-theme .admin-messages-layout .dm-list-panel,
+.admin-theme .admin-messages-layout .dm-chat-panel {
+  box-shadow:
+    0 14px 52px -22px rgba(0, 0, 0, 0.68),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.admin-theme .dm-list-item-main {
+  transition: background 0.3s var(--admin-ease-out);
+}
+
+.admin-theme .dm-list-item-active {
+  background: color-mix(in srgb, var(--admin-gold) 12%, transparent);
+}
+
+.admin-theme .dm-composer-input:focus {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--admin-gold) 22%, transparent);
+}
+
+.admin-theme .admin-luxury-card.animate-pulse,
+.admin-theme .admin-stat-card.animate-pulse {
+  animation: admin-shimmer 1.9s var(--admin-ease) infinite;
+}
+
+.admin-theme .admin-table-wrap tbody tr {
+  transition: background 0.28s ease;
+}
+
+.admin-theme .admin-table-wrap tbody tr:hover {
+  background: color-mix(in srgb, var(--admin-gold) 6%, transparent);
+}
+
+.admin-theme .admin-footer-gold-border {
+  opacity: 0.9;
+}
+
+.admin-theme .admin-logo-ring {
+  transition: box-shadow 0.4s var(--admin-ease-out), transform 0.4s var(--admin-ease-out);
+}
+
+.admin-theme .admin-sidebar-brand:hover .admin-logo-ring,
+.admin-theme a:hover .admin-logo-ring {
+  transform: scale(1.02);
+  box-shadow:
+    0 0 48px -8px var(--admin-gold-glow),
+    inset 0 0 22px -6px rgba(111, 143, 114, 0.35);
+}
+
+.admin-theme .admin-calendar-stat-card,
+.admin-theme .admin-calendar-filter-chip-active,
+.admin-theme .admin-analytics-funnel-row {
+  transition:
+    transform 0.35s var(--admin-ease-out),
+    border-color 0.3s ease,
+    box-shadow 0.35s ease;
+}
+
+.admin-theme .admin-calendar-stat-card:hover,
+.admin-theme .admin-analytics-funnel-row:hover {
+  border-color: color-mix(in srgb, var(--admin-gold) 24%, transparent);
+}
+
+.admin-theme .admin-leads-tabs,
+.admin-theme .admin-calendar-tabs,
+.admin-theme .admin-calendar-view-tabs {
+  scroll-snap-type: x proximity;
+  -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 1.75rem), transparent);
+  mask-image: linear-gradient(90deg, #000 calc(100% - 1.75rem), transparent);
+}
+
+.admin-theme .admin-leads-tab,
+.admin-theme .admin-calendar-tab,
+.admin-theme .admin-calendar-view-tab {
+  scroll-snap-align: start;
+  transition: all 0.35s var(--admin-ease-out);
+}
+
+.admin-theme .admin-projects-kanban-card {
+  transition:
+    transform 0.38s var(--admin-ease-out),
+    border-color 0.3s ease,
+    box-shadow 0.38s ease;
+}
+
+.admin-theme .admin-projects-kanban-card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--admin-gold) 26%, transparent);
+  box-shadow:
+    0 12px 32px -14px rgba(0, 0, 0, 0.65),
+    0 0 22px -12px var(--admin-gold-glow);
+}
+
+.admin-theme .admin-leads-table-row {
+  transition: background 0.28s ease;
+}
+
+.admin-theme .admin-leads-table-row:hover {
+  background: color-mix(in srgb, var(--admin-gold) 5%, transparent);
+}
+
+.admin-theme .admin-portal-switcher-btn-active {
+  box-shadow: 0 0 18px -8px var(--admin-gold-glow);
+}
+
+.admin-theme .admin-empty-icon-ring {
+  color: var(--admin-gold-light);
 }

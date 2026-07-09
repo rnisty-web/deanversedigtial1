@@ -86,11 +86,8 @@ export default async function PortalProjectDetailPage({
           <span className="uppercase tracking-[0.16em]">Stage</span>
           <span className="capitalize text-[var(--admin-gold-light)]">{project.status.replace(/_/g, " ")}</span>
         </div>
-        <div className="h-1.5 overflow-hidden rounded-full bg-[var(--admin-panel-hover)] ring-1 ring-[var(--admin-border-subtle)]">
-          <div
-            className="h-full rounded-full bg-gradient-to-r from-[var(--admin-emerald)] to-[var(--admin-gold)] transition-all duration-700"
-            style={{ width: `${progress}%` }}
-          />
+        <div className="portal-progress-track">
+          <div className="portal-progress-fill" style={{ width: `${progress}%` }} />
         </div>
         <div className="mt-3 flex gap-1">
           {WORKFLOW_STEPS.map((step) => {

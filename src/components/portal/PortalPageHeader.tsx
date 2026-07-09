@@ -43,9 +43,7 @@ export function PortalPageHeader({
 
       <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div className="min-w-0">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--admin-gold)]">
-            Client Portal
-          </p>
+          <p className="portal-eyebrow">Client Portal</p>
           <h1 className="admin-heading-serif mt-1 truncate text-2xl text-[var(--admin-text)] md:text-3xl">{title}</h1>
           {subtitle ? (
             <p className="portal-page-subtitle mt-2 max-w-2xl text-sm leading-relaxed text-[var(--admin-text-muted)]">{subtitle}</p>

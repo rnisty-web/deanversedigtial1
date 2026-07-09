@@ -41,14 +41,14 @@ export function AdminPageHeader({
   return (
     <header
       className={cn(
-        "admin-content-header shrink-0 border-b border-[var(--admin-border-subtle)] px-6 lg:px-8",
+        "admin-page-header admin-content-header shrink-0 border-b border-[var(--admin-border-subtle)] px-6 lg:px-8",
         sticky && "sticky top-0 z-20 bg-[color-mix(in_srgb,var(--admin-bg)_92%,transparent)] backdrop-blur-xl",
         className,
       )}
     >
       <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div className="min-w-0">
-          <h1 className="admin-heading-serif admin-content-title text-2xl text-[var(--admin-text)] md:text-3xl">
+          <h1 className="admin-heading-serif admin-content-title truncate text-2xl text-[var(--admin-text)] md:text-3xl">
             {title} {sparkle ? <span aria-hidden>✨</span> : null}
           </h1>
           {description ? (

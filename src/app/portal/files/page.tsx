@@ -279,11 +279,8 @@ function PortalFilesInner() {
               <p className="truncate text-[var(--admin-text)]">{uploadState.filename}</p>
               <span className="shrink-0 tabular-nums text-[var(--admin-text-muted)]">{uploadState.progress}%</span>
             </div>
-            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[var(--admin-panel-hover)]">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-[var(--admin-emerald)] to-[var(--admin-gold)] transition-all duration-200"
-                style={{ width: `${uploadState.progress}%` }}
-              />
+            <div className="portal-progress-track mt-2">
+              <div className="portal-progress-fill" style={{ width: `${uploadState.progress}%` }} />
             </div>
           </div>
         )}

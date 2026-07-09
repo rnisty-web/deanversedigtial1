@@ -15,12 +15,19 @@ import {
   groupConversations,
   replySubjectForConversation,
 } from "@/lib/messages/utils";
+import type { PortalMessageRecipient } from "@/lib/portal/message-recipients";
+
 import { cn } from "@/lib/utils";
+
+type PortalMessage = MessageRecord & {
+  recipient?: { full_name: string | null; email?: string };
+};
 
 type Project = { id: string; title: string };
 
 export default function PortalMessagesPage() {
-  const [messages, setMessages] = useState<MessageRecord[]>([]);
+  const [messages, setMessages] = useState<PortalMessage[]>([]);
+  const [recipients, setRecipients] = useState<PortalMessageRecipient[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,6 +41,7 @@ export default function PortalMessagesPage() {
   const [subject, setSubject] = useState("");
   const [content, setContent] = useState("");
   const [projectId, setProjectId] = useState("");
+  const [recipientId, setRecipientId] = useState("");
   const [composeSending, setComposeSending] = useState(false);
   const [composeError, setComposeError] = useState<string | null>(null);
   const [mobileChatOpen, setMobileChatOpen] = useState(false);
@@ -56,6 +64,12 @@ export default function PortalMessagesPage() {
     const msgData = await msgRes.json();
     setUserId(msgData.userId ?? null);
     setMessages(msgData.messages ?? []);
+    const loadedRecipients: PortalMessageRecipient[] = msgData.recipients ?? [];
+    setRecipients(loadedRecipients);
+    const defaultRecipient = loadedRecipients.find((item) => item.is_default) ?? loadedRecipients[0];
+    if (defaultRecipient) {
+      setRecipientId((current) => current || defaultRecipient.id);
+    }
 
     if (fileRes.ok) {
       const fileData = await fileRes.json();
@@ -148,6 +162,7 @@ export default function PortalMessagesPage() {
         subject: replySubjectForConversation(selected),
         content: replyContent,
         project_id: selected.projectId,
+        recipient_id: selected.counterpart.id,
       }),
     });
 
@@ -166,7 +181,7 @@ export default function PortalMessagesPage() {
 
   async function handleCompose(e: React.FormEvent) {
     e.preventDefault();
-    if (!content.trim()) return;
+    if (!content.trim() || !recipientId) return;
 
     setComposeSending(true);
     setComposeError(null);
@@ -179,6 +194,7 @@ export default function PortalMessagesPage() {
         subject: subject || undefined,
         content,
         project_id: projectId || null,
+        recipient_id: recipientId,
       }),
     });
 
@@ -189,6 +205,8 @@ export default function PortalMessagesPage() {
       setSubject("");
       setContent("");
       setProjectId("");
+      const defaultRecipient = recipients.find((item) => item.is_default) ?? recipients[0];
+      setRecipientId(defaultRecipient?.id ?? "");
       await fetchMessages();
       return;
     }
@@ -221,7 +239,16 @@ export default function PortalMessagesPage() {
         activeTab={filter}
         onTabChange={(id) => setFilter(id as "all" | "unread")}
         actions={
-          <Button size="sm" className="admin-btn-gold" onClick={() => setShowCompose(true)}>
+          <Button
+            size="sm"
+            className="admin-btn-gold"
+            onClick={() => {
+              const defaultRecipient = recipients.find((item) => item.is_default) ?? recipients[0];
+              if (defaultRecipient) setRecipientId(defaultRecipient.id);
+              setShowCompose(true);
+            }}
+            disabled={recipients.length === 0}
+          >
             New message
           </Button>
         }
@@ -283,6 +310,32 @@ export default function PortalMessagesPage() {
         footer={null}
       >
         <form onSubmit={handleCompose} className="space-y-4">
+          {recipients.length > 0 ? (
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-[var(--admin-text-muted)]">
+                Send to
+              </label>
+              <select
+                required
+                value={recipientId}
+                onChange={(e) => setRecipientId(e.target.value)}
+                className="admin-input admin-entity-select w-full"
+              >
+                <option value="" disabled>
+                  Choose a team member…
+                </option>
+                {recipients.map((recipient) => (
+                  <option key={recipient.id} value={recipient.id}>
+                    {recipient.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : (
+            <AdminAlert tone="warning">
+              No team members are available to receive messages right now.
+            </AdminAlert>
+          )}
           {projects.length > 0 ? (
             <div>
               <label className="mb-1.5 block text-sm font-medium text-[var(--admin-text-muted)]">
@@ -332,7 +385,7 @@ export default function PortalMessagesPage() {
             >
               Cancel
             </Button>
-            <Button size="sm" type="submit" className="admin-btn-gold" disabled={composeSending}>
+            <Button size="sm" type="submit" className="admin-btn-gold" disabled={composeSending || !recipientId}>
               {composeSending ? "Sending…" : "Send message"}
             </Button>
           </div>

@@ -36,13 +36,14 @@ function getOwnerRecipient(): string {
 export async function sendOwnerNotification(options: {
   subject: string;
   html: string;
+  to?: string;
 }): Promise<void> {
   const resend = getResend();
   if (!resend) return;
 
   await resend.emails.send({
     from: `DeanVerse Digital <${getFromAddress()}>`,
-    to: getOwnerRecipient(),
+    to: options.to?.trim() || getOwnerRecipient(),
     subject: options.subject,
     html: options.html,
   });

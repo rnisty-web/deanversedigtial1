@@ -1,36 +1,16 @@
 import { NextResponse } from "next/server";
-import { getOwnerEmail, verifyAuthApi } from "@/lib/auth";
+import { verifyAuthApi } from "@/lib/auth";
 import { escapeHtml, sendOwnerNotification } from "@/lib/email";
 import { siteConfig } from "@/lib/constants";
 import { getPortalSenderName } from "@/lib/portal/client-access";
+import {
+  getPortalMessageRecipients,
+  resolveStaffRecipient,
+} from "@/lib/portal/message-recipients";
 import { resolvePortalClient } from "@/lib/portal/resolve-portal-client";
 
-async function getOwnerProfile(
-  supabase: NonNullable<Awaited<ReturnType<typeof verifyAuthApi>>["supabase"]>,
-) {
-  const ownerEmail = getOwnerEmail();
-  const { data: byEmail } = await supabase
-    .from("profiles")
-    .select("id")
-    .ilike("email", ownerEmail)
-    .limit(1)
-    .maybeSingle();
-
-  if (byEmail) return byEmail;
-
-  const { data: byRole } = await supabase
-    .from("profiles")
-    .select("id")
-    .eq("role", "admin")
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-
-  return byRole;
-}
-
 const MESSAGE_FIELDS =
-  "id, subject, content, read, created_at, project_id, sender_id, recipient_id, sender:profiles!messages_sender_id_fkey(full_name, email), projects(title)" as const;
+  "id, subject, content, read, created_at, project_id, sender_id, recipient_id, sender:profiles!messages_sender_id_fkey(full_name, email), recipient:profiles!messages_recipient_id_fkey(full_name, email), projects(title)" as const;
 
 function sanitizeMessage(message: Record<string, unknown>, userId: string) {
   const sender = message.sender as
@@ -38,8 +18,14 @@ function sanitizeMessage(message: Record<string, unknown>, userId: string) {
     | { full_name: string | null; email?: string }[]
     | null
     | undefined;
+  const recipient = message.recipient as
+    | { full_name: string | null; email?: string }
+    | { full_name: string | null; email?: string }[]
+    | null
+    | undefined;
 
   const senderProfile = Array.isArray(sender) ? sender[0] : sender;
+  const recipientProfile = Array.isArray(recipient) ? recipient[0] : recipient;
   const isOutgoing = message.sender_id === userId;
 
   return {
@@ -58,6 +44,12 @@ function sanitizeMessage(message: Record<string, unknown>, userId: string) {
         : getPortalSenderName(senderProfile),
       email: senderProfile?.email,
     },
+    recipient: {
+      full_name: isOutgoing
+        ? getPortalSenderName(recipientProfile, "Team member")
+        : "You",
+      email: recipientProfile?.email,
+    },
     projects: message.projects ?? null,
   };
 }
@@ -68,11 +60,16 @@ export async function GET() {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
 
-  const { data: messages, error } = await auth.supabase!
-    .from("messages")
-    .select(MESSAGE_FIELDS)
-    .or(`sender_id.eq.${auth.user!.id},recipient_id.eq.${auth.user!.id}`)
-    .order("created_at", { ascending: false });
+  const [messagesResult, recipients] = await Promise.all([
+    auth.supabase!
+      .from("messages")
+      .select(MESSAGE_FIELDS)
+      .or(`sender_id.eq.${auth.user!.id},recipient_id.eq.${auth.user!.id}`)
+      .order("created_at", { ascending: false }),
+    getPortalMessageRecipients(),
+  ]);
+
+  const { data: messages, error } = messagesResult;
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -80,6 +77,7 @@ export async function GET() {
 
   return NextResponse.json({
     userId: auth.user!.id,
+    recipients,
     messages: (messages ?? []).map((msg) =>
       sanitizeMessage(msg as Record<string, unknown>, auth.user!.id),
     ),
@@ -93,10 +91,19 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { subject, content, project_id } = body;
+  const { subject, content, project_id, recipient_id } = body;
 
   if (!content) {
     return NextResponse.json({ error: "Message content is required" }, { status: 400 });
+  }
+
+  if (!recipient_id || typeof recipient_id !== "string") {
+    return NextResponse.json({ error: "Recipient is required" }, { status: 400 });
+  }
+
+  const recipient = await resolveStaffRecipient(recipient_id);
+  if (!recipient) {
+    return NextResponse.json({ error: "Invalid recipient" }, { status: 400 });
   }
 
   if (project_id) {
@@ -119,16 +126,11 @@ export async function POST(request: Request) {
     }
   }
 
-  const owner = await getOwnerProfile(auth.supabase!);
-  if (!owner) {
-    return NextResponse.json({ error: "No staff contact found" }, { status: 500 });
-  }
-
   const { data: message, error } = await auth.supabase!
     .from("messages")
     .insert({
       sender_id: auth.user!.id,
-      recipient_id: owner.id,
+      recipient_id: recipient.id,
       subject: subject ?? null,
       content,
       project_id: project_id ?? null,
@@ -146,6 +148,7 @@ export async function POST(request: Request) {
     "Portal client";
 
   await sendOwnerNotification({
+    to: recipient.email,
     subject: `Portal message from ${senderName}`,
     html: `
       <h2>New portal message</h2>

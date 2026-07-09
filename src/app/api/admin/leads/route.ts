@@ -201,6 +201,27 @@ async function handleConvert(
     return NextResponse.json({ error: clientError.message }, { status: 500 });
   }
 
+  const { data: existingProfile } = await auth.supabase!
+    .from("profiles")
+    .select("id")
+    .ilike("email", client.email.trim())
+    .maybeSingle();
+
+  if (existingProfile) {
+    const { data: linkedClient } = await auth.supabase!
+      .from("clients")
+      .update({ profile_id: existingProfile.id })
+      .eq("id", newClient.id)
+      .select()
+      .single();
+
+    if (linkedClient) {
+      Object.assign(newClient, linkedClient);
+    } else {
+      newClient.profile_id = existingProfile.id;
+    }
+  }
+
   let newProject = null;
 
   if (project?.title) {

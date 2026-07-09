@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { ensurePortalClient } from "@/lib/portal/provision-portal-client";
 
 export type PortalClient = {
   id: string;
@@ -14,6 +15,26 @@ export type PortalClient = {
  * Auto-links profile_id when the client row was created from a lead before signup.
  */
 export async function resolvePortalClient(
+  supabase: SupabaseClient,
+  userId: string,
+  userEmail: string,
+  options?: { fullName?: string | null; phone?: string | null; company?: string | null },
+): Promise<PortalClient | null> {
+  const resolved = await resolvePortalClientInternal(supabase, userId, userEmail);
+  if (resolved) return resolved;
+
+  await ensurePortalClient({
+    userId,
+    email: userEmail,
+    fullName: options?.fullName,
+    phone: options?.phone,
+    company: options?.company,
+  });
+
+  return resolvePortalClientInternal(supabase, userId, userEmail);
+}
+
+async function resolvePortalClientInternal(
   supabase: SupabaseClient,
   userId: string,
   userEmail: string,

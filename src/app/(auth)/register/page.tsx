@@ -59,6 +59,7 @@ export default function RegisterPage() {
     setLoading(false);
 
     if (data.session) {
+      await fetch("/api/portal/provision", { method: "POST", credentials: "same-origin" });
       router.push("/portal");
       router.refresh();
       return;

@@ -22,7 +22,11 @@ export type ClientInvoice = {
 async function getPortalClient(userId: string) {
   const supabase = await createClient();
   const profile = await getProfile();
-  return resolvePortalClient(supabase, userId, profile?.email ?? "");
+  return resolvePortalClient(supabase, userId, profile?.email ?? "", {
+    fullName: profile?.full_name,
+    phone: profile?.phone,
+    company: profile?.company,
+  });
 }
 
 export async function getClientInvoices(userId: string) {

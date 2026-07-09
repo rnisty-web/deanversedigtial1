@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createServiceRoleClient } from "@/lib/supabase/server";
 import { resolvePortalClient } from "@/lib/portal/resolve-portal-client";
 
 export type PendingInquiryState = {
@@ -33,7 +34,9 @@ export async function getPendingInquiryState(
   let hasLead = false;
 
   if (email) {
-    const { data: lead } = await supabase
+    const admin = createServiceRoleClient();
+    const leadClient = admin ?? supabase;
+    const { data: lead } = await leadClient
       .from("leads")
       .select("id")
       .ilike("email", email)

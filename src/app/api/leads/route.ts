@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
 import { Resend } from "resend";
 import { siteConfig } from "@/lib/constants";
+import { upsertClientFromLead } from "@/lib/portal/provision-portal-client";
 import {
   checkRateLimit,
   getClientIp,
   rateLimitResponse,
 } from "@/lib/rate-limit";
+import { createServiceRoleClient } from "@/lib/supabase/server";
 import { isTurnstileConfigured, verifyTurnstileToken } from "@/lib/turnstile";
 
 const resend = process.env.RESEND_API_KEY
@@ -69,27 +70,32 @@ export async function POST(request: Request) {
       );
     }
 
-    const supabase = await createClient();
-    const { data: lead, error } = await supabase
-      .from("leads")
-      .insert({
-        name,
-        email,
-        phone: phone ?? null,
-        company: company ?? null,
-        message: message ?? null,
-        service_interest: service_interest ?? null,
-        budget: budget ?? null,
-        project_type: project_type ?? service_interest ?? null,
-        source: source ?? "website",
-        status: "new",
-      })
-      .select()
-      .single();
+    const supabase = createServiceRoleClient();
+    if (!supabase) {
+      return NextResponse.json(
+        { error: "Server configuration error. Please try again later." },
+        { status: 500 },
+      );
+    }
+
+    const { error } = await supabase.from("leads").insert({
+      name,
+      email,
+      phone: phone ?? null,
+      company: company ?? null,
+      message: message ?? null,
+      service_interest: service_interest ?? null,
+      budget: budget ?? null,
+      project_type: project_type ?? service_interest ?? null,
+      source: source ?? "website",
+      status: "new",
+    });
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+
+    await upsertClientFromLead({ name, email, phone, company });
 
     if (resend) {
       const from = process.env.RESEND_FROM_EMAIL ?? siteConfig.email;
@@ -104,38 +110,43 @@ export async function POST(request: Request) {
       const safeMessage = message ? escapeHtml(message) : "";
       const safeSource = escapeHtml(source ?? "website");
 
-      await resend.emails.send({
-        from: `DeanVerse Digital <${from}>`,
-        to,
-        subject: `New lead: ${name}`,
-        html: `
-          <h2>New Lead from ${siteConfig.name}</h2>
-          <p><strong>Name:</strong> ${safeName}</p>
-          <p><strong>Email:</strong> ${safeEmail}</p>
-          ${safePhone ? `<p><strong>Phone:</strong> ${safePhone}</p>` : ""}
-          ${safeCompany ? `<p><strong>Company:</strong> ${safeCompany}</p>` : ""}
-          ${safeService ? `<p><strong>Service:</strong> ${safeService}</p>` : ""}
-          ${safeBudget ? `<p><strong>Budget:</strong> ${safeBudget}</p>` : ""}
-          ${safeProjectType ? `<p><strong>Project Type:</strong> ${safeProjectType}</p>` : ""}
-          ${safeMessage ? `<p><strong>Message:</strong> ${safeMessage}</p>` : ""}
-          <p><strong>Source:</strong> ${safeSource}</p>
-        `,
-      });
+      try {
+        await resend.emails.send({
+          from: `DeanVerse Digital <${from}>`,
+          to,
+          subject: `New lead: ${name}`,
+          html: `
+            <h2>New Lead from ${siteConfig.name}</h2>
+            <p><strong>Name:</strong> ${safeName}</p>
+            <p><strong>Email:</strong> ${safeEmail}</p>
+            ${safePhone ? `<p><strong>Phone:</strong> ${safePhone}</p>` : ""}
+            ${safeCompany ? `<p><strong>Company:</strong> ${safeCompany}</p>` : ""}
+            ${safeService ? `<p><strong>Service:</strong> ${safeService}</p>` : ""}
+            ${safeBudget ? `<p><strong>Budget:</strong> ${safeBudget}</p>` : ""}
+            ${safeProjectType ? `<p><strong>Project Type:</strong> ${safeProjectType}</p>` : ""}
+            ${safeMessage ? `<p><strong>Message:</strong> ${safeMessage}</p>` : ""}
+            <p><strong>Source:</strong> ${safeSource}</p>
+          `,
+        });
 
-      await resend.emails.send({
-        from: `DeanVerse Digital <${from}>`,
-        to: email,
-        subject: `Thanks for reaching out — ${siteConfig.name}`,
-        html: `
-          <h2>Hi ${safeName},</h2>
-          <p>Thank you for contacting ${siteConfig.name}. We've received your inquiry and will get back to you within 24 hours.</p>
-          <p>Best,<br/>Andrey<br/>${siteConfig.name}</p>
-        `,
-      });
+        await resend.emails.send({
+          from: `DeanVerse Digital <${from}>`,
+          to: email,
+          subject: `Thanks for reaching out — ${siteConfig.name}`,
+          html: `
+            <h2>Hi ${safeName},</h2>
+            <p>Thank you for contacting ${siteConfig.name}. We've received your inquiry and will get back to you within 24 hours.</p>
+            <p>Best,<br/>Andrey<br/>${siteConfig.name}</p>
+          `,
+        });
+      } catch (emailError) {
+        console.error("Lead notification email failed:", emailError);
+      }
     }
 
-    return NextResponse.json({ lead }, { status: 201 });
-  } catch {
+    return NextResponse.json({ ok: true }, { status: 201 });
+  } catch (error) {
+    console.error("Lead submission failed:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

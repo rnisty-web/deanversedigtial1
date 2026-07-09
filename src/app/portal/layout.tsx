@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { requireAuth } from "@/lib/auth";
 import { isStaffRole } from "@/lib/roles";
 import { getRoleCatalogSafe } from "@/lib/roles/catalog-server";
+import { ensurePortalClient } from "@/lib/portal/provision-portal-client";
 import { getDashboardThemeSafe } from "@/lib/settings/dashboard-theme-server";
 import { AdminFooter } from "@/components/admin/AdminFooter";
 import { PortalMobileNav } from "@/components/portal/PortalMobileNav";
@@ -27,6 +28,16 @@ export default async function PortalLayout({
   const roleCatalog = await getRoleCatalogSafe();
   const dashboardTheme = await getDashboardThemeSafe();
   const canAccessAdmin = isStaffRole(profile, roleCatalog);
+
+  if (!canAccessAdmin) {
+    await ensurePortalClient({
+      userId: profile.id,
+      email: profile.email,
+      fullName: profile.full_name,
+      phone: profile.phone,
+      company: profile.company,
+    });
+  }
 
   return (
     <div

@@ -16,7 +16,8 @@ Run these scripts **in order** in the Supabase SQL Editor (or via CLI). Each fil
 | 8 | `multi-roles.sql` | Multi-role support via junction table |
 | 9 | `role-catalog.sql` | Custom roles, enum extension, catalog settings |
 | 10 | `dashboard-theme.sql` | Dashboard color theme setting seed |
-| 9 | `storage-email-clients.sql` | Storage read access for email-matched clients (optional) |
+| 11 | `portal-auto-provision.sql` | Auto client rows on signup, invoice/lead RLS for portal users |
+| 12 | `storage-email-clients.sql` | Storage read access for email-matched clients (optional) |
 
 ## Notes
 

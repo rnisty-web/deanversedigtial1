@@ -62,7 +62,7 @@ export const CMS_PAGE_LABELS: Record<CMSPagePath, string> = {
 
 /** CMS keys that affect each public page (for targeted revalidation). */
 export const CMS_KEYS_BY_PAGE: Record<CMSPagePath, CMSKey[]> = {
-  "/": ["site", "hero", "stats", "process", "cta"],
+  "/": ["site", "hero", "stats", "about", "process", "cta"],
   "/about": ["site", "about", "techStack"],
   "/services": ["site", "services"],
   "/pricing": ["site", "pricing"],

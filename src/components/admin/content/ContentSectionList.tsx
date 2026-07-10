@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { DragHandleIcon, MoreMenuIcon, SectionIcon } from "@/components/admin/content/SectionIcon";
+import { getSectionPageHint } from "@/lib/cms/page-groups";
 import { isHomepageLayoutSection, type CMSLayout } from "@/lib/cms/layout";
 import type { CMSContent } from "@/lib/cms/types";
 import {
@@ -110,8 +111,8 @@ export function ContentSectionList({
                   <span className="block truncate text-sm font-medium text-[var(--admin-text)]">
                     {title}
                   </span>
-                  <span className="mt-0.5 block text-xs text-[var(--admin-text-muted)]">
-                    {section.typeLabel}
+                  <span className="mt-0.5 block text-xs text-[#a3c9a8]/80">
+                    {getSectionPageHint(section.id)}
                   </span>
                 </span>
               </button>

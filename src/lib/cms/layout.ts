@@ -18,6 +18,7 @@ export type CMSLayout = {
 export const HOMEPAGE_SECTION_KEYS: SectionId[] = [
   "hero",
   "stats",
+  "about",
   "portfolio",
   "process",
   "testimonials",

@@ -69,7 +69,7 @@ export function ContentEditorHeader({
             </Link>
           </div>
           <p className="mt-1 text-sm text-[var(--admin-text-muted)]">
-            Manage homepage sections, page content, and site-wide settings
+            Edit your site by page — pick a tab below, then choose a section to update
           </p>
         </div>
 

@@ -1,3 +1,4 @@
+import { AboutPreview } from "@/components/home/AboutPreview";
 import { CtaBanner } from "@/components/home/CtaBanner";
 import { HeroSection } from "@/components/home/HeroSection";
 import { PortfolioPreview } from "@/components/home/PortfolioPreview";
@@ -29,6 +30,11 @@ function renderHomepageSection(
       return <HeroSection key={id} />;
     case "stats":
       return <StatsStrip key={id} />;
+    case "about":
+      if (!isHomepageSectionPublished(layout, "about")) {
+        return null;
+      }
+      return <AboutPreview key={id} />;
     case "portfolio":
       if (!isHomepageSectionPublished(layout, "portfolio") || projects.length === 0) {
         return null;

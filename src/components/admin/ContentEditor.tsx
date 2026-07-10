@@ -28,16 +28,20 @@ import { Button } from "@/components/ui/Button";
 import { defaultCMSLayout, formatLayoutDate, getHomepageOrder, applyHomepageOrder, reorderFullOrder, setLayoutSectionStatus, type CMSLayout } from "@/lib/cms/layout";
 import { getSectionLivePath, isHomepageSection } from "@/lib/cms/pages";
 import { isHomepageLayoutSection } from "@/lib/cms/layout";
+import {
+  CONTENT_PAGE_GROUP_TABS,
+  filterSectionsByPageGroup,
+  getPageGroup,
+  getSectionPageHint,
+  type ContentPageGroupId,
+} from "@/lib/cms/page-groups";
 import { computeCMSStats } from "@/lib/cms/stats";
 import {
-  FILTER_TABS,
   filterSectionsBySearch,
   getSectionDisplayTitle,
-  getSectionsByCategory,
   isCMSKey,
   orderedSections,
   SECTION_BY_ID,
-  type SectionFilter,
   type SectionId,
 } from "@/lib/cms/sections";
 import type { CMSContent, CMSKey } from "@/lib/cms/types";
@@ -50,7 +54,7 @@ export function ContentEditor() {
   const [savedLayout, setSavedLayout] = useState<CMSLayout>(defaultCMSLayout());
 
   const [activeSection, setActiveSection] = useState<SectionId>("hero");
-  const [categoryFilter, setCategoryFilter] = useState<SectionFilter>("all");
+  const [pageGroupFilter, setPageGroupFilter] = useState<ContentPageGroupId>("home");
   const [search, setSearch] = useState("");
   const [viewport, setViewport] = useState<PreviewViewport>("desktop");
   const [showPreview, setShowPreview] = useState(true);
@@ -91,18 +95,21 @@ export function ContentEditor() {
   }
 
   const visibleSections = useMemo(() => {
-    const byCategory = getSectionsByCategory(categoryFilter);
-    const byOrder = orderedSections(layout.order).filter((s) => byCategory.some((c) => c.id === s.id));
-    return filterSectionsBySearch(byOrder, search);
-  }, [categoryFilter, layout.order, search]);
+    const byOrder = orderedSections(layout.order);
+    const byPage = filterSectionsByPageGroup(byOrder, pageGroupFilter);
+    return filterSectionsBySearch(byPage, search);
+  }, [pageGroupFilter, layout.order, search]);
 
   const tabCounts = useMemo(() => {
+    const ordered = orderedSections(layout.order);
     const counts: Record<string, number> = {};
-    for (const tab of FILTER_TABS) {
-      counts[tab.id] = getSectionsByCategory(tab.id).length;
+    for (const tab of CONTENT_PAGE_GROUP_TABS) {
+      counts[tab.id] = filterSectionsByPageGroup(ordered, tab.id as ContentPageGroupId).length;
     }
     return counts;
-  }, []);
+  }, [layout.order]);
+
+  const activePageGroup = getPageGroup(pageGroupFilter);
 
   const draftSections = useMemo(
     () =>
@@ -147,7 +154,16 @@ export function ContentEditor() {
     return () => window.removeEventListener("beforeunload", onBeforeUnload);
   }, [sectionDirty]);
 
-  const listReorderEnabled = categoryFilter === "all" && !search.trim();
+  const listReorderEnabled = pageGroupFilter === "all" && !search.trim();
+
+  function handlePageGroupChange(groupId: ContentPageGroupId) {
+    setPageGroupFilter(groupId);
+    const nextSections = filterSectionsByPageGroup(orderedSections(layout.order), groupId);
+    if (nextSections.length > 0 && !nextSections.some((section) => section.id === activeSection)) {
+      setActiveSection(nextSections[0].id);
+    }
+    setMessage(null);
+  }
 
   function selectSection(id: SectionId) {
     if (sectionDirty && id !== activeSection) {
@@ -422,11 +438,27 @@ export function ContentEditor() {
       />
 
       <ContentFilterTabs
-        tabs={FILTER_TABS}
-        active={categoryFilter}
-        onChange={(id) => setCategoryFilter(id as SectionFilter)}
+        tabs={CONTENT_PAGE_GROUP_TABS}
+        active={pageGroupFilter}
+        onChange={(id) => handlePageGroupChange(id as ContentPageGroupId)}
         counts={tabCounts}
       />
+
+      <p className="shrink-0 border-b border-[var(--admin-border-subtle)] px-6 pb-3 text-sm text-[var(--admin-text-muted)] lg:px-8">
+        {activePageGroup.description}
+        {activePageGroup.path ? (
+          <>
+            {" "}
+            <Link
+              href={activePageGroup.path}
+              target="_blank"
+              className="text-[#a3c9a8] hover:underline"
+            >
+              View {activePageGroup.path}
+            </Link>
+          </>
+        ) : null}
+      </p>
 
       <ContentOverviewStats stats={cmsStats} />
 
@@ -476,6 +508,8 @@ export function ContentEditor() {
                       {getSectionDisplayTitle(activeDef, content, activeMeta?.displayName)}
                     </h2>
                     <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-[var(--admin-text-muted)]">
+                      <span className="text-[#a3c9a8]/90">{getSectionPageHint(activeSection)}</span>
+                      <span>·</span>
                       <span
                         className={cn(
                           "admin-content-status-badge",

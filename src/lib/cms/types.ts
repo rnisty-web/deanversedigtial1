@@ -42,6 +42,11 @@ export type AboutSettings = {
   intro: string;
   story: string;
   skills: string[];
+  /** Short teaser on homepage About section (falls back to intro). */
+  homepageTeaser: string;
+  skillsHeadline: string;
+  skillsSubtitle: string;
+  techStackHeadline: string;
 };
 
 export type ServiceItem = {

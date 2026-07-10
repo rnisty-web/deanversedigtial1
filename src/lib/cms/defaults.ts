@@ -51,6 +51,11 @@ export const cmsDefaults: CMSContent = {
     intro: aboutStory.intro,
     story: aboutStory.paragraphs.join("\n\n"),
     skills: [...aboutStory.skills],
+    homepageTeaser: aboutStory.intro,
+    skillsHeadline: "Tools and expertise I bring to every project",
+    skillsSubtitle:
+      "A modern stack focused on performance, maintainability, and beautiful user experiences.",
+    techStackHeadline: "Tech Stack",
   },
   services: allServices.map((s) => ({
     id: s.id,

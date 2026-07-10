@@ -87,8 +87,8 @@ export default async function AboutPage() {
         <div className="mx-auto max-w-7xl">
           <SectionHeading
             eyebrow="Skills"
-            title="Tools and expertise I bring to every project"
-            subtitle="A modern stack focused on performance, maintainability, and beautiful user experiences."
+            title={about.skillsHeadline}
+            subtitle={about.skillsSubtitle}
           />
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -104,7 +104,7 @@ export default async function AboutPage() {
           <Reveal className="mt-12">
             <GlassCard hover={false} padding="lg">
               <h3 className="mb-6 text-lg font-semibold text-white">
-                Tech Stack
+                {about.techStackHeadline}
               </h3>
               <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
                 {techStack.map((tech) => (

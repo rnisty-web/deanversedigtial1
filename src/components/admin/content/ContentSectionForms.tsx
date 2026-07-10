@@ -346,6 +346,10 @@ function renderProcessTab(steps: ProcessStep[], updateSection: ContentSectionFor
 function renderAboutTab(about: AboutSettings, updateSection: ContentSectionFormsProps["updateSection"]) {
   return (
     <div className="space-y-4">
+      <p className="rounded-xl border border-[#6f8f72]/20 bg-[#6f8f72]/5 px-4 py-3 text-sm text-[var(--admin-text-muted)]">
+        This content appears on your <strong className="text-[#a3c9a8]">homepage About section</strong> and the full{" "}
+        <strong className="text-[#a3c9a8]">/about page</strong>. Edit Tech Stack separately for the tools list at the bottom of /about.
+      </p>
       <AdminField
         label="Headline"
         value={about.headline}
@@ -357,6 +361,15 @@ function renderAboutTab(about: AboutSettings, updateSection: ContentSectionForms
         onChange={(v) => updateSection("about", { ...about, intro: v })}
         multiline
         rows={2}
+        hint="Full intro on /about page"
+      />
+      <AdminField
+        label="Homepage teaser"
+        value={about.homepageTeaser}
+        onChange={(v) => updateSection("about", { ...about, homepageTeaser: v })}
+        multiline
+        rows={2}
+        hint="Short text on homepage About section (leave empty to use Intro)"
       />
       <AdminField
         label="Story"
@@ -364,13 +377,33 @@ function renderAboutTab(about: AboutSettings, updateSection: ContentSectionForms
         onChange={(v) => updateSection("about", { ...about, story: v })}
         multiline
         rows={6}
-        hint="Use blank lines to separate paragraphs"
+        hint="/about page only — use blank lines between paragraphs"
       />
       <ArrayFieldEditor
         label="Skills"
         items={about.skills}
         onChange={(skills) => updateSection("about", { ...about, skills })}
         placeholder="Add Skill"
+      />
+      <AdminField
+        label="Skills section title"
+        value={about.skillsHeadline}
+        onChange={(v) => updateSection("about", { ...about, skillsHeadline: v })}
+        hint="/about page"
+      />
+      <AdminField
+        label="Skills section subtitle"
+        value={about.skillsSubtitle}
+        onChange={(v) => updateSection("about", { ...about, skillsSubtitle: v })}
+        multiline
+        rows={2}
+        hint="/about page"
+      />
+      <AdminField
+        label="Tech stack heading"
+        value={about.techStackHeadline}
+        onChange={(v) => updateSection("about", { ...about, techStackHeadline: v })}
+        hint="Title above the tech list on /about (edit list in Tech Stack section)"
       />
     </div>
   );
@@ -657,6 +690,9 @@ function renderCtaTab(cta: CtaSettings, updateSection: ContentSectionFormsProps[
 function renderTechStackTab(items: TechItem[], updateSection: ContentSectionFormsProps["updateSection"]) {
   return (
     <div className="space-y-4">
+      <p className="rounded-xl border border-[#6f8f72]/20 bg-[#6f8f72]/5 px-4 py-3 text-sm text-[var(--admin-text-muted)]">
+        These tools appear at the bottom of your <strong className="text-[#a3c9a8]">/about page</strong>. Edit the section title in the <strong className="text-[#a3c9a8]">About</strong> section.
+      </p>
       {items.map((item, i) => (
         <SectionCard
           key={i}

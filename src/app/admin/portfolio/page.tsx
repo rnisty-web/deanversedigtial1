@@ -619,6 +619,16 @@ export default function AdminPortfolioPage() {
           onClose={closeForm}
           title={editId ? "Edit project" : "New project"}
           size="xl"
+          footer={
+            <div className="flex justify-end gap-2">
+              <Button variant="ghost" size="sm" className="admin-btn-ghost" type="button" onClick={closeForm}>
+                Cancel
+              </Button>
+              <Button size="sm" className="admin-btn-gold" type="submit" form="portfolio-form" disabled={saving}>
+                {saving ? "Saving…" : editId ? "Update Project" : "Create Project"}
+              </Button>
+            </div>
+          }
         >
           <form id="portfolio-form" onSubmit={handleSubmit} className="space-y-6">
             <div className="grid gap-4 sm:grid-cols-2">
@@ -711,15 +721,6 @@ export default function AdminPortfolioPage() {
             </div>
 
             {formError && <AdminAlert tone="error">{formError}</AdminAlert>}
-
-            <div className="flex justify-end gap-2 border-t border-[var(--admin-border-subtle)] pt-4">
-              <Button variant="ghost" size="sm" className="admin-btn-ghost" type="button" onClick={closeForm}>
-                Cancel
-              </Button>
-              <Button size="sm" className="admin-btn-gold" type="submit" disabled={saving}>
-                {saving ? "Saving…" : editId ? "Update Project" : "Create Project"}
-              </Button>
-            </div>
           </form>
         </AdminModal>
       </AdminPageContent>

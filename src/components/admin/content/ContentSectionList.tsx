@@ -64,7 +64,7 @@ export function ContentSectionList({
   }
 
   return (
-    <div className="admin-content-section-list flex-1 overflow-y-auto p-3">
+    <div className="admin-scroll admin-content-section-list flex-1 overflow-y-auto p-3">
       <ul className="space-y-2">
         {sections.map((section, index) => {
           const meta = layout.meta[section.id];

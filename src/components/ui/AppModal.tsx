@@ -128,12 +128,21 @@ export function AppModal({
           </button>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 py-4">
+        <div className="admin-scroll admin-modal-body min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 py-4">
           {children}
         </div>
 
         {footer !== undefined ? (
-          footer ? <div className="shrink-0">{footer}</div> : null
+          footer ? (
+            <div
+              className={cn(
+                "shrink-0 border-t px-6 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]",
+                styles.footerBorder,
+              )}
+            >
+              {footer}
+            </div>
+          ) : null
         ) : (
           <div
             className={cn(

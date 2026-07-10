@@ -274,8 +274,22 @@ export function RolesManager({
         })}
       </div>
 
-      <AdminModal open={createOpen} onClose={() => setCreateOpen(false)} title="Create Role">
-        <form onSubmit={handleCreate} className="space-y-4">
+      <AdminModal
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        title="Create Role"
+        footer={
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="ghost" size="sm" className="admin-btn-ghost" onClick={() => setCreateOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" form="create-role-form" size="sm" className="admin-btn-gold" disabled={creating}>
+              {creating ? "Creating…" : "Create Role"}
+            </Button>
+          </div>
+        }
+      >
+        <form id="create-role-form" onSubmit={handleCreate} className="space-y-4">
           <AdminField
             label="Role name"
             value={createForm.label}
@@ -302,14 +316,6 @@ export function RolesManager({
               </span>
             </span>
           </label>
-          <div className="flex justify-end gap-2 border-t border-[var(--admin-border-subtle)] pt-4">
-            <Button type="button" variant="ghost" size="sm" className="admin-btn-ghost" onClick={() => setCreateOpen(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" size="sm" className="admin-btn-gold" disabled={creating}>
-              {creating ? "Creating…" : "Create Role"}
-            </Button>
-          </div>
         </form>
       </AdminModal>
 
@@ -320,9 +326,30 @@ export function RolesManager({
           setEditForm(null);
         }}
         title="Edit Role"
+        footer={
+          editForm ? (
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="admin-btn-ghost"
+                onClick={() => {
+                  setEditSlug(null);
+                  setEditForm(null);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" form="edit-role-form" size="sm" className="admin-btn-gold" disabled={saving}>
+                {saving ? "Saving…" : "Save Role"}
+              </Button>
+            </div>
+          ) : null
+        }
       >
         {editForm ? (
-          <form onSubmit={handleSaveEdit} className="space-y-4">
+          <form id="edit-role-form" onSubmit={handleSaveEdit} className="space-y-4">
             <AdminField
               label="Role name"
               value={editForm.label}
@@ -350,23 +377,6 @@ export function RolesManager({
                 </span>
               </label>
             ) : null}
-            <div className="flex justify-end gap-2 border-t border-[var(--admin-border-subtle)] pt-4">
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="admin-btn-ghost"
-                onClick={() => {
-                  setEditSlug(null);
-                  setEditForm(null);
-                }}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" size="sm" className="admin-btn-gold" disabled={saving}>
-                {saving ? "Saving…" : "Save Role"}
-              </Button>
-            </div>
           </form>
         ) : null}
       </AdminModal>

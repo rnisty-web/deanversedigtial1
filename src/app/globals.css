@@ -962,6 +962,7 @@ body {
   gap: 0.875rem;
   min-height: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
   border-left: 1px solid var(--admin-border-subtle);
   background: rgba(8, 8, 8, 0.45);
   padding: 1rem;
@@ -1176,6 +1177,14 @@ body {
   position: relative;
   min-height: 180px;
   background: linear-gradient(165deg, #0f1a17 0%, #050505 100%);
+}
+
+.admin-content-save-bar {
+  background: linear-gradient(
+    0deg,
+    rgba(17, 17, 17, 0.98) 0%,
+    rgba(8, 8, 8, 0.95) 100%
+  );
 }
 
 .admin-content-reorder-bar {
@@ -5230,6 +5239,7 @@ body {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .admin-messages-list-item {
@@ -5345,6 +5355,7 @@ body {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 1rem;
 }
 

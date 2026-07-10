@@ -411,8 +411,28 @@ export default function AdminUsersPage() {
         )}
       </AdminPageContent>
 
-      <AdminModal open={showCreateForm} onClose={() => setShowCreateForm(false)} title="Invite User">
-        <form onSubmit={handleCreate} className="space-y-4">
+      <AdminModal
+        open={showCreateForm}
+        onClose={() => setShowCreateForm(false)}
+        title="Invite User"
+        footer={
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="admin-btn-ghost"
+              type="button"
+              onClick={() => setShowCreateForm(false)}
+            >
+              Cancel
+            </Button>
+            <Button size="sm" className="admin-btn-gold" type="submit" form="invite-user-form" disabled={creating}>
+              {creating ? "Creating…" : "Create User"}
+            </Button>
+          </div>
+        }
+      >
+        <form id="invite-user-form" onSubmit={handleCreate} className="space-y-4">
           <AdminField
             label="Full name"
             value={createForm.full_name}
@@ -442,20 +462,6 @@ export default function AdminUsersPage() {
               Select one or more roles. Users with any staff role can access the admin portal.
             </p>
           </div>
-          <div className="flex justify-end gap-2 border-t border-[var(--admin-border-subtle)] pt-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="admin-btn-ghost"
-              type="button"
-              onClick={() => setShowCreateForm(false)}
-            >
-              Cancel
-            </Button>
-            <Button size="sm" className="admin-btn-gold" type="submit" disabled={creating}>
-              {creating ? "Creating…" : "Create User"}
-            </Button>
-          </div>
         </form>
       </AdminModal>
 
@@ -464,9 +470,19 @@ export default function AdminUsersPage() {
         onClose={closeEdit}
         title={editUser ? `Edit — ${editUser.full_name ?? editUser.email}` : "Edit User"}
         size="lg"
+        footer={
+          <div className="flex justify-end gap-2">
+            <Button variant="ghost" size="sm" className="admin-btn-ghost" type="button" onClick={closeEdit}>
+              Cancel
+            </Button>
+            <Button size="sm" className="admin-btn-gold" type="submit" form="edit-user-form" disabled={savingEdit}>
+              {savingEdit ? "Saving…" : "Save Changes"}
+            </Button>
+          </div>
+        }
       >
         {editForm && editUser ? (
-          <form onSubmit={handleSaveEdit} className="space-y-4">
+          <form id="edit-user-form" onSubmit={handleSaveEdit} className="space-y-4">
             {editError ? <AdminAlert tone="error">{editError}</AdminAlert> : null}
 
             <AdminField
@@ -519,14 +535,6 @@ export default function AdminUsersPage() {
                   </p>
                 </>
               )}
-            </div>
-            <div className="flex justify-end gap-2 border-t border-[var(--admin-border-subtle)] pt-4">
-              <Button variant="ghost" size="sm" className="admin-btn-ghost" type="button" onClick={closeEdit}>
-                Cancel
-              </Button>
-              <Button size="sm" className="admin-btn-gold" type="submit" disabled={savingEdit}>
-                {savingEdit ? "Saving…" : "Save Changes"}
-              </Button>
             </div>
           </form>
         ) : null}

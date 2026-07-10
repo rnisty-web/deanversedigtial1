@@ -597,7 +597,7 @@ export function ContentEditor() {
             </div>
           )}
 
-          <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5 lg:px-8">
+          <div className="admin-scroll min-h-0 flex-1 overflow-y-auto px-6 py-5 lg:px-8">
             {content && activeDef && (
               <>
                 <ContentSectionPreview
@@ -629,42 +629,45 @@ export function ContentEditor() {
                     </div>
                   )
                 )}
-
-                {!activeDef.isLinked && isCMSKey(activeSection) && (
-                  <div className="mt-8 flex flex-wrap gap-2 border-t border-[var(--admin-border-subtle)] pt-6">
-                    <Button
-                      type="button"
-                      className="admin-btn-gold"
-                      onClick={handleSaveSection}
-                      disabled={saving || !sectionDirty}
-                    >
-                      {saving ? "Saving…" : sectionDirty ? "Save Section" : "Saved"}
-                    </Button>
-                    {activeStatus === "draft" && isHomepageSection(activeSection) && (
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        className="admin-btn-ghost"
-                        onClick={() => void handlePublishDraft(activeSection)}
-                      >
-                        Publish Section
-                      </Button>
-                    )}
-                    <Button type="button" variant="ghost" className="admin-btn-ghost" onClick={handleSeed} disabled={seeding}>
-                      {seeding ? "Seeding…" : "Seed Defaults"}
-                    </Button>
-                    <Link
-                      href={livePreviewPath}
-                      target="_blank" rel="noopener noreferrer"
-                      className="admin-btn-ghost inline-flex items-center text-sm"
-                    >
-                      View on site
-                    </Link>
-                  </div>
-                )}
               </>
             )}
           </div>
+
+          {content && activeDef && !activeDef.isLinked && isCMSKey(activeSection) && (
+            <div className="admin-content-save-bar shrink-0 border-t border-[var(--admin-border-subtle)] px-6 py-4 lg:px-8">
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  className="admin-btn-gold"
+                  onClick={handleSaveSection}
+                  disabled={saving || !sectionDirty}
+                >
+                  {saving ? "Saving…" : sectionDirty ? "Save Section" : "Saved"}
+                </Button>
+                {activeStatus === "draft" && isHomepageSection(activeSection) && (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    className="admin-btn-ghost"
+                    onClick={() => void handlePublishDraft(activeSection)}
+                  >
+                    Publish Section
+                  </Button>
+                )}
+                <Button type="button" variant="ghost" className="admin-btn-ghost" onClick={handleSeed} disabled={seeding}>
+                  {seeding ? "Seeding…" : "Seed Defaults"}
+                </Button>
+                <Link
+                  href={livePreviewPath}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="admin-btn-ghost inline-flex items-center text-sm"
+                >
+                  View on site
+                </Link>
+              </div>
+            </div>
+          )}
         </main>
 
         <ContentOverviewSidebar

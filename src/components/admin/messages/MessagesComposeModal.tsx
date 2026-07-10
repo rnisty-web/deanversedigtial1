@@ -47,8 +47,29 @@ export function MessagesComposeModal({
     : projects;
 
   return (
-    <AdminModal open={open} onClose={onClose} title="New message" size="md">
-      <form onSubmit={onSubmit} className="space-y-4">
+    <AdminModal
+      open={open}
+      onClose={onClose}
+      title="New message"
+      size="md"
+      footer={
+        <div className="flex justify-end gap-2">
+          <Button type="button" variant="ghost" size="sm" className="admin-btn-ghost" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            form="admin-compose-message-form"
+            size="sm"
+            className="admin-btn-gold"
+            disabled={sending || !clientId || !content.trim()}
+          >
+            {sending ? "Sending…" : "Send message"}
+          </Button>
+        </div>
+      }
+    >
+      <form id="admin-compose-message-form" onSubmit={onSubmit} className="space-y-4">
         <div>
           <label className="mb-1.5 block text-sm font-medium text-[var(--admin-text)]">Client</label>
           <select
@@ -95,20 +116,6 @@ export function MessagesComposeModal({
         <AdminField label="Message" value={content} onChange={onContentChange} multiline rows={5} />
 
         {error ? <p className="text-sm text-red-400">{error}</p> : null}
-
-        <div className="flex justify-end gap-2 pt-2">
-          <Button type="button" variant="ghost" size="sm" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            size="sm"
-            className="admin-btn-gold"
-            disabled={sending || !clientId || !content.trim()}
-          >
-            {sending ? "Sending…" : "Send message"}
-          </Button>
-        </div>
       </form>
     </AdminModal>
   );

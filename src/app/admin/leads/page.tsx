@@ -581,7 +581,7 @@ export default function AdminLeadsPage() {
         size="lg"
         footer={
           detailLead ? (
-            <div className="flex flex-wrap justify-end gap-2 border-t border-[var(--admin-border-subtle)] px-6 py-4">
+            <div className="flex flex-wrap justify-end gap-2">
               {detailLead.status !== "converted" && (
                 <Button size="sm" className="admin-btn-gold" onClick={() => openConvert(detailLead)}>Convert to client</Button>
               )}
@@ -651,7 +651,7 @@ export default function AdminLeadsPage() {
         title="Add Lead"
         size="lg"
         footer={
-          <div className="flex justify-end gap-2 border-t border-[var(--admin-border-subtle)] px-6 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+          <div className="flex justify-end gap-2 pb-[max(1rem,env(safe-area-inset-bottom))]">
             <Button variant="ghost" size="sm" className="admin-btn-ghost" onClick={() => setAddLeadOpen(false)}>Cancel</Button>
             <Button size="sm" className="admin-btn-gold" disabled={savingLead || !leadForm.name || !leadForm.email} onClick={createLead}>
               {savingLead ? "Saving…" : "Add Lead"}
@@ -677,7 +677,7 @@ export default function AdminLeadsPage() {
         onClose={() => setNotesLead(null)}
         title={notesLead ? `Notes — ${notesLead.name}` : "Notes"}
         footer={
-          <div className="flex justify-end gap-2 border-t border-[var(--admin-border-subtle)] px-6 py-4">
+          <div className="flex justify-end gap-2">
             <Button variant="ghost" size="sm" className="admin-btn-ghost" onClick={() => setNotesLead(null)}>Cancel</Button>
             <Button size="sm" className="admin-btn-gold" disabled={savingNotes} onClick={saveNotes}>{savingNotes ? "Saving…" : "Save notes"}</Button>
           </div>
@@ -692,7 +692,7 @@ export default function AdminLeadsPage() {
         title={convertLead ? `Convert — ${convertLead.name}` : "Convert lead"}
         size="lg"
         footer={
-          <div className="flex items-center justify-between gap-2 border-t border-[var(--admin-border-subtle)] px-6 py-4">
+          <div className="flex items-center justify-between gap-2">
             <div className="flex gap-1">
               {([1, 2] as const).map((step) => (
                 <span key={step} className={cn("h-2 w-8 rounded-full transition-colors", convertStep >= step ? "bg-[var(--admin-emerald)]" : "bg-[var(--admin-panel-hover)]")} />

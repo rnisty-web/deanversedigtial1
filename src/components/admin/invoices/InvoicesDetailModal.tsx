@@ -28,7 +28,24 @@ export function InvoicesDetailModal({
   onStatusChange,
 }: InvoicesDetailModalProps) {
   return (
-    <AdminModal open={!!invoice} onClose={onClose} title={invoice?.invoice_number ?? "Invoice"} size="lg">
+    <AdminModal
+      open={!!invoice}
+      onClose={onClose}
+      title={invoice?.invoice_number ?? "Invoice"}
+      size="lg"
+      footer={
+        invoice ? (
+          <div className="flex flex-wrap gap-2">
+            <Button size="sm" variant="secondary" className="admin-btn-ghost" onClick={() => onEdit(invoice)}>
+              Edit
+            </Button>
+            <Button size="sm" variant="ghost" className="admin-btn-ghost" onClick={() => onDelete(invoice.id)}>
+              Delete
+            </Button>
+          </div>
+        ) : null
+      }
+    >
       {invoice ? (
         <div className="space-y-6">
           <div className="flex flex-wrap items-start justify-between gap-3">
@@ -88,15 +105,6 @@ export function InvoicesDetailModal({
                 </option>
               ))}
             </select>
-          </div>
-
-          <div className="flex flex-wrap gap-2 border-t border-[var(--admin-border-subtle)] pt-4">
-            <Button size="sm" variant="secondary" className="admin-btn-ghost" onClick={() => onEdit(invoice)}>
-              Edit
-            </Button>
-            <Button size="sm" variant="ghost" className="admin-btn-ghost" onClick={() => onDelete(invoice.id)}>
-              Delete
-            </Button>
           </div>
         </div>
       ) : null}

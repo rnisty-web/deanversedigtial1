@@ -386,7 +386,7 @@ function AdminProjectsInner() {
         size="lg"
         footer={
           detailProject ? (
-            <div className="flex flex-wrap justify-end gap-2 border-t border-[var(--admin-border-subtle)] px-6 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+            <div className="flex flex-wrap justify-end gap-2">
               <Button size="sm" href={`/portal/projects/${detailProject.id}`} variant="secondary" className="admin-btn-ghost">Portal view</Button>
               <Button size="sm" href={`/admin/invoices?client=${detailProject.client_id}`} variant="secondary" className="admin-btn-ghost">View invoices</Button>
               <Button size="sm" variant="secondary" className="admin-btn-ghost" onClick={() => openEdit(detailProject)}>Edit project</Button>
@@ -433,7 +433,7 @@ function AdminProjectsInner() {
         title={editId ? "Edit Project" : "New Project"}
         size="lg"
         footer={
-          <div className="flex justify-end gap-2 border-t border-[var(--admin-border-subtle)] px-6 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+          <div className="flex justify-end gap-2">
             <Button variant="ghost" size="sm" className="admin-btn-ghost" onClick={closeForm}>Cancel</Button>
             <Button size="sm" className="admin-btn-gold" disabled={saving || !form.title || !form.client_id} onClick={handleSubmit}>
               {saving ? "Saving…" : editId ? "Update" : "Create Project"}

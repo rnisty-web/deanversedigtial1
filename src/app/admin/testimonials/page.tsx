@@ -493,6 +493,16 @@ export default function AdminTestimonialsPage() {
           onClose={closeForm}
           title={editId ? "Edit testimonial" : "New testimonial"}
           size="lg"
+          footer={
+            <div className="flex justify-end gap-2">
+              <Button variant="ghost" size="sm" className="admin-btn-ghost" type="button" onClick={closeForm}>
+                Cancel
+              </Button>
+              <Button size="sm" className="admin-btn-gold" type="submit" form="testimonial-form" disabled={saving}>
+                {saving ? "Saving…" : editId ? "Update" : "Create"}
+              </Button>
+            </div>
+          }
         >
           <form id="testimonial-form" onSubmit={handleSubmit} className="space-y-4">
             <AdminField
@@ -550,14 +560,6 @@ export default function AdminTestimonialsPage() {
               </label>
             </div>
             {formError && <AdminAlert tone="error">{formError}</AdminAlert>}
-            <div className="flex justify-end gap-2 border-t border-[var(--admin-border-subtle)] pt-4">
-              <Button variant="ghost" size="sm" className="admin-btn-ghost" type="button" onClick={closeForm}>
-                Cancel
-              </Button>
-              <Button size="sm" className="admin-btn-gold" type="submit" disabled={saving}>
-                {saving ? "Saving…" : editId ? "Update" : "Create"}
-              </Button>
-            </div>
           </form>
         </AdminModal>
       </AdminPageContent>

@@ -504,7 +504,22 @@ function AdminInvoicesInner() {
         onStatusChange={updateStatus}
       />
 
-      <AdminModal open={showForm} onClose={closeForm} title={editId ? "Edit invoice" : "New invoice"} size="xl">
+      <AdminModal
+        open={showForm}
+        onClose={closeForm}
+        title={editId ? "Edit invoice" : "New invoice"}
+        size="xl"
+        footer={
+          <div className="flex justify-end gap-2">
+            <Button variant="ghost" size="sm" className="admin-btn-ghost" type="button" onClick={closeForm}>
+              Cancel
+            </Button>
+            <Button size="sm" className="admin-btn-gold" type="submit" form="invoice-form" disabled={saving}>
+              {saving ? "Saving…" : editId ? "Update" : "Create"}
+            </Button>
+          </div>
+        }
+      >
         <form id="invoice-form" onSubmit={handleSubmit} className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
@@ -604,15 +619,6 @@ function AdminInvoicesInner() {
           </div>
 
           <AdminField label="Notes" value={form.notes} onChange={(v) => setForm({ ...form, notes: v })} multiline rows={2} />
-
-          <div className="flex justify-end gap-2 border-t border-[var(--admin-border-subtle)] pt-4">
-            <Button variant="ghost" size="sm" className="admin-btn-ghost" type="button" onClick={closeForm}>
-              Cancel
-            </Button>
-            <Button size="sm" className="admin-btn-gold" type="submit" disabled={saving}>
-              {saving ? "Saving…" : editId ? "Update" : "Create"}
-            </Button>
-          </div>
         </form>
       </AdminModal>
     </div>

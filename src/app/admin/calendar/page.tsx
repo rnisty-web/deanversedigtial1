@@ -444,8 +444,33 @@ export default function AdminCalendarPage() {
           onClose={closeForm}
           title={editEvent ? "Edit event" : "New event"}
           size="lg"
+          footer={
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              {editEvent ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="text-red-300"
+                  onClick={deleteEvent}
+                >
+                  Delete
+                </Button>
+              ) : (
+                <span />
+              )}
+              <div className="flex gap-2">
+                <Button type="button" variant="ghost" size="sm" className="admin-btn-ghost" onClick={closeForm}>
+                  Cancel
+                </Button>
+                <Button type="submit" form="calendar-event-form" size="sm" className="admin-btn-gold" disabled={saving}>
+                  {saving ? "Saving…" : editEvent ? "Update Event" : "Create Event"}
+                </Button>
+              </div>
+            </div>
+          }
         >
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form id="calendar-event-form" onSubmit={handleSubmit} className="space-y-4">
             <AdminField
               label="Title"
               value={form.title}
@@ -531,29 +556,6 @@ export default function AdminCalendarPage() {
               rows={3}
             />
             {formError && <AdminAlert tone="error">{formError}</AdminAlert>}
-            <div className="flex flex-wrap justify-between gap-2 border-t border-[var(--admin-border-subtle)] pt-4">
-              {editEvent ? (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="text-red-300"
-                  onClick={deleteEvent}
-                >
-                  Delete
-                </Button>
-              ) : (
-                <span />
-              )}
-              <div className="flex gap-2">
-                <Button type="button" variant="ghost" size="sm" className="admin-btn-ghost" onClick={closeForm}>
-                  Cancel
-                </Button>
-                <Button type="submit" size="sm" className="admin-btn-gold" disabled={saving}>
-                  {saving ? "Saving…" : editEvent ? "Update Event" : "Create Event"}
-                </Button>
-              </div>
-            </div>
           </form>
         </AdminModal>
         </div>

@@ -783,6 +783,27 @@ function renderContactTab(contact: ContactPageSettings, updateSection: ContentSe
         onChange={(nextSteps) => updateSection("contact", { ...contact, nextSteps })}
         placeholder="Add step"
       />
+      <div className="admin-luxury-card space-y-4 rounded-xl p-4">
+        <div>
+          <h4 className="text-sm font-medium text-[#a3c9a8]">Contact form dropdowns</h4>
+          <p className="mt-1 text-xs text-[var(--admin-text-muted)]">
+            These options appear on the <strong className="text-[#a3c9a8]">/contact</strong> and{" "}
+            <strong className="text-[#a3c9a8]">/hire-me</strong> forms. Visitors must pick from these lists.
+          </p>
+        </div>
+        <ArrayFieldEditor
+          label="Budget ranges"
+          items={contact.budgetRanges}
+          onChange={(budgetRanges) => updateSection("contact", { ...contact, budgetRanges })}
+          placeholder="Add budget range"
+        />
+        <ArrayFieldEditor
+          label="Project types"
+          items={contact.projectTypes}
+          onChange={(projectTypes) => updateSection("contact", { ...contact, projectTypes })}
+          placeholder="Add project type"
+        />
+      </div>
     </div>
   );
 }

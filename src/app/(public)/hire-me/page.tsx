@@ -5,6 +5,7 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { getCMSContent, getPublicSiteConfig } from "@/lib/cms/get-content";
+import { resolveContactFormOptions } from "@/lib/contact/form-options";
 import { createPageMetadata } from "@/lib/seo/metadata";
 import { cn } from "@/lib/utils";
 import type { Metadata } from "next";
@@ -23,7 +24,8 @@ export default async function HireMePage() {
     getCMSContent(),
     getPublicSiteConfig(),
   ]);
-  const { process, pricing, cta, processIntro, hireMePage } = cms;
+  const { process, pricing, cta, processIntro, hireMePage, contact } = cms;
+  const formOptions = resolveContactFormOptions(contact);
   const highlightedTier =
     pricing.tiers.find((t) => t.highlighted) ?? pricing.tiers[0];
 
@@ -164,7 +166,7 @@ export default async function HireMePage() {
                 <div className="h-96 animate-pulse rounded-2xl bg-white/5" />
               }
             >
-              <LeadForm />
+              <LeadForm budgetRanges={formOptions.budgetRanges} projectTypes={formOptions.projectTypes} />
             </Suspense>
           </Reveal>
           <Reveal className="mt-8 text-center">

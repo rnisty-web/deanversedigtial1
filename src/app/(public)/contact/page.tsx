@@ -3,6 +3,7 @@ import { LeadForm } from "@/components/contact/LeadForm";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { getCMSContent, getPublicSiteConfig } from "@/lib/cms/get-content";
+import { resolveContactFormOptions } from "@/lib/contact/form-options";
 import { createPageMetadata } from "@/lib/seo/metadata";
 import type { Metadata } from "next";
 
@@ -18,6 +19,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function ContactPage() {
   const [site, cms] = await Promise.all([getPublicSiteConfig(), getCMSContent()]);
   const { contact } = cms;
+  const formOptions = resolveContactFormOptions(contact);
 
   return (
     <section className="px-4 pb-20 pt-16 sm:px-6 sm:pt-20 lg:px-8">
@@ -32,7 +34,7 @@ export default async function ContactPage() {
         <div className="grid gap-12 lg:grid-cols-5">
           <Reveal className="lg:col-span-3">
             <Suspense fallback={<div className="h-96 animate-pulse rounded-2xl bg-white/5" />}>
-              <LeadForm />
+              <LeadForm budgetRanges={formOptions.budgetRanges} projectTypes={formOptions.projectTypes} />
             </Suspense>
           </Reveal>
 

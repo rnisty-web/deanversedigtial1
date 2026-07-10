@@ -96,6 +96,8 @@ export type ContactPageSettings = {
   directContactLabel: string;
   nextStepsLabel: string;
   nextSteps: string[];
+  budgetRanges: string[];
+  projectTypes: string[];
 };
 
 export type PortfolioPageSettings = {

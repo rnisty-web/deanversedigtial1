@@ -7,6 +7,12 @@ import {
   getClientIp,
   rateLimitResponse,
 } from "@/lib/rate-limit";
+import {
+  getContactFormOptionsForApi,
+} from "@/lib/contact/form-options-server";
+import {
+  validateContactSubmission,
+} from "@/lib/contact/form-options";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { isTurnstileConfigured, verifyTurnstileToken } from "@/lib/turnstile";
 
@@ -69,27 +75,35 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!name || !email) {
-      return NextResponse.json(
-        { error: "Name and email are required" },
-        { status: 400 },
-      );
+    const formOptions = await getContactFormOptionsForApi();
+    const validated = validateContactSubmission(
+      {
+        name,
+        email,
+        phone,
+        company,
+        message,
+        budget,
+        project_type,
+        service_interest,
+      },
+      formOptions,
+    );
+
+    if (!validated.ok) {
+      return NextResponse.json({ error: validated.error }, { status: 400 });
     }
 
-    if (typeof name !== "string" || typeof email !== "string") {
-      return NextResponse.json({ error: "Invalid submission" }, { status: 400 });
-    }
-
-    const trimmedName = name.trim().slice(0, 120);
-    const trimmedEmail = email.trim().slice(0, 254);
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!trimmedName || !trimmedEmail || !emailPattern.test(trimmedEmail)) {
-      return NextResponse.json(
-        { error: "Please provide a valid name and email" },
-        { status: 400 },
-      );
-    }
+    const {
+      name: trimmedName,
+      email: trimmedEmail,
+      phone: trimmedPhone,
+      company: trimmedCompany,
+      message: trimmedMessage,
+      budget: trimmedBudget,
+      project_type: trimmedProjectType,
+      service_interest: trimmedServiceInterest,
+    } = validated.data;
 
     const supabase = createServiceRoleClient();
     if (!supabase) {
@@ -102,18 +116,12 @@ export async function POST(request: Request) {
     const { error } = await supabase.from("leads").insert({
       name: trimmedName,
       email: trimmedEmail,
-      phone: typeof phone === "string" ? phone.trim().slice(0, 40) : null,
-      company: typeof company === "string" ? company.trim().slice(0, 120) : null,
-      message: typeof message === "string" ? message.trim().slice(0, 5000) : null,
-      service_interest:
-        typeof service_interest === "string" ? service_interest.trim().slice(0, 120) : null,
-      budget: typeof budget === "string" ? budget.trim().slice(0, 80) : null,
-      project_type:
-        typeof project_type === "string"
-          ? project_type.trim().slice(0, 120)
-          : typeof service_interest === "string"
-            ? service_interest.trim().slice(0, 120)
-            : null,
+      phone: trimmedPhone,
+      company: trimmedCompany,
+      message: trimmedMessage,
+      service_interest: trimmedServiceInterest,
+      budget: trimmedBudget,
+      project_type: trimmedProjectType,
       source: typeof source === "string" ? source.trim().slice(0, 80) : "website",
       status: "new",
     });
@@ -125,8 +133,8 @@ export async function POST(request: Request) {
     await upsertClientFromLead({
       name: trimmedName,
       email: trimmedEmail,
-      phone: typeof phone === "string" ? phone.trim().slice(0, 40) : undefined,
-      company: typeof company === "string" ? company.trim().slice(0, 120) : undefined,
+      phone: trimmedPhone ?? undefined,
+      company: trimmedCompany ?? undefined,
     });
 
     if (resend) {
@@ -134,12 +142,12 @@ export async function POST(request: Request) {
       const to = process.env.CONTACT_FORM_TO ?? siteConfig.email;
       const safeName = escapeHtml(trimmedName);
       const safeEmail = escapeHtml(trimmedEmail);
-      const safePhone = phone ? escapeHtml(phone) : "";
-      const safeCompany = company ? escapeHtml(company) : "";
-      const safeService = service_interest ? escapeHtml(service_interest) : "";
-      const safeBudget = budget ? escapeHtml(budget) : "";
-      const safeProjectType = project_type ? escapeHtml(project_type) : "";
-      const safeMessage = message ? escapeHtml(message) : "";
+      const safePhone = trimmedPhone ? escapeHtml(trimmedPhone) : "";
+      const safeCompany = trimmedCompany ? escapeHtml(trimmedCompany) : "";
+      const safeService = escapeHtml(trimmedServiceInterest);
+      const safeBudget = escapeHtml(trimmedBudget);
+      const safeProjectType = escapeHtml(trimmedProjectType);
+      const safeMessage = escapeHtml(trimmedMessage);
       const safeSource = escapeHtml(source ?? "website");
 
       try {
@@ -163,7 +171,7 @@ export async function POST(request: Request) {
 
         await resend.emails.send({
           from: `DeanVerse Digital <${from}>`,
-          to: email,
+          to: trimmedEmail,
           subject: `Thanks for reaching out — ${siteConfig.name}`,
           html: `
             <h2>Hi ${safeName},</h2>

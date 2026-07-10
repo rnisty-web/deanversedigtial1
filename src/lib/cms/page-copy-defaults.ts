@@ -1,4 +1,5 @@
 import { siteConfig } from "@/lib/constants";
+import { budgetRanges, projectTypes } from "@/lib/data/fallbacks";
 import type {
   ContactPageSettings,
   HireMePageSettings,
@@ -50,6 +51,8 @@ export function defaultContactPage(): ContactPageSettings {
       "We schedule a free discovery call to discuss goals and scope.",
       "You receive a tailored proposal with timeline and pricing.",
     ],
+    budgetRanges: [...budgetRanges],
+    projectTypes: [...projectTypes],
   };
 }
 

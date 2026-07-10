@@ -253,6 +253,10 @@ function renderPreviewContent(sectionId: SectionId, content: CMSContent, fallbac
       return (
         <PreviewBlock title={content.contact.intro.title}>
           <p className="text-sm text-white/70 line-clamp-2">{content.contact.intro.subtitle}</p>
+          <p className="mt-2 text-xs text-white/55">
+            Form options: {content.contact.budgetRanges.length} budget ranges,{" "}
+            {content.contact.projectTypes.length} project types
+          </p>
         </PreviewBlock>
       );
     case "portfolioPage":

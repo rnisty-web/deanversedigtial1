@@ -5,24 +5,27 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { GlassCard } from "@/components/ui/GlassCard";
-import { budgetRanges, projectTypes } from "@/lib/data/fallbacks";
+import {
+  isAllowedContactChoice,
+  isValidContactEmail,
+  isValidContactPhone,
+  type ContactFormOptions,
+} from "@/lib/contact/form-options";
 import { cn } from "@/lib/utils";
 import { isTurnstileEnabled, TurnstileField } from "@/components/contact/TurnstileField";
 
 const inputStyles =
   "w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/30 transition-colors focus:border-[#a3c9a8]/50 focus:outline-none focus:ring-2 focus:ring-[#a3c9a8]/20";
 
-export function LeadForm() {
+type LeadFormProps = ContactFormOptions;
+
+export function LeadForm({ budgetRanges, projectTypes }: LeadFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const preselectedService = searchParams.get("service") ?? "";
-  const preselectedValue = projectTypes.includes(
-    preselectedService as (typeof projectTypes)[number],
-  )
+  const preselectedService = searchParams.get("service")?.trim() ?? "";
+  const preselectedValue = isAllowedContactChoice(preselectedService, projectTypes)
     ? preselectedService
-    : preselectedService
-      ? preselectedService
-      : "";
+    : "";
 
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
@@ -42,15 +45,59 @@ export function LeadForm() {
       return;
     }
 
+    const name = String(formData.get("name") ?? "").trim();
+    const email = String(formData.get("email") ?? "").trim();
+    const phone = String(formData.get("phone") ?? "").trim();
+    const company = String(formData.get("company") ?? "").trim();
+    const budget = String(formData.get("budget") ?? "").trim();
+    const projectType = String(formData.get("project_type") ?? "").trim();
+    const message = String(formData.get("description") ?? "").trim();
+
+    if (name.length < 2) {
+      setStatus("error");
+      setErrorMessage("Please enter your full name.");
+      return;
+    }
+
+    if (!isValidContactEmail(email)) {
+      setStatus("error");
+      setErrorMessage("Please provide a valid email address.");
+      return;
+    }
+
+    if (phone && !isValidContactPhone(phone)) {
+      setStatus("error");
+      setErrorMessage("Please provide a valid phone number.");
+      return;
+    }
+
+    if (!isAllowedContactChoice(budget, budgetRanges)) {
+      setStatus("error");
+      setErrorMessage("Please select a budget range.");
+      return;
+    }
+
+    if (!isAllowedContactChoice(projectType, projectTypes)) {
+      setStatus("error");
+      setErrorMessage("Please select a project type.");
+      return;
+    }
+
+    if (message.length < 10) {
+      setStatus("error");
+      setErrorMessage("Please describe your project in at least 10 characters.");
+      return;
+    }
+
     const payload = {
-      name: formData.get("name") as string,
-      email: formData.get("email") as string,
-      phone: formData.get("phone") as string,
-      company: formData.get("company") as string,
-      budget: formData.get("budget") as string,
-      project_type: formData.get("project_type") as string,
-      service_interest: formData.get("project_type") as string,
-      message: formData.get("description") as string,
+      name,
+      email,
+      phone,
+      company,
+      budget,
+      project_type: projectType,
+      service_interest: projectType,
+      message,
       website: formData.get("website") as string,
       turnstile_token: turnstileToken || undefined,
     };
@@ -83,7 +130,7 @@ export function LeadForm() {
 
   return (
     <GlassCard hover={false} padding="lg">
-      <form onSubmit={handleSubmit} className="relative space-y-5">
+      <form onSubmit={handleSubmit} className="relative space-y-5" noValidate>
         <div className="grid gap-5 sm:grid-cols-2">
           <div>
             <label htmlFor="name" className="mb-2 block text-sm font-medium text-white/80">
@@ -94,6 +141,8 @@ export function LeadForm() {
               name="name"
               type="text"
               required
+              minLength={2}
+              maxLength={120}
               autoComplete="name"
               className={inputStyles}
               placeholder="Your full name"
@@ -137,6 +186,7 @@ export function LeadForm() {
               id="company"
               name="company"
               type="text"
+              maxLength={120}
               autoComplete="organization"
               className={inputStyles}
               placeholder="Your business or brand"
@@ -147,11 +197,12 @@ export function LeadForm() {
         <div className="grid gap-5 sm:grid-cols-2">
           <div>
             <label htmlFor="budget" className="mb-2 block text-sm font-medium text-white/80">
-              Budget
+              Budget <span className="text-[#a3c9a8]">*</span>
             </label>
             <select
               id="budget"
               name="budget"
+              required
               className={cn(inputStyles, "appearance-none")}
               defaultValue=""
             >
@@ -167,23 +218,18 @@ export function LeadForm() {
           </div>
           <div>
             <label htmlFor="project_type" className="mb-2 block text-sm font-medium text-white/80">
-              Project Type
+              Project Type <span className="text-[#a3c9a8]">*</span>
             </label>
             <select
               id="project_type"
               name="project_type"
+              required
               className={cn(inputStyles, "appearance-none")}
               defaultValue={preselectedValue || ""}
             >
               <option value="" disabled className="bg-[#0f1a17]">
                 Select a type
               </option>
-              {preselectedService &&
-                !projectTypes.includes(preselectedService as (typeof projectTypes)[number]) && (
-                  <option value={preselectedService} className="bg-[#0f1a17]">
-                    {preselectedService}
-                  </option>
-                )}
               {projectTypes.map((type) => (
                 <option key={type} value={type} className="bg-[#0f1a17]">
                   {type}
@@ -201,6 +247,8 @@ export function LeadForm() {
             id="description"
             name="description"
             required
+            minLength={10}
+            maxLength={5000}
             rows={5}
             className={cn(inputStyles, "resize-y")}
             placeholder="Tell me about your project, goals, and timeline..."

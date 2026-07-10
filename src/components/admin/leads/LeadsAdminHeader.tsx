@@ -2,6 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useRef } from "react";
+import { AdminSectionTitle } from "@/components/admin/AdminSectionTitle";
+import { AdminShortcutHint } from "@/components/admin/AdminShortcutHint";
+import { getAdminSectionMeta } from "@/lib/admin/section-meta";
 import { cn } from "@/lib/utils";
 import { LEAD_STATUSES } from "@/lib/leads/utils";
 
@@ -54,9 +57,7 @@ export function LeadsAdminHeader({
       <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-start gap-3 pt-0.5">
-            <h1 className="admin-heading-serif admin-content-title text-2xl text-[var(--admin-text)] md:text-3xl">
-              Leads <span aria-hidden>✨</span>
-            </h1>
+            <AdminSectionTitle section="leads" />
             <Link href="/admin/projects" className="admin-btn-ghost inline-flex items-center gap-1.5 px-3 py-1.5 text-xs">
               View Pipeline
               <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
@@ -65,7 +66,7 @@ export function LeadsAdminHeader({
             </Link>
           </div>
           <p className="mt-1 text-sm text-[var(--admin-text-muted)]">
-            Manage and track all incoming leads and inquiries.
+            {getAdminSectionMeta("leads").description}
           </p>
         </div>
 
@@ -83,9 +84,7 @@ export function LeadsAdminHeader({
               placeholder="Search leads…"
               className="admin-input admin-input-with-icon w-full py-2.5 pr-16"
             />
-            <kbd className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 rounded-md border border-[var(--admin-border-subtle)] bg-[var(--admin-panel)] px-1.5 py-0.5 text-[10px] text-[var(--admin-text-muted)] sm:inline">
-              ⌘ K
-            </kbd>
+            <AdminShortcutHint />
           </div>
           <button type="button" onClick={onAddLead} className="admin-btn-gold whitespace-nowrap px-4 py-2 text-sm">
             + New Lead

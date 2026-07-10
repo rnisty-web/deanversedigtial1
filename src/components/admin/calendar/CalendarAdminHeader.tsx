@@ -46,7 +46,7 @@ export function CalendarAdminHeader({
         <div className="min-w-0">
           <div className="flex flex-wrap items-start gap-3 pt-0.5">
             <h1 className="admin-heading-serif admin-content-title text-2xl text-[var(--admin-text)] md:text-3xl">
-              Calendar <span aria-hidden>✨</span>
+              Calendar <span className="admin-section-emoji" aria-hidden>📅</span>
             </h1>
             <Link
               href="/admin/projects"

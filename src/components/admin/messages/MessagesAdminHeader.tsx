@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { AdminShortcutHint } from "@/components/admin/AdminShortcutHint";
 import { cn } from "@/lib/utils";
 
 type MessagesAdminHeaderProps = {
@@ -32,7 +33,7 @@ export function MessagesAdminHeader({
       <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div className="min-w-0">
           <h1 className="admin-heading-serif admin-content-title text-2xl text-[var(--admin-text)] md:text-3xl">
-            Messages <span aria-hidden>💬</span>
+            Messages <span className="admin-section-emoji" aria-hidden>💬</span>
           </h1>
           <p className="mt-1 text-sm text-[var(--admin-text-muted)]">
             Client inbox — read inquiries, reply in thread, and keep every conversation in one place.
@@ -64,9 +65,7 @@ export function MessagesAdminHeader({
               placeholder="Search conversations…"
               className="admin-input admin-input-with-icon w-full py-2.5 pr-16"
             />
-            <kbd className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 rounded-md border border-[var(--admin-border-subtle)] bg-[var(--admin-panel)] px-1.5 py-0.5 text-[10px] text-[var(--admin-text-muted)] sm:inline">
-              ⌘ K
-            </kbd>
+            <AdminShortcutHint />
           </div>
           <button
             type="button"

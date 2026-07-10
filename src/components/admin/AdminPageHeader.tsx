@@ -1,12 +1,15 @@
 "use client";
 
 import { useEffect, useRef, type ReactNode } from "react";
+import { AdminShortcutHint } from "@/components/admin/AdminShortcutHint";
+import { getAdminSectionMeta, type AdminSectionId } from "@/lib/admin/section-meta";
 import { cn } from "@/lib/utils";
 
 export type AdminPageHeaderProps = {
   title: string;
   description?: string;
-  sparkle?: boolean;
+  section?: AdminSectionId;
+  emoji?: string;
   actions?: ReactNode;
   toolbar?: ReactNode;
   sticky?: boolean;
@@ -16,13 +19,17 @@ export type AdminPageHeaderProps = {
 export function AdminPageHeader({
   title,
   description,
-  sparkle = true,
+  section,
+  emoji,
   actions,
   toolbar,
   sticky = true,
   className,
 }: AdminPageHeaderProps) {
   const searchRef = useRef<HTMLInputElement>(null);
+  const displayEmoji = emoji ?? (section ? getAdminSectionMeta(section).emoji : undefined);
+  const displayDescription =
+    description ?? (section ? getAdminSectionMeta(section).description : undefined);
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -49,10 +56,17 @@ export function AdminPageHeader({
       <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div className="min-w-0">
           <h1 className="admin-heading-serif admin-content-title truncate text-2xl text-[var(--admin-text)] md:text-3xl">
-            {title} {sparkle ? <span aria-hidden>✨</span> : null}
+            {title}{" "}
+            {displayEmoji ? (
+              <span className="admin-section-emoji" aria-hidden>
+                {displayEmoji}
+              </span>
+            ) : null}
           </h1>
-          {description ? (
-            <p className="mt-1 max-w-2xl text-sm leading-relaxed text-[var(--admin-text-muted)]">{description}</p>
+          {displayDescription ? (
+            <p className="mt-1 max-w-2xl text-sm leading-relaxed text-[var(--admin-text-muted)]">
+              {displayDescription}
+            </p>
           ) : null}
         </div>
         {actions ? <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center lg:w-auto">{actions}</div> : null}
@@ -99,9 +113,7 @@ export function AdminSearchField({
         placeholder={placeholder}
         className="admin-input admin-input-with-icon w-full py-2.5 pr-16"
       />
-      <kbd className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 rounded-md border border-[var(--admin-border-subtle)] bg-[var(--admin-panel)] px-1.5 py-0.5 text-[10px] text-[var(--admin-text-muted)] sm:inline">
-        ⌘ K
-      </kbd>
+      <AdminShortcutHint />
     </div>
   );
 }

@@ -38,15 +38,15 @@ export default async function AdminPortfolioPreviewPage({ params }: AdminPortfol
   const caseStudy = project.case_study as PortfolioCaseStudy | null;
 
   return (
-    <div className="min-h-screen bg-[#0a0f0d] text-white">
-      <div className="border-b border-amber-500/30 bg-amber-500/10 px-4 py-3 text-center text-sm text-amber-100">
+    <div className="min-h-full bg-[var(--admin-bg)] text-[var(--admin-text)]">
+      <div className="border-b border-[var(--admin-gold)]/30 bg-[var(--admin-gold-soft)] px-4 py-3 text-center text-sm text-[var(--admin-gold-light)]">
         Admin preview
         {!project.published ? " — this draft is not visible on the live site" : " — published project"}
       </div>
 
       <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-          <Link href="/admin/portfolio" className="text-sm text-[#a3c9a8] hover:text-white">
+          <Link href="/admin/portfolio" className="text-sm text-[var(--admin-emerald)] hover:text-[var(--admin-text)]">
             ← Back to Portfolio
           </Link>
           <div className="flex flex-wrap gap-2">

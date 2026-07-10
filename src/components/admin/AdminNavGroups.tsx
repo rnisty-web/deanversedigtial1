@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { adminNavGroups } from "@/components/admin/admin-nav-config";
+import { ADMIN_NAV_GROUP_EMOJI } from "@/lib/admin/section-meta";
 import { cn } from "@/lib/utils";
 
 function isNavActive(pathname: string, href: string) {
@@ -32,7 +33,14 @@ export function AdminNavGroups({
           className={cn(groupIndex > 0 && "border-t border-[rgba(201,169,98,0.1)] pt-4")}
         >
           {group.label && !collapsed ? (
-            <p className="admin-sidebar-nav-group-label">{group.label}</p>
+            <p className="admin-sidebar-nav-group-label">
+              {ADMIN_NAV_GROUP_EMOJI[group.label] ? (
+                <span className="mr-1.5" aria-hidden>
+                  {ADMIN_NAV_GROUP_EMOJI[group.label]}
+                </span>
+              ) : null}
+              {group.label}
+            </p>
           ) : null}
           <div className="space-y-0.5">
             {group.items.map((link) => {
@@ -50,14 +58,19 @@ export function AdminNavGroups({
                     isActive && "admin-sidebar-nav-link-active",
                     collapsed && "admin-sidebar-nav-link-collapsed",
                   )}
-                  title={collapsed ? link.label : undefined}
+                  title={collapsed ? `${link.emoji} ${link.label}` : undefined}
                 >
                   <span className="shrink-0 [&>svg]:h-[18px] [&>svg]:w-[18px]">
                     {link.icon}
                   </span>
                   {!collapsed ? (
                     <>
-                      <span className="min-w-0 flex-1 truncate">{link.label}</span>
+                      <span className="min-w-0 flex-1 truncate">
+                        <span className="admin-nav-item-emoji mr-1.5" aria-hidden>
+                          {link.emoji}
+                        </span>
+                        {link.label}
+                      </span>
                       {showBadge ? (
                         <span
                           className="admin-nav-badge"

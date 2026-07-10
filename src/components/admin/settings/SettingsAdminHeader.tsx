@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef } from "react";
+import { AdminShortcutHint } from "@/components/admin/AdminShortcutHint";
 import { cn } from "@/lib/utils";
 
 type SettingsAdminHeaderProps = {
@@ -68,9 +69,11 @@ export function SettingsAdminHeader({
           <h1 className="admin-heading-serif admin-content-title text-2xl text-[var(--admin-text)] md:text-3xl">
             {title}{" "}
             {title === "Settings" ? (
-              <span aria-hidden>⚙️</span>
+              <span className="admin-section-emoji" aria-hidden>⚙️</span>
             ) : title === "My Account" ? (
-              <span aria-hidden>👤</span>
+              <span className="admin-section-emoji" aria-hidden>👤</span>
+            ) : title === "Appearance" ? (
+              <span className="admin-section-emoji" aria-hidden>🎨</span>
             ) : null}
           </h1>
           <p className="mt-1 text-sm text-[var(--admin-text-muted)]">{subtitle}</p>
@@ -108,9 +111,7 @@ export function SettingsAdminHeader({
               placeholder="Search settings…"
               className="admin-input admin-input-with-icon w-full py-2.5 pr-16"
             />
-            <kbd className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 rounded-md border border-[var(--admin-border-subtle)] bg-[var(--admin-panel)] px-1.5 py-0.5 text-[10px] text-[var(--admin-text-muted)] sm:inline">
-              ⌘ K
-            </kbd>
+            <AdminShortcutHint />
           </div>
           <Link href={actionHref} className="admin-btn-gold whitespace-nowrap px-4 py-2 text-center text-sm">
             {actionLabel}

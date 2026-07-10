@@ -43,7 +43,8 @@ export function AdminHeader({
             </p>
           )}
           <h1 className="admin-heading-serif truncate text-2xl text-[var(--admin-text)] sm:text-[1.75rem]">
-            {title} <span aria-hidden>✨</span>
+            {title}{" "}
+            <span className="admin-section-emoji" aria-hidden>✨</span>
           </h1>
           {subtitle && (
             <p className="mt-1 max-w-2xl text-sm leading-relaxed text-[var(--admin-text-muted)]">

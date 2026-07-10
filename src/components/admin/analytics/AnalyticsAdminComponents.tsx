@@ -42,7 +42,7 @@ export function AnalyticsAdminHeader({
         <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
           <div className="min-w-0">
             <h1 className="admin-heading-serif admin-content-title text-2xl text-[var(--admin-text)] md:text-3xl">
-              Analytics
+              Analytics <span className="admin-section-emoji" aria-hidden>📊</span>
             </h1>
             <p className="mt-1 max-w-2xl text-sm text-[var(--admin-text-muted)]">
               Track performance, growth, and key metrics across your business.

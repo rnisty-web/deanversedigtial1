@@ -4,6 +4,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { AdminSearchField } from "@/components/admin/AdminPageHeader";
+import { AdminSectionTitle } from "@/components/admin/AdminSectionTitle";
+import { adminNavItems } from "@/components/admin/admin-nav-config";
+import { getAdminSectionMeta } from "@/lib/admin/section-meta";
 import { cn } from "@/lib/utils";
 
 type AdminDashboardHeroProps = {
@@ -28,8 +31,21 @@ export function AdminDashboardHero({
 
   function handleSearchSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const q = search.trim();
-    if (q) router.push(`/search?q=${encodeURIComponent(q)}`);
+    const q = search.trim().toLowerCase();
+    if (!q) return;
+
+    const match = adminNavItems.find(
+      (item) =>
+        item.label.toLowerCase().includes(q) ||
+        item.href.toLowerCase().includes(q.replace(/\s+/g, "")),
+    );
+
+    if (match) {
+      router.push(match.href);
+      return;
+    }
+
+    router.push(`/admin/leads?search=${encodeURIComponent(search.trim())}`);
   }
 
   return (
@@ -42,11 +58,10 @@ export function AdminDashboardHero({
       <div className="mx-auto flex max-w-[1680px] flex-col gap-5">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
           <div className="min-w-0">
-            <h1 className="admin-heading-serif admin-content-title text-2xl text-[var(--admin-text)] md:text-3xl">
-              Dashboard <span aria-hidden>✨</span>
-            </h1>
+            <AdminSectionTitle section="dashboard" />
             <p className="mt-1 text-sm text-[var(--admin-text-muted)]">
-              Welcome back, <span className="text-[var(--admin-gold-light)]">{viewerName}</span>
+              Welcome back, <span className="text-[var(--admin-gold-light)]">{viewerName}</span> —{" "}
+              {getAdminSectionMeta("dashboard").description}
             </p>
           </div>
 
@@ -68,7 +83,7 @@ export function AdminDashboardHero({
               </svg>
               {unreadMessagesCount > 0 ? (
                 <span className="admin-dashboard-notify-badge">
-                  {unreadMessagesCount > 9 ? "9+" : unreadMessagesCount}
+                  {unreadMessagesCount > 99 ? "99+" : unreadMessagesCount}
                 </span>
               ) : null}
             </Link>
@@ -83,7 +98,7 @@ export function AdminDashboardHero({
         </div>
 
         <form onSubmit={handleSearchSubmit} className="max-w-xl">
-          <AdminSearchField value={search} onChange={setSearch} placeholder="Search dashboard…" />
+          <AdminSearchField value={search} onChange={setSearch} placeholder="Quick jump to a section…" />
         </form>
       </div>
     </header>

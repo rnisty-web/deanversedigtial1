@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef } from "react";
+import { AdminShortcutHint } from "@/components/admin/AdminShortcutHint";
 import { cn } from "@/lib/utils";
 import { MEDIA_TABS, type MediaTab } from "@/lib/media/utils";
 
@@ -43,7 +44,7 @@ export function MediaAdminHeader({
         <div className="min-w-0">
           <div className="flex flex-wrap items-start gap-3 pt-0.5">
             <h1 className="admin-heading-serif admin-content-title text-2xl text-[var(--admin-text)] md:text-3xl">
-              Media Library <span aria-hidden>✨</span>
+              Media Library <span className="admin-section-emoji" aria-hidden>🗂️</span>
             </h1>
             <Link
               href="/"
@@ -83,9 +84,7 @@ export function MediaAdminHeader({
               placeholder="Search media…"
               className="admin-input admin-input-with-icon w-full py-2.5 pr-16"
             />
-            <kbd className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 rounded-md border border-[var(--admin-border-subtle)] bg-[var(--admin-panel)] px-1.5 py-0.5 text-[10px] text-[var(--admin-text-muted)] sm:inline">
-              ⌘ K
-            </kbd>
+            <AdminShortcutHint />
           </div>
           <button
             type="button"

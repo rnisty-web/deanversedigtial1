@@ -370,8 +370,8 @@ export default function AdminDashboardPage() {
 
             <div className="grid gap-6 xl:grid-cols-12">
               <DashboardWidget
-                title="Revenue Overview"
-                subtitle="Website traffic — last 7 days"
+                title="Traffic Overview"
+                subtitle="Page views — last 7 days"
                 actionHref="/admin/analytics"
                 className="xl:col-span-7"
               >
@@ -398,7 +398,7 @@ export default function AdminDashboardPage() {
 
             <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-5">
               <div className="md:col-span-2 xl:col-span-1">
-                <DashboardWidget title="Upcoming Schedule" subtitle="Project status mix" actionHref="/admin/calendar">
+                <DashboardWidget title="Project Status" subtitle="Active pipeline breakdown" actionHref="/admin/projects">
                   <StatsChart
                     type="doughnut"
                     labels={projectStatusLabels}

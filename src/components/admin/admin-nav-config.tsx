@@ -1,8 +1,10 @@
 import type { ReactNode } from "react";
+import { ADMIN_SECTION_META } from "@/lib/admin/section-meta";
 
 export type AdminNavItem = {
   href: string;
   label: string;
+  emoji: string;
   icon: ReactNode;
 };
 
@@ -61,7 +63,7 @@ const icons = {
   ),
   media: (
     <svg className={iconClass} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75v5.25c0 .414.336.75.75.75h5.25M2.25 15.75l4.5-4.5m0 0l3-3m-3 3l-3-3m3 3l3 3M21.75 8.25v5.25c0 .414-.336.75-.75.75h-5.25m5.25 0l-4.5-4.5m0 0l-3-3m3 3l3-3m-3 3l-3 3" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
     </svg>
   ),
   calendar: (
@@ -91,23 +93,24 @@ const icons = {
 const ORDERED_NAV: {
   href: string;
   label: string;
+  emoji: string;
   icon: ReactNode;
   group: "" | "Content" | "Business" | "System";
 }[] = [
-  { href: "/admin", label: "Dashboard", icon: icons.dashboard, group: "" },
-  { href: "/admin/content", label: "Site Content", icon: icons.content, group: "Content" },
-  { href: "/admin/portfolio", label: "Portfolio", icon: icons.portfolio, group: "Content" },
-  { href: "/admin/testimonials", label: "Testimonials", icon: icons.testimonials, group: "Content" },
-  { href: "/admin/media", label: "Media", icon: icons.media, group: "Content" },
-  { href: "/admin/leads", label: "Leads", icon: icons.leads, group: "Business" },
-  { href: "/admin/clients", label: "Clients", icon: icons.clients, group: "Business" },
-  { href: "/admin/projects", label: "Projects", icon: icons.projects, group: "Business" },
-  { href: "/admin/messages", label: "Messages", icon: icons.messages, group: "Business" },
-  { href: "/admin/invoices", label: "Invoices", icon: icons.invoices, group: "Business" },
-  { href: "/admin/calendar", label: "Calendar", icon: icons.calendar, group: "Business" },
-  { href: "/admin/analytics", label: "Analytics", icon: icons.analytics, group: "System" },
-  { href: "/admin/users", label: "Users", icon: icons.users, group: "System" },
-  { href: "/admin/settings", label: "Settings", icon: icons.settings, group: "System" },
+  { href: "/admin", label: "Dashboard", emoji: ADMIN_SECTION_META.dashboard.emoji, icon: icons.dashboard, group: "" },
+  { href: "/admin/content", label: "Site Content", emoji: ADMIN_SECTION_META.content.emoji, icon: icons.content, group: "Content" },
+  { href: "/admin/portfolio", label: "Portfolio", emoji: ADMIN_SECTION_META.portfolio.emoji, icon: icons.portfolio, group: "Content" },
+  { href: "/admin/testimonials", label: "Testimonials", emoji: ADMIN_SECTION_META.testimonials.emoji, icon: icons.testimonials, group: "Content" },
+  { href: "/admin/media", label: "Media", emoji: ADMIN_SECTION_META.media.emoji, icon: icons.media, group: "Content" },
+  { href: "/admin/leads", label: "Leads", emoji: ADMIN_SECTION_META.leads.emoji, icon: icons.leads, group: "Business" },
+  { href: "/admin/clients", label: "Clients", emoji: ADMIN_SECTION_META.clients.emoji, icon: icons.clients, group: "Business" },
+  { href: "/admin/projects", label: "Projects", emoji: ADMIN_SECTION_META.projects.emoji, icon: icons.projects, group: "Business" },
+  { href: "/admin/messages", label: "Messages", emoji: ADMIN_SECTION_META.messages.emoji, icon: icons.messages, group: "Business" },
+  { href: "/admin/invoices", label: "Invoices", emoji: ADMIN_SECTION_META.invoices.emoji, icon: icons.invoices, group: "Business" },
+  { href: "/admin/calendar", label: "Calendar", emoji: ADMIN_SECTION_META.calendar.emoji, icon: icons.calendar, group: "Business" },
+  { href: "/admin/analytics", label: "Analytics", emoji: ADMIN_SECTION_META.analytics.emoji, icon: icons.analytics, group: "System" },
+  { href: "/admin/users", label: "Users", emoji: ADMIN_SECTION_META.users.emoji, icon: icons.users, group: "System" },
+  { href: "/admin/settings", label: "Settings", emoji: ADMIN_SECTION_META.settings.emoji, icon: icons.settings, group: "System" },
 ];
 
 function buildNavGroups(): AdminNavGroup[] {
@@ -120,7 +123,7 @@ function buildNavGroups(): AdminNavGroup[] {
       current = { label: groupLabel, items: [] };
       groups.push(current);
     }
-    current.items.push({ href: item.href, label: item.label, icon: item.icon });
+    current.items.push({ href: item.href, label: item.label, emoji: item.emoji, icon: item.icon });
   }
 
   return groups;
@@ -128,9 +131,10 @@ function buildNavGroups(): AdminNavGroup[] {
 
 export const adminNavGroups: AdminNavGroup[] = buildNavGroups();
 
-export const adminNavItems = ORDERED_NAV.map(({ href, label, icon }) => ({
+export const adminNavItems = ORDERED_NAV.map(({ href, label, emoji, icon }) => ({
   href,
   label,
+  emoji,
   icon,
 }));
 

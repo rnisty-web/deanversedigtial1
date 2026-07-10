@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { AdminTableSkeleton } from "@/components/admin/AdminTableSkeleton";
+import { useFloatingMenuDismiss } from "@/components/admin/useFloatingMenuDismiss";
 import type { InvoiceRecord } from "@/lib/invoices/utils";
 import {
   formatCurrency,
@@ -67,29 +68,7 @@ export function InvoicesTable({
   const menuRef = useRef<HTMLDivElement>(null);
   const allSelected = invoices.length > 0 && invoices.every((inv) => selectedIds.has(inv.id));
 
-  useEffect(() => {
-    if (!menuState) return;
-    function close(e: MouseEvent) {
-      if (menuRef.current?.contains(e.target as Node)) return;
-      setMenuState(null);
-    }
-    function closeOnEscape(e: KeyboardEvent) {
-      if (e.key === "Escape") setMenuState(null);
-    }
-    function closeOnScroll() {
-      setMenuState(null);
-    }
-    document.addEventListener("mousedown", close);
-    document.addEventListener("keydown", closeOnEscape);
-    window.addEventListener("scroll", closeOnScroll, true);
-    window.addEventListener("resize", closeOnScroll);
-    return () => {
-      document.removeEventListener("mousedown", close);
-      document.removeEventListener("keydown", closeOnEscape);
-      window.removeEventListener("scroll", closeOnScroll, true);
-      window.removeEventListener("resize", closeOnScroll);
-    };
-  }, [menuState]);
+  useFloatingMenuDismiss(Boolean(menuState), menuRef, () => setMenuState(null));
 
   if (loading) return <AdminTableSkeleton rows={8} />;
 

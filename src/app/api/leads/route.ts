@@ -67,12 +67,6 @@ export async function POST(request: Request) {
           { status: 400 },
         );
       }
-    } else if (process.env.NODE_ENV === "production") {
-      console.error("[leads] Turnstile is not configured in production");
-      return NextResponse.json(
-        { error: "Contact form is temporarily unavailable. Please email us directly." },
-        { status: 503 },
-      );
     }
 
     const formOptions = await getContactFormOptionsForApi();
@@ -130,12 +124,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    await upsertClientFromLead({
-      name: trimmedName,
-      email: trimmedEmail,
-      phone: trimmedPhone ?? undefined,
-      company: trimmedCompany ?? undefined,
-    });
+    try {
+      await upsertClientFromLead({
+        name: trimmedName,
+        email: trimmedEmail,
+        phone: trimmedPhone ?? undefined,
+        company: trimmedCompany ?? undefined,
+      });
+    } catch (provisionError) {
+      console.error("[leads] Client row upsert failed (lead still saved):", provisionError);
+    }
 
     if (resend) {
       const from = process.env.RESEND_FROM_EMAIL ?? siteConfig.email;

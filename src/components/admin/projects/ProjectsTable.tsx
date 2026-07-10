@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { AdminTableSkeleton } from "@/components/admin/AdminTableSkeleton";
+import { useFloatingMenuDismiss } from "@/components/admin/useFloatingMenuDismiss";
 import type { ProjectRecord } from "@/lib/projects/utils";
 import {
   clientDisplayName,
@@ -99,29 +100,7 @@ export function ProjectsTable({
   const [menuState, setMenuState] = useState<MenuState | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!menuState) return;
-    function close(e: MouseEvent) {
-      if (menuRef.current?.contains(e.target as Node)) return;
-      setMenuState(null);
-    }
-    function closeOnEscape(e: KeyboardEvent) {
-      if (e.key === "Escape") setMenuState(null);
-    }
-    function closeOnScroll() {
-      setMenuState(null);
-    }
-    document.addEventListener("mousedown", close);
-    document.addEventListener("keydown", closeOnEscape);
-    window.addEventListener("scroll", closeOnScroll, true);
-    window.addEventListener("resize", closeOnScroll);
-    return () => {
-      document.removeEventListener("mousedown", close);
-      document.removeEventListener("keydown", closeOnEscape);
-      window.removeEventListener("scroll", closeOnScroll, true);
-      window.removeEventListener("resize", closeOnScroll);
-    };
-  }, [menuState]);
+  useFloatingMenuDismiss(Boolean(menuState), menuRef, () => setMenuState(null));
 
   const menuPortal =
     menuState &&

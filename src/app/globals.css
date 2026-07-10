@@ -3441,6 +3441,7 @@ body {
   max-height: min(20rem, 70vh);
   overflow-y: auto;
   overflow-x: hidden;
+  overscroll-behavior: contain;
   scrollbar-width: thin;
   scrollbar-color: rgba(201, 169, 98, 0.35) transparent;
   border-radius: 12px;
@@ -3893,6 +3894,7 @@ body {
   max-height: min(20rem, 70vh);
   overflow-y: auto;
   overflow-x: hidden;
+  overscroll-behavior: contain;
   scrollbar-width: thin;
   scrollbar-color: rgba(201, 169, 98, 0.35) transparent;
   border-radius: 12px;
@@ -4294,6 +4296,7 @@ body {
   max-height: min(20rem, 70vh);
   overflow-y: auto;
   overflow-x: hidden;
+  overscroll-behavior: contain;
   scrollbar-width: thin;
   scrollbar-color: rgba(201, 169, 98, 0.35) transparent;
   border-radius: 12px;
@@ -4988,6 +4991,7 @@ body {
 .admin-invoices-menu {
   z-index: 9999;
   overflow-y: auto;
+  overscroll-behavior: contain;
   border-radius: 12px;
   border: 1px solid var(--admin-border);
   background: var(--admin-panel);

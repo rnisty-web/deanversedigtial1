@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { AdminTableSkeleton } from "@/components/admin/AdminTableSkeleton";
+import { useFloatingMenuDismiss } from "@/components/admin/useFloatingMenuDismiss";
 import { LeadBadge, LeadStatusBadge } from "@/components/admin/leads/LeadsSidebar";
 import type { LeadRecord } from "@/lib/leads/utils";
 import {
@@ -70,35 +71,7 @@ export function LeadsTable({
   const [menuState, setMenuState] = useState<MenuState | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!menuState) return;
-
-    function close(e: MouseEvent) {
-      const target = e.target as Node;
-      if (menuRef.current?.contains(target)) return;
-      setMenuState(null);
-    }
-
-    function closeOnEscape(e: KeyboardEvent) {
-      if (e.key === "Escape") setMenuState(null);
-    }
-
-    function closeOnScroll() {
-      setMenuState(null);
-    }
-
-    document.addEventListener("mousedown", close);
-    document.addEventListener("keydown", closeOnEscape);
-    window.addEventListener("scroll", closeOnScroll, true);
-    window.addEventListener("resize", closeOnScroll);
-
-    return () => {
-      document.removeEventListener("mousedown", close);
-      document.removeEventListener("keydown", closeOnEscape);
-      window.removeEventListener("scroll", closeOnScroll, true);
-      window.removeEventListener("resize", closeOnScroll);
-    };
-  }, [menuState]);
+  useFloatingMenuDismiss(Boolean(menuState), menuRef, () => setMenuState(null));
 
   if (loading) {
     return <AdminTableSkeleton />;

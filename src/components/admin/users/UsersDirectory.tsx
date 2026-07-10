@@ -63,7 +63,11 @@ export function UsersDirectory({
                   </p>
                   <p className="truncate text-xs text-[var(--admin-text-muted)]">{user.email}</p>
                   <div className="mt-2">
-                    <RoleBadges roles={user.roles ?? user.role} size="sm" />
+                    <RoleBadges
+                      roles={user.roles ?? user.role}
+                      size="sm"
+                      isFounderAccount={isFounder}
+                    />
                   </div>
                 </div>
               </button>

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { PresenceStat } from "@/components/admin/PresenceIndicator";
 import { getRoleLabel } from "@/lib/roles";
 import type { RoleDefinition } from "@/lib/roles/catalog";
 import type { UserRecord } from "@/lib/users/utils";
@@ -29,20 +30,8 @@ export function UsersSidebar({
       <div className="admin-users-sidebar-panel">
         <p className="admin-users-sidebar-title">Presence overview</p>
         <div className="admin-users-presence-grid">
-          <div className="admin-users-presence-stat">
-            <span className="admin-users-presence-dot admin-users-presence-dot-online" aria-hidden />
-            <div>
-              <p className="text-lg font-bold tabular-nums text-[var(--admin-text)]">{stats.onlineCount}</p>
-              <p className="text-xs text-[var(--admin-text-muted)]">Online</p>
-            </div>
-          </div>
-          <div className="admin-users-presence-stat">
-            <span className="admin-users-presence-dot admin-users-presence-dot-away" aria-hidden />
-            <div>
-              <p className="text-lg font-bold tabular-nums text-[var(--admin-text)]">{stats.awayCount}</p>
-              <p className="text-xs text-[var(--admin-text-muted)]">Away</p>
-            </div>
-          </div>
+          <PresenceStat status="online" count={stats.onlineCount} />
+          <PresenceStat status="away" count={stats.awayCount} />
         </div>
         <p className="mt-3 text-xs text-[var(--admin-text-muted)]">
           {stats.staffCount} staff · {stats.clientCount} client accounts

@@ -10,6 +10,7 @@ type RoleBadgesProps = {
   size?: "sm" | "md";
   className?: string;
   max?: number;
+  isFounderAccount?: boolean;
 };
 
 export function RoleBadges({
@@ -17,9 +18,10 @@ export function RoleBadges({
   size = "sm",
   className,
   max,
+  isFounderAccount,
 }: RoleBadgesProps) {
   const catalog = useRoleCatalog();
-  const parsed = getDisplayRoles(roles, catalog);
+  const parsed = getDisplayRoles(roles, catalog, { isFounderAccount });
   const visible = max ? parsed.slice(0, max) : parsed;
   const overflow = max && parsed.length > max ? parsed.length - max : 0;
 

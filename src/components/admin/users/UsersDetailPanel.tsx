@@ -332,7 +332,11 @@ export function UsersDetailPanel({
             </>
           ) : (
             <>
-              <RoleBadges roles={selectedUser.roles ?? selectedUser.role} size="md" />
+              <RoleBadges
+                roles={selectedUser.roles ?? selectedUser.role}
+                size="md"
+                isFounderAccount={isFounder}
+              />
               <p className="text-xs text-[var(--admin-text-muted)]">
                 Admin access: {permissionsSummary(selectedUser, roleCatalog)}
                 {!selectedUser.admin_permissions ? " (from roles)" : " (customized)"}

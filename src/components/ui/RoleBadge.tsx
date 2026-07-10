@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import {
   DEFAULT_ROLE_CATALOG,
-  getRoleDefinition,
+  getRoleDisplayDefinition,
   type RoleDefinition,
 } from "@/lib/roles/catalog";
 import { getRoleLabel, getRoleStyle, type UserRole } from "@/lib/roles";
@@ -23,7 +23,7 @@ export function RoleBadge({
 }: RoleBadgeProps) {
   const catalog = catalogOverride ?? DEFAULT_ROLE_CATALOG;
   const style = getRoleStyle(role, catalog);
-  const definition = getRoleDefinition(catalog, role);
+  const definition = getRoleDisplayDefinition(catalog, role);
 
   if (style.color && definition) {
     return (

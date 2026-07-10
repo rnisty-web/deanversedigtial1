@@ -6802,6 +6802,186 @@ body {
 .admin-users-presence-dot-online { background: var(--admin-emerald); }
 .admin-users-presence-dot-away { background: var(--admin-gold); }
 
+/* ── Presence indicators (users directory, profile, dashboard) ── */
+.presence-dot-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.presence-dot {
+  display: inline-block;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.presence-dot--sm { height: 0.45rem; width: 0.45rem; }
+.presence-dot--md { height: 0.55rem; width: 0.55rem; }
+.presence-dot--lg { height: 0.7rem; width: 0.7rem; }
+
+.presence-dot--online {
+  background: var(--admin-emerald);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--admin-emerald) 28%, transparent),
+    0 0 12px color-mix(in srgb, var(--admin-emerald) 55%, transparent);
+}
+
+.presence-dot--away {
+  background: var(--admin-gold);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--admin-gold) 24%, transparent),
+    0 0 10px color-mix(in srgb, var(--admin-gold) 40%, transparent);
+}
+
+.presence-dot--offline {
+  background: color-mix(in srgb, var(--admin-text-muted) 55%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--admin-text-muted) 12%, transparent);
+}
+
+.presence-dot--prominent.presence-dot--online {
+  animation: presence-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes presence-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--admin-emerald) 28%, transparent),
+      0 0 12px color-mix(in srgb, var(--admin-emerald) 55%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--admin-emerald) 18%, transparent),
+      0 0 18px color-mix(in srgb, var(--admin-emerald) 70%, transparent);
+  }
+}
+
+.presence-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 9999px;
+  border: 1px solid var(--admin-border-subtle);
+  background: color-mix(in srgb, var(--admin-surface) 82%, transparent);
+  backdrop-filter: blur(10px);
+  padding: 0.3rem 0.7rem 0.3rem 0.55rem;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, white 6%, transparent);
+}
+
+.presence-pill--online {
+  border-color: color-mix(in srgb, var(--admin-emerald) 35%, transparent);
+  background: color-mix(in srgb, var(--admin-emerald) 10%, transparent);
+}
+
+.presence-pill--away {
+  border-color: color-mix(in srgb, var(--admin-gold) 32%, transparent);
+  background: color-mix(in srgb, var(--admin-gold) 8%, transparent);
+}
+
+.presence-pill--offline {
+  border-color: var(--admin-border-subtle);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.presence-pill--prominent {
+  padding: 0.4rem 0.85rem 0.4rem 0.65rem;
+}
+
+.presence-pill-content {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.5rem;
+  min-width: 0;
+}
+
+.presence-text {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.presence-text--online { color: color-mix(in srgb, var(--admin-emerald) 82%, white); }
+.presence-text--away { color: color-mix(in srgb, var(--admin-gold-light) 90%, white); }
+.presence-text--offline { color: var(--admin-text-muted); }
+
+.presence-meta {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--admin-text-muted);
+}
+
+.presence-legend {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 9999px;
+  border: 1px solid var(--admin-border-subtle);
+  background: color-mix(in srgb, var(--admin-surface) 88%, transparent);
+  backdrop-filter: blur(8px);
+  padding: 0.25rem 0.45rem;
+}
+
+.presence-legend-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 9999px;
+  padding: 0.2rem 0.45rem;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--admin-text-muted);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.presence-legend-chip:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--admin-text);
+}
+
+.presence-stat {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: 14px;
+  border: 1px solid var(--admin-border-subtle);
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--admin-surface) 92%, transparent),
+    rgba(255, 255, 255, 0.02)
+  );
+  padding: 0.85rem 0.9rem;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.presence-stat:hover {
+  border-color: color-mix(in srgb, var(--admin-gold) 22%, transparent);
+}
+
+.presence-stat--online {
+  border-color: color-mix(in srgb, var(--admin-emerald) 22%, transparent);
+}
+
+.presence-stat--away {
+  border-color: color-mix(in srgb, var(--admin-gold) 20%, transparent);
+}
+
+.presence-stat-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--admin-text);
+}
+
+.presence-stat-label {
+  margin-top: 0.2rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--admin-text-muted);
+}
+
 .admin-users-role-list {
   display: grid;
   gap: 0.625rem;

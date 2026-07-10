@@ -1,8 +1,7 @@
 import { cn } from "@/lib/utils";
 import {
   formatLastSeen,
-  getPresenceDotClass,
-  getPresenceLabel,
+  getPresenceConfig,
   getPresenceStatus,
   type PresenceStatus,
 } from "@/lib/presence";
@@ -16,10 +15,10 @@ interface PresenceIndicatorProps {
   className?: string;
 }
 
-const sizeClasses = {
-  sm: "h-2 w-2",
-  md: "h-2.5 w-2.5",
-  lg: "h-3 w-3",
+const dotSizeClasses = {
+  sm: "presence-dot--sm",
+  md: "presence-dot--md",
+  lg: "presence-dot--lg",
 };
 
 export function PresenceIndicator({
@@ -31,58 +30,89 @@ export function PresenceIndicator({
   className,
 }: PresenceIndicatorProps) {
   const status = getPresenceStatus(lastSeenAt);
+  const config = getPresenceConfig(status);
+  const isPill = showLabel || showLastSeen;
+
+  if (!isPill) {
+    return (
+      <span
+        className={cn("presence-dot-wrap", className)}
+        title={`${config.label}${lastSeenAt ? ` · ${formatLastSeen(lastSeenAt)}` : ""}`}
+      >
+        <span
+          className={cn(
+            "presence-dot",
+            config.dotClass,
+            dotSizeClasses[size],
+            prominent && status === "online" && "presence-dot--prominent",
+          )}
+          aria-hidden
+        />
+      </span>
+    );
+  }
 
   return (
     <span
-      className={cn("inline-flex items-center gap-2", className)}
-      title={`${getPresenceLabel(status)}${lastSeenAt ? ` · ${formatLastSeen(lastSeenAt)}` : ""}`}
+      className={cn(config.pillClass, prominent && "presence-pill--prominent", className)}
+      title={config.hint}
     >
       <span
-        className={cn(
-          "shrink-0 rounded-full",
-          sizeClasses[size],
-          getPresenceDotClass(status),
-          prominent &&
-            status === "online" &&
-            "ring-2 ring-[var(--admin-emerald)]/30 ring-offset-1 ring-offset-[var(--admin-bg)]",
-        )}
+        className={cn("presence-dot", config.dotClass, dotSizeClasses[size])}
         aria-hidden
       />
-      {showLabel && (
-        <span
-          className={cn(
-            "text-xs font-medium",
-            status === "online" && "text-emerald-300",
-            status === "away" && "text-amber-300",
-            status === "offline" && "text-[var(--admin-text-muted)]",
-          )}
-        >
-          {getPresenceLabel(status)}
-        </span>
-      )}
-      {showLastSeen && (
-        <span className="text-xs text-[var(--admin-text-muted)]">{formatLastSeen(lastSeenAt)}</span>
-      )}
+      <span className="presence-pill-content">
+        {showLabel ? <span className={config.textClass}>{config.label}</span> : null}
+        {showLastSeen ? (
+          <span className="presence-meta">{formatLastSeen(lastSeenAt)}</span>
+        ) : null}
+      </span>
     </span>
   );
 }
 
 export function PresenceLegend({ className }: { className?: string }) {
-  const items: { status: PresenceStatus; label: string }[] = [
-    { status: "online", label: "Online (< 3 min, active tab)" },
-    { status: "away", label: "Away (< 30 min)" },
-    { status: "offline", label: "Offline (30+ min)" },
+  const items: { status: PresenceStatus }[] = [
+    { status: "online" },
+    { status: "away" },
+    { status: "offline" },
   ];
 
   return (
-    <div className={cn("admin-luxury-card rounded-xl px-3 py-2", className)}>
-      <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-[11px] text-[var(--admin-text-muted)]">
-        {items.map(({ status, label }) => (
-          <span key={status} className="inline-flex items-center gap-1.5">
-            <span className={cn("h-1.5 w-1.5 rounded-full", getPresenceDotClass(status))} />
-            {label}
+    <div className={cn("presence-legend", className)} role="list" aria-label="Presence legend">
+      {items.map(({ status }) => {
+        const config = getPresenceConfig(status);
+        return (
+          <span
+            key={status}
+            role="listitem"
+            className="presence-legend-chip"
+            title={config.hint}
+          >
+            <span className={cn("presence-dot presence-dot--sm", config.dotClass)} aria-hidden />
+            <span>{config.shortLabel}</span>
           </span>
-        ))}
+        );
+      })}
+    </div>
+  );
+}
+
+type PresenceStatProps = {
+  status: PresenceStatus;
+  count: number;
+  className?: string;
+};
+
+export function PresenceStat({ status, count, className }: PresenceStatProps) {
+  const config = getPresenceConfig(status);
+
+  return (
+    <div className={cn("presence-stat", `presence-stat--${status}`, className)}>
+      <span className={cn("presence-dot presence-dot--md", config.dotClass)} aria-hidden />
+      <div className="presence-stat-copy">
+        <p className="presence-stat-value">{count}</p>
+        <p className="presence-stat-label">{config.label}</p>
       </div>
     </div>
   );

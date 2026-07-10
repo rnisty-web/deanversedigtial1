@@ -5,6 +5,15 @@ export const ONLINE_MS = 3 * 60 * 1000;
 /** Last seen within this window but not online → away */
 export const AWAY_MS = 30 * 60 * 1000;
 
+export type PresenceConfig = {
+  label: string;
+  shortLabel: string;
+  hint: string;
+  pillClass: string;
+  dotClass: string;
+  textClass: string;
+};
+
 export function getPresenceStatus(lastSeenAt: string | null | undefined): PresenceStatus {
   if (!lastSeenAt) return "offline";
 
@@ -14,26 +23,44 @@ export function getPresenceStatus(lastSeenAt: string | null | undefined): Presen
   return "offline";
 }
 
-export function getPresenceLabel(status: PresenceStatus): string {
+export function getPresenceConfig(status: PresenceStatus): PresenceConfig {
   switch (status) {
     case "online":
-      return "Online";
+      return {
+        label: "Online",
+        shortLabel: "Online",
+        hint: "Active in the last 3 minutes",
+        pillClass: "presence-pill presence-pill--online",
+        dotClass: "presence-dot presence-dot--online",
+        textClass: "presence-text presence-text--online",
+      };
     case "away":
-      return "Away";
+      return {
+        label: "Away",
+        shortLabel: "Away",
+        hint: "Seen within the last 30 minutes",
+        pillClass: "presence-pill presence-pill--away",
+        dotClass: "presence-dot presence-dot--away",
+        textClass: "presence-text presence-text--away",
+      };
     case "offline":
-      return "Offline";
+      return {
+        label: "Offline",
+        shortLabel: "Offline",
+        hint: "Not seen in the last 30 minutes",
+        pillClass: "presence-pill presence-pill--offline",
+        dotClass: "presence-dot presence-dot--offline",
+        textClass: "presence-text presence-text--offline",
+      };
   }
 }
 
+export function getPresenceLabel(status: PresenceStatus): string {
+  return getPresenceConfig(status).label;
+}
+
 export function getPresenceDotClass(status: PresenceStatus): string {
-  switch (status) {
-    case "online":
-      return "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]";
-    case "away":
-      return "bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.4)]";
-    case "offline":
-      return "bg-white/25";
-  }
+  return getPresenceConfig(status).dotClass;
 }
 
 export function formatLastSeen(lastSeenAt: string | null | undefined): string {

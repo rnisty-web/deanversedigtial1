@@ -187,10 +187,21 @@ export function sortRolesByCatalog(
 
 const FOUNDER_DISPLAY_SLUGS = new Set<UserRole>(["admin", "founder"]);
 
-function isLeadCreatorRole(role: UserRole, catalog: RoleDefinition[]): boolean {
-  const label = getRoleLabel(role, catalog).trim().toLowerCase();
-  const slug = String(role).toLowerCase();
-  return label === "lead creator" || slug.includes("lead_creator");
+function isFounderSystemRole(role: UserRole): boolean {
+  return FOUNDER_DISPLAY_SLUGS.has(resolveRole(role)) || role === "founder";
+}
+
+/** Separate Lead Creator role in catalog — not the founder system slug. */
+function isDedicatedLeadCreatorRole(role: UserRole, catalog: RoleDefinition[]): boolean {
+  if (isFounderSystemRole(role)) return false;
+
+  const definition = getRoleDefinition(catalog, role);
+  if (definition) {
+    const label = definition.label.trim().toLowerCase();
+    return label === "lead creator" || definition.slug.toLowerCase().includes("lead_creator");
+  }
+
+  return String(role).toLowerCase().includes("lead_creator");
 }
 
 /** Roles for badges and labels — catalog order, without duplicate founder labels. */
@@ -204,14 +215,23 @@ export function getDisplayRoles(
     | null
     | undefined,
   catalog: RoleDefinition[] = DEFAULT_ROLE_CATALOG,
+  options?: { isFounderAccount?: boolean },
 ): UserRole[] {
-  let sorted = sortRolesByCatalog(parseUserRoles(input), catalog);
-  const hasLeadCreator = sorted.some((role) => isLeadCreatorRole(role, catalog));
+  let parsed = parseUserRoles(input);
 
-  if (hasLeadCreator) {
-    sorted = sorted.filter(
-      (role) => !FOUNDER_DISPLAY_SLUGS.has(resolveRole(role)) && role !== "founder",
-    );
+  if (options?.isFounderAccount) {
+    const hasFounderSlug = parsed.some(isFounderSystemRole);
+    const hasDedicated = parsed.some((role) => isDedicatedLeadCreatorRole(role, catalog));
+    if (!hasFounderSlug && !hasDedicated) {
+      parsed = dedupeRoles([...parsed, "admin"]);
+    }
+  }
+
+  let sorted = sortRolesByCatalog(parsed, catalog);
+  const hasDedicatedLeadCreator = parsed.some((role) => isDedicatedLeadCreatorRole(role, catalog));
+
+  if (hasDedicatedLeadCreator) {
+    sorted = sorted.filter((role) => !isFounderSystemRole(role));
   }
 
   const seenLabels = new Set<string>();

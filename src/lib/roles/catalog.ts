@@ -172,11 +172,24 @@ export function getRoleDefinition(catalog: RoleDefinition[], slug: string) {
 
 /** Catalog entry for the Lead Creator / founder display role */
 export function getLeadCreatorDefinition(catalog: RoleDefinition[]) {
-  return getActiveRoleCatalog(catalog).find(
+  const matches = getActiveRoleCatalog(catalog).filter(
     (role) =>
       role.label.trim().toLowerCase() === "lead creator" ||
       role.slug.toLowerCase().includes("lead_creator"),
   );
+
+  return (
+    matches.find((role) => role.slug !== "admin" && role.slug !== "founder") ?? matches[0]
+  );
+}
+
+/** Definition used for badge colors/labels (maps founder slug → Lead Creator entry) */
+export function getRoleDisplayDefinition(catalog: RoleDefinition[], slug: string) {
+  const resolved = slug === "founder" ? "admin" : slug === "client" ? "customer" : slug;
+  if (resolved === "admin" || slug === "founder") {
+    return getLeadCreatorDefinition(catalog) ?? getRoleDefinition(catalog, "admin");
+  }
+  return getRoleDefinition(catalog, slug) ?? getRoleDefinition(catalog, resolved);
 }
 
 export function getStaffRoleSlugs(catalog: RoleDefinition[]) {

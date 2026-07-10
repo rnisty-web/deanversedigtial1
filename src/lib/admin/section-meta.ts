@@ -122,12 +122,6 @@ export const ADMIN_SECTION_META: Record<AdminSectionId, AdminSectionMeta> = {
   },
 };
 
-export const ADMIN_NAV_GROUP_EMOJI: Record<string, string> = {
-  Content: "🎨",
-  Business: "💼",
-  System: "⚡",
-};
-
 export function getAdminSectionMeta(section: AdminSectionId): AdminSectionMeta {
   return ADMIN_SECTION_META[section];
 }

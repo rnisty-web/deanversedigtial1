@@ -213,6 +213,7 @@ body {
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior-y: contain;
+  scrollbar-gutter: stable;
 }
 
 /* Site Content editor fills viewport and scrolls internally */
@@ -5179,7 +5180,7 @@ body {
 .admin-messages-layout {
   display: grid;
   gap: 1rem;
-  min-height: 560px;
+  min-height: min(68dvh, 680px);
   align-items: stretch;
 }
 
@@ -5215,7 +5216,7 @@ body {
   .admin-messages-contact-panel.admin-messages-panel-hidden { display: flex; }
 }
 
-.admin-messages-list-panel { display: flex; flex-direction: column; }
+.admin-messages-list-panel { display: flex; flex-direction: column; min-height: 0; }
 
 .admin-messages-list-header {
   display: flex;
@@ -5227,8 +5228,8 @@ body {
 
 .admin-messages-list {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
-  max-height: min(70vh, 640px);
 }
 
 .admin-messages-list-item {
@@ -5324,7 +5325,7 @@ body {
   text-align: center;
 }
 
-.admin-messages-chat-panel { display: flex; flex-direction: column; }
+.admin-messages-chat-panel { display: flex; flex-direction: column; min-height: 0; }
 
 .admin-messages-chat-header {
   display: flex;
@@ -5342,9 +5343,9 @@ body {
 
 .admin-messages-chat-thread {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding: 1rem;
-  max-height: min(52vh, 480px);
 }
 
 .admin-messages-date-separator {
@@ -5580,8 +5581,8 @@ body {
   overflow: hidden;
 }
 
-.dm-list-panel { display: flex; flex-direction: column; }
-.dm-chat-panel { display: flex; flex-direction: column; }
+.dm-list-panel { display: flex; flex-direction: column; min-height: 0; }
+.dm-chat-panel { display: flex; flex-direction: column; min-height: 0; }
 
 .dm-panel-hidden { display: none; }
 
@@ -5618,8 +5619,8 @@ body {
 
 .dm-list {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
-  max-height: min(70vh, 640px);
 }
 
 .dm-list-item {
@@ -5720,9 +5721,9 @@ body {
 
 .dm-thread {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding: 1rem 1rem 0.5rem;
-  max-height: min(52vh, 520px);
   background:
     radial-gradient(circle at top, rgba(111, 143, 114, 0.06), transparent 42%),
     rgba(8, 10, 9, 0.2);
@@ -6602,8 +6603,8 @@ body {
 
 .admin-users-directory-list {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
-  max-height: min(70vh, 640px);
 }
 
 .admin-users-directory-item {
@@ -7872,11 +7873,6 @@ body {
   vertical-align: middle;
 }
 
-.admin-nav-item-emoji {
-  font-size: 0.95em;
-  opacity: 0.88;
-}
-
 .admin-sidebar-nav-group-label {
   letter-spacing: 0.14em;
 }
@@ -7888,12 +7884,146 @@ body {
 @keyframes admin-page-enter {
   from {
     opacity: 0;
-    transform: translateY(6px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
   }
+}
+
+/* Unified scrollbars for admin editing surfaces */
+.admin-theme .admin-scroll,
+.admin-theme .admin-main-scroll,
+.admin-theme .admin-modal-body,
+.admin-theme .admin-content-section-list,
+.admin-theme .admin-cms-overview,
+.admin-theme .admin-calendar-sidebar,
+.admin-theme .admin-media-sidebar,
+.admin-theme .admin-leads-sidebar,
+.admin-theme .admin-clients-sidebar,
+.admin-theme .admin-projects-sidebar,
+.admin-theme .admin-portfolio-sidebar,
+.admin-theme .admin-testimonials-sidebar,
+.admin-theme .admin-invoices-sidebar,
+.admin-theme .admin-users-sidebar,
+.admin-theme .admin-messages-list,
+.admin-theme .admin-messages-chat-thread,
+.admin-theme .dm-list,
+.admin-theme .dm-thread,
+.admin-theme .dm-chat-thread,
+.admin-theme .admin-users-directory-list,
+.admin-theme .admin-calendar-day-timeline,
+.admin-theme .admin-invoices-menu {
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--admin-gold) 32%, transparent) rgba(8, 10, 9, 0.45);
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+.admin-theme .admin-scroll::-webkit-scrollbar,
+.admin-theme .admin-main-scroll::-webkit-scrollbar,
+.admin-theme .admin-modal-body::-webkit-scrollbar,
+.admin-theme .admin-content-section-list::-webkit-scrollbar,
+.admin-theme .admin-cms-overview::-webkit-scrollbar,
+.admin-theme .admin-calendar-sidebar::-webkit-scrollbar,
+.admin-theme .admin-media-sidebar::-webkit-scrollbar,
+.admin-theme .admin-leads-sidebar::-webkit-scrollbar,
+.admin-theme .admin-clients-sidebar::-webkit-scrollbar,
+.admin-theme .admin-projects-sidebar::-webkit-scrollbar,
+.admin-theme .admin-portfolio-sidebar::-webkit-scrollbar,
+.admin-theme .admin-testimonials-sidebar::-webkit-scrollbar,
+.admin-theme .admin-invoices-sidebar::-webkit-scrollbar,
+.admin-theme .admin-users-sidebar::-webkit-scrollbar,
+.admin-theme .admin-messages-list::-webkit-scrollbar,
+.admin-theme .admin-messages-chat-thread::-webkit-scrollbar,
+.admin-theme .dm-list::-webkit-scrollbar,
+.admin-theme .dm-thread::-webkit-scrollbar,
+.admin-theme .dm-chat-thread::-webkit-scrollbar,
+.admin-theme .admin-users-directory-list::-webkit-scrollbar,
+.admin-theme .admin-calendar-day-timeline::-webkit-scrollbar,
+.admin-theme .admin-invoices-menu::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.admin-theme .admin-scroll::-webkit-scrollbar-track,
+.admin-theme .admin-main-scroll::-webkit-scrollbar-track,
+.admin-theme .admin-modal-body::-webkit-scrollbar-track,
+.admin-theme .admin-content-section-list::-webkit-scrollbar-track,
+.admin-theme .admin-cms-overview::-webkit-scrollbar-track,
+.admin-theme .admin-calendar-sidebar::-webkit-scrollbar-track,
+.admin-theme .admin-media-sidebar::-webkit-scrollbar-track,
+.admin-theme .admin-leads-sidebar::-webkit-scrollbar-track,
+.admin-theme .admin-clients-sidebar::-webkit-scrollbar-track,
+.admin-theme .admin-projects-sidebar::-webkit-scrollbar-track,
+.admin-theme .admin-portfolio-sidebar::-webkit-scrollbar-track,
+.admin-theme .admin-testimonials-sidebar::-webkit-scrollbar-track,
+.admin-theme .admin-invoices-sidebar::-webkit-scrollbar-track,
+.admin-theme .admin-users-sidebar::-webkit-scrollbar-track,
+.admin-theme .admin-messages-list::-webkit-scrollbar-track,
+.admin-theme .admin-messages-chat-thread::-webkit-scrollbar-track,
+.admin-theme .dm-list::-webkit-scrollbar-track,
+.admin-theme .dm-thread::-webkit-scrollbar-track,
+.admin-theme .dm-chat-thread::-webkit-scrollbar-track,
+.admin-theme .admin-users-directory-list::-webkit-scrollbar-track,
+.admin-theme .admin-calendar-day-timeline::-webkit-scrollbar-track,
+.admin-theme .admin-invoices-menu::-webkit-scrollbar-track {
+  background: rgba(8, 10, 9, 0.35);
+  border-radius: 9999px;
+}
+
+.admin-theme .admin-scroll::-webkit-scrollbar-thumb,
+.admin-theme .admin-main-scroll::-webkit-scrollbar-thumb,
+.admin-theme .admin-modal-body::-webkit-scrollbar-thumb,
+.admin-theme .admin-content-section-list::-webkit-scrollbar-thumb,
+.admin-theme .admin-cms-overview::-webkit-scrollbar-thumb,
+.admin-theme .admin-calendar-sidebar::-webkit-scrollbar-thumb,
+.admin-theme .admin-media-sidebar::-webkit-scrollbar-thumb,
+.admin-theme .admin-leads-sidebar::-webkit-scrollbar-thumb,
+.admin-theme .admin-clients-sidebar::-webkit-scrollbar-thumb,
+.admin-theme .admin-projects-sidebar::-webkit-scrollbar-thumb,
+.admin-theme .admin-portfolio-sidebar::-webkit-scrollbar-thumb,
+.admin-theme .admin-testimonials-sidebar::-webkit-scrollbar-thumb,
+.admin-theme .admin-invoices-sidebar::-webkit-scrollbar-thumb,
+.admin-theme .admin-users-sidebar::-webkit-scrollbar-thumb,
+.admin-theme .admin-messages-list::-webkit-scrollbar-thumb,
+.admin-theme .admin-messages-chat-thread::-webkit-scrollbar-thumb,
+.admin-theme .dm-list::-webkit-scrollbar-thumb,
+.admin-theme .dm-thread::-webkit-scrollbar-thumb,
+.admin-theme .dm-chat-thread::-webkit-scrollbar-thumb,
+.admin-theme .admin-users-directory-list::-webkit-scrollbar-thumb,
+.admin-theme .admin-calendar-day-timeline::-webkit-scrollbar-thumb,
+.admin-theme .admin-invoices-menu::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--admin-gold) 38%, rgba(74, 138, 143, 0.45));
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.admin-theme .admin-scroll::-webkit-scrollbar-thumb:hover,
+.admin-theme .admin-main-scroll::-webkit-scrollbar-thumb:hover,
+.admin-theme .admin-modal-body::-webkit-scrollbar-thumb:hover,
+.admin-theme .admin-content-section-list::-webkit-scrollbar-thumb:hover,
+.admin-theme .admin-cms-overview::-webkit-scrollbar-thumb:hover,
+.admin-theme .admin-calendar-sidebar::-webkit-scrollbar-thumb:hover,
+.admin-theme .admin-media-sidebar::-webkit-scrollbar-thumb:hover,
+.admin-theme .admin-leads-sidebar::-webkit-scrollbar-thumb:hover,
+.admin-theme .admin-clients-sidebar::-webkit-scrollbar-thumb:hover,
+.admin-theme .admin-projects-sidebar::-webkit-scrollbar-thumb:hover,
+.admin-theme .admin-portfolio-sidebar::-webkit-scrollbar-thumb:hover,
+.admin-theme .admin-testimonials-sidebar::-webkit-scrollbar-thumb:hover,
+.admin-theme .admin-invoices-sidebar::-webkit-scrollbar-thumb:hover,
+.admin-theme .admin-users-sidebar::-webkit-scrollbar-thumb:hover,
+.admin-theme .admin-messages-list::-webkit-scrollbar-thumb:hover,
+.admin-theme .admin-messages-chat-thread::-webkit-scrollbar-thumb:hover,
+.admin-theme .dm-list::-webkit-scrollbar-thumb:hover,
+.admin-theme .dm-thread::-webkit-scrollbar-thumb:hover,
+.admin-theme .dm-chat-thread::-webkit-scrollbar-thumb:hover,
+.admin-theme .admin-users-directory-list::-webkit-scrollbar-thumb:hover,
+.admin-theme .admin-calendar-day-timeline::-webkit-scrollbar-thumb:hover,
+.admin-theme .admin-invoices-menu::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--admin-gold) 55%, rgba(74, 138, 143, 0.55));
+  background-clip: padding-box;
 }
 
 .admin-theme .admin-content-tab {

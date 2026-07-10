@@ -1,10 +1,8 @@
 import type { ReactNode } from "react";
-import { ADMIN_SECTION_META } from "@/lib/admin/section-meta";
 
 export type AdminNavItem = {
   href: string;
   label: string;
-  emoji: string;
   icon: ReactNode;
 };
 
@@ -93,24 +91,23 @@ const icons = {
 const ORDERED_NAV: {
   href: string;
   label: string;
-  emoji: string;
   icon: ReactNode;
   group: "" | "Content" | "Business" | "System";
 }[] = [
-  { href: "/admin", label: "Dashboard", emoji: ADMIN_SECTION_META.dashboard.emoji, icon: icons.dashboard, group: "" },
-  { href: "/admin/content", label: "Site Content", emoji: ADMIN_SECTION_META.content.emoji, icon: icons.content, group: "Content" },
-  { href: "/admin/portfolio", label: "Portfolio", emoji: ADMIN_SECTION_META.portfolio.emoji, icon: icons.portfolio, group: "Content" },
-  { href: "/admin/testimonials", label: "Testimonials", emoji: ADMIN_SECTION_META.testimonials.emoji, icon: icons.testimonials, group: "Content" },
-  { href: "/admin/media", label: "Media", emoji: ADMIN_SECTION_META.media.emoji, icon: icons.media, group: "Content" },
-  { href: "/admin/leads", label: "Leads", emoji: ADMIN_SECTION_META.leads.emoji, icon: icons.leads, group: "Business" },
-  { href: "/admin/clients", label: "Clients", emoji: ADMIN_SECTION_META.clients.emoji, icon: icons.clients, group: "Business" },
-  { href: "/admin/projects", label: "Projects", emoji: ADMIN_SECTION_META.projects.emoji, icon: icons.projects, group: "Business" },
-  { href: "/admin/messages", label: "Messages", emoji: ADMIN_SECTION_META.messages.emoji, icon: icons.messages, group: "Business" },
-  { href: "/admin/invoices", label: "Invoices", emoji: ADMIN_SECTION_META.invoices.emoji, icon: icons.invoices, group: "Business" },
-  { href: "/admin/calendar", label: "Calendar", emoji: ADMIN_SECTION_META.calendar.emoji, icon: icons.calendar, group: "Business" },
-  { href: "/admin/analytics", label: "Analytics", emoji: ADMIN_SECTION_META.analytics.emoji, icon: icons.analytics, group: "System" },
-  { href: "/admin/users", label: "Users", emoji: ADMIN_SECTION_META.users.emoji, icon: icons.users, group: "System" },
-  { href: "/admin/settings", label: "Settings", emoji: ADMIN_SECTION_META.settings.emoji, icon: icons.settings, group: "System" },
+  { href: "/admin", label: "Dashboard", icon: icons.dashboard, group: "" },
+  { href: "/admin/content", label: "Site Content", icon: icons.content, group: "Content" },
+  { href: "/admin/portfolio", label: "Portfolio", icon: icons.portfolio, group: "Content" },
+  { href: "/admin/testimonials", label: "Testimonials", icon: icons.testimonials, group: "Content" },
+  { href: "/admin/media", label: "Media", icon: icons.media, group: "Content" },
+  { href: "/admin/leads", label: "Leads", icon: icons.leads, group: "Business" },
+  { href: "/admin/clients", label: "Clients", icon: icons.clients, group: "Business" },
+  { href: "/admin/projects", label: "Projects", icon: icons.projects, group: "Business" },
+  { href: "/admin/messages", label: "Messages", icon: icons.messages, group: "Business" },
+  { href: "/admin/invoices", label: "Invoices", icon: icons.invoices, group: "Business" },
+  { href: "/admin/calendar", label: "Calendar", icon: icons.calendar, group: "Business" },
+  { href: "/admin/analytics", label: "Analytics", icon: icons.analytics, group: "System" },
+  { href: "/admin/users", label: "Users", icon: icons.users, group: "System" },
+  { href: "/admin/settings", label: "Settings", icon: icons.settings, group: "System" },
 ];
 
 function buildNavGroups(): AdminNavGroup[] {
@@ -123,7 +120,7 @@ function buildNavGroups(): AdminNavGroup[] {
       current = { label: groupLabel, items: [] };
       groups.push(current);
     }
-    current.items.push({ href: item.href, label: item.label, emoji: item.emoji, icon: item.icon });
+    current.items.push({ href: item.href, label: item.label, icon: item.icon });
   }
 
   return groups;
@@ -131,10 +128,9 @@ function buildNavGroups(): AdminNavGroup[] {
 
 export const adminNavGroups: AdminNavGroup[] = buildNavGroups();
 
-export const adminNavItems = ORDERED_NAV.map(({ href, label, emoji, icon }) => ({
+export const adminNavItems = ORDERED_NAV.map(({ href, label, icon }) => ({
   href,
   label,
-  emoji,
   icon,
 }));
 

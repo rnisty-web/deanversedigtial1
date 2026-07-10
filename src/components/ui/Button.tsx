@@ -33,6 +33,7 @@ interface ButtonBaseProps {
 interface ButtonAsButton extends ButtonBaseProps {
   href?: undefined;
   type?: "button" | "submit" | "reset";
+  form?: string;
   disabled?: boolean;
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
 }
@@ -78,10 +79,10 @@ export function Button(props: ButtonProps) {
     );
   }
 
-  const { type = "button", disabled, onClick } = props as ButtonAsButton;
+  const { type = "button", form, disabled, onClick } = props as ButtonAsButton;
 
   return (
-    <button type={type} disabled={disabled} onClick={onClick} className={classes}>
+    <button type={type} form={form} disabled={disabled} onClick={onClick} className={classes}>
       {children}
     </button>
   );

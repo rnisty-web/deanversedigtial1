@@ -6,8 +6,8 @@ export function AdminFooter() {
         DeanVerse Digital Admin
         <span className="hidden text-[var(--admin-text-muted)]/40 sm:inline">·</span>
         <span className="hidden sm:inline">Building digital experiences that inspire</span>
-        <span className="hidden text-[var(--admin-text-muted)]/40 md:inline">·</span>
-        <span className="hidden md:inline" aria-hidden>✨</span>
+        <span className="text-[var(--admin-text-muted)]/40">·</span>
+        D+D
         <span className="text-[var(--admin-gold)]">✦</span>
       </p>
     </footer>

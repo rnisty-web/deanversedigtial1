@@ -18,13 +18,15 @@ export type CMSLayout = {
 export const HOMEPAGE_SECTION_KEYS: SectionId[] = [
   "hero",
   "stats",
-  "services",
   "portfolio",
   "process",
   "testimonials",
-  "pricing",
   "cta",
 ];
+
+export function isHomepageLayoutSection(id: SectionId): boolean {
+  return HOMEPAGE_SECTION_KEYS.includes(id);
+}
 
 export function defaultCMSLayout(): CMSLayout {
   const order = SECTION_REGISTRY.map((s) => s.id);

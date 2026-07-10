@@ -96,18 +96,18 @@ export const SECTION_REGISTRY: SectionDefinition[] = [
   {
     id: "services",
     title: "Services",
-    typeLabel: "Services",
+    typeLabel: "Dedicated Page",
     category: "services",
-    description: "Service offerings with benefits and pricing.",
+    description: "Content for the /services page only (not shown on the homepage).",
     icon: "services",
     isArray: true,
   },
   {
     id: "pricing",
     title: "Pricing",
-    typeLabel: "Services",
+    typeLabel: "Dedicated Page",
     category: "services",
-    description: "Pricing tiers and pricing-page FAQs.",
+    description: "Content for the /pricing page only (not shown on the homepage).",
     icon: "pricing",
   },
   {

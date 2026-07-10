@@ -1,9 +1,7 @@
 import { CtaBanner } from "@/components/home/CtaBanner";
 import { HeroSection } from "@/components/home/HeroSection";
 import { PortfolioPreview } from "@/components/home/PortfolioPreview";
-import { PricingPreview } from "@/components/home/PricingPreview";
 import { ProcessSection } from "@/components/home/ProcessSection";
-import { ServicesPreview } from "@/components/home/ServicesPreview";
 import { StatsStrip } from "@/components/home/StatsStrip";
 import { TestimonialsPreview } from "@/components/home/TestimonialsPreview";
 import {
@@ -31,8 +29,6 @@ function renderHomepageSection(
       return <HeroSection key={id} />;
     case "stats":
       return <StatsStrip key={id} />;
-    case "services":
-      return <ServicesPreview key={id} />;
     case "portfolio":
       if (!isHomepageSectionPublished(layout, "portfolio") || projects.length === 0) {
         return null;
@@ -45,8 +41,6 @@ function renderHomepageSection(
         return null;
       }
       return <TestimonialsPreview key={id} testimonials={testimonials} />;
-    case "pricing":
-      return <PricingPreview key={id} />;
     case "cta":
       return <CtaBanner key={id} />;
     default:

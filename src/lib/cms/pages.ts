@@ -1,5 +1,8 @@
 import type { CMSKey } from "@/lib/cms/types";
 import type { SectionId } from "@/lib/cms/sections";
+import { HOMEPAGE_SECTION_KEYS, isHomepageLayoutSection } from "@/lib/cms/layout";
+
+export { isHomepageLayoutSection };
 
 /** Best public URL to preview a Site Content section after saving. */
 export const CMS_SECTION_LIVE_PATHS: Partial<Record<SectionId, string>> = {
@@ -24,16 +27,7 @@ export function getSectionLivePath(sectionId: SectionId): string {
 }
 
 export function isHomepageSection(sectionId: SectionId): boolean {
-  return (
-    sectionId === "hero" ||
-    sectionId === "stats" ||
-    sectionId === "services" ||
-    sectionId === "process" ||
-    sectionId === "testimonials" ||
-    sectionId === "portfolio" ||
-    sectionId === "pricing" ||
-    sectionId === "cta"
-  );
+  return isHomepageLayoutSection(sectionId);
 }
 
 export const CMS_PAGE_PATHS = [
@@ -68,7 +62,7 @@ export const CMS_PAGE_LABELS: Record<CMSPagePath, string> = {
 
 /** CMS keys that affect each public page (for targeted revalidation). */
 export const CMS_KEYS_BY_PAGE: Record<CMSPagePath, CMSKey[]> = {
-  "/": ["site", "hero", "stats", "services", "process", "pricing", "cta"],
+  "/": ["site", "hero", "stats", "process", "cta"],
   "/about": ["site", "about", "techStack"],
   "/services": ["site", "services"],
   "/pricing": ["site", "pricing"],
@@ -80,3 +74,5 @@ export const CMS_KEYS_BY_PAGE: Record<CMSPagePath, CMSKey[]> = {
   "/experience": ["site", "experience"],
   "/hire-me": ["site", "process", "pricing", "cta"],
 };
+
+export const HOMEPAGE_SECTION_COUNT = HOMEPAGE_SECTION_KEYS.length;

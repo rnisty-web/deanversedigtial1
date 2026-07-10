@@ -27,6 +27,7 @@ import { SectionIcon } from "@/components/admin/content/SectionIcon";
 import { Button } from "@/components/ui/Button";
 import { defaultCMSLayout, formatLayoutDate, getHomepageOrder, applyHomepageOrder, reorderFullOrder, setLayoutSectionStatus, type CMSLayout } from "@/lib/cms/layout";
 import { getSectionLivePath, isHomepageSection } from "@/lib/cms/pages";
+import { isHomepageLayoutSection } from "@/lib/cms/layout";
 import { computeCMSStats } from "@/lib/cms/stats";
 import {
   FILTER_TABS,
@@ -106,7 +107,9 @@ export function ContentEditor() {
   const draftSections = useMemo(
     () =>
       orderedSections(layout.order).filter(
-        (s) => (layout.meta[s.id]?.status ?? "published") === "draft",
+        (s) =>
+          isHomepageLayoutSection(s.id) &&
+          (layout.meta[s.id]?.status ?? "published") === "draft",
       ),
     [layout],
   );
@@ -476,12 +479,18 @@ export function ContentEditor() {
                       <span
                         className={cn(
                           "admin-content-status-badge",
-                          activeStatus === "published"
-                            ? "admin-content-status-published"
-                            : "admin-content-status-draft",
+                          isHomepageSection(activeSection)
+                            ? activeStatus === "published"
+                              ? "admin-content-status-published"
+                              : "admin-content-status-draft"
+                            : "admin-content-status-published",
                         )}
                       >
-                        {activeStatus === "published" ? "Published" : "Draft"}
+                        {isHomepageSection(activeSection)
+                          ? activeStatus === "published"
+                            ? "Published"
+                            : "Draft"
+                          : "Dedicated page"}
                       </span>
                       <span>·</span>
                       <span>Updated {formatLayoutDate(activeMeta?.updatedAt)}</span>
@@ -532,7 +541,7 @@ export function ContentEditor() {
                   >
                     Edit Section
                   </button>
-                  {!activeDef.isLinked && (
+                  {!activeDef.isLinked && isHomepageSection(activeSection) && (
                     <button
                       type="button"
                       className="admin-btn-ghost text-xs"
@@ -593,7 +602,7 @@ export function ContentEditor() {
                     >
                       {saving ? "Saving…" : sectionDirty ? "Save Section" : "Saved"}
                     </Button>
-                    {activeStatus === "draft" && (
+                    {activeStatus === "draft" && isHomepageSection(activeSection) && (
                       <Button
                         type="button"
                         variant="secondary"

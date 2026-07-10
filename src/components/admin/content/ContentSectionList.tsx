@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { DragHandleIcon, MoreMenuIcon, SectionIcon } from "@/components/admin/content/SectionIcon";
-import type { CMSLayout } from "@/lib/cms/layout";
+import { isHomepageLayoutSection, type CMSLayout } from "@/lib/cms/layout";
 import type { CMSContent } from "@/lib/cms/types";
 import {
   getSectionDisplayTitle,
@@ -70,6 +70,7 @@ export function ContentSectionList({
           const status = meta?.status ?? "published";
           const title = getSectionDisplayTitle(section, content, meta?.displayName);
           const isActive = section.id === activeId;
+          const onHomepage = isHomepageLayoutSection(section.id);
 
           return (
             <li
@@ -118,12 +119,16 @@ export function ContentSectionList({
               <span
                 className={cn(
                   "admin-content-status-badge shrink-0",
-                  status === "published"
+                  section.isLinked
                     ? "admin-content-status-published"
-                    : "admin-content-status-draft",
+                    : onHomepage
+                      ? status === "published"
+                        ? "admin-content-status-published"
+                        : "admin-content-status-draft"
+                      : "admin-content-status-published",
                 )}
               >
-                {status === "published" ? "Published" : "Draft"}
+                {section.isLinked ? "Linked" : onHomepage ? (status === "published" ? "Published" : "Draft") : "Page"}
               </span>
 
               <div className="relative shrink-0">
@@ -148,16 +153,18 @@ export function ContentSectionList({
                       onClick={() => setMenuOpenId(null)}
                     />
                     <div className="admin-content-add-menu absolute right-0 z-50 mt-1 w-44 overflow-hidden rounded-xl">
-                      <button
-                        type="button"
-                        className="admin-sidebar-menu-item w-full text-left"
-                        onClick={() => {
-                          onToggleStatus(section.id);
-                          setMenuOpenId(null);
-                        }}
-                      >
-                        Mark as {status === "published" ? "Draft" : "Publish"}
-                      </button>
+                      {onHomepage && (
+                        <button
+                          type="button"
+                          className="admin-sidebar-menu-item w-full text-left"
+                          onClick={() => {
+                            onToggleStatus(section.id);
+                            setMenuOpenId(null);
+                          }}
+                        >
+                          Mark as {status === "published" ? "Draft" : "Publish"}
+                        </button>
+                      )}
                       {!section.isLinked && (
                         <button
                           type="button"

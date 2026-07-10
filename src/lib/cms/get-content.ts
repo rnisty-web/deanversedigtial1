@@ -1,6 +1,6 @@
-import { unstable_cache } from "next/cache";
+import { unstable_noStore as noStore } from "next/cache";
 import { createAnonServerClient, createServiceRoleClient } from "@/lib/supabase/server";
-import { cmsDefaults } from "@/lib/cms/defaults";
+import { cmsDefaults, cmsKeys } from "@/lib/cms/defaults";
 import { defaultCMSLayout, mergeLayout, type CMSLayout } from "@/lib/cms/layout";
 import { mergeCMSContent } from "@/lib/cms/merge";
 import type { CMSContent, PublicSiteConfig } from "@/lib/cms/types";
@@ -12,6 +12,7 @@ export {
 } from "@/lib/data/queries";
 
 const CMS_LAYOUT_KEY = "cmsLayout";
+const CMS_SETTING_KEYS = [...cmsKeys, CMS_LAYOUT_KEY];
 
 function hasSupabase() {
   return Boolean(
@@ -26,7 +27,17 @@ function createCMSSupabaseClient() {
   return createAnonServerClient();
 }
 
+function warnWhenPublicCMSReadMayFail() {
+  if (!createServiceRoleClient()) {
+    console.error(
+      "[cms] Public CMS reads may fail without SUPABASE_SERVICE_ROLE_KEY. Run supabase/cms-public-read.sql or set the service role key on your host.",
+    );
+  }
+}
+
 async function fetchCMSFromDb(): Promise<CMSContent> {
+  noStore();
+
   if (!hasSupabase()) {
     return cmsDefaults;
   }
@@ -37,35 +48,37 @@ async function fetchCMSFromDb(): Promise<CMSContent> {
   }
 
   try {
-    const { data, error } = await supabase.from("settings").select("key, value");
+    const { data, error } = await supabase
+      .from("settings")
+      .select("key, value")
+      .in("key", CMS_SETTING_KEYS);
 
     if (error) {
       console.error("[cms] settings read failed:", error.message);
+      warnWhenPublicCMSReadMayFail();
       return structuredClone(cmsDefaults);
     }
 
     if (!data?.length) {
+      console.error("[cms] no CMS settings rows returned from database");
+      warnWhenPublicCMSReadMayFail();
       return structuredClone(cmsDefaults);
     }
 
     return mergeCMSContent(data);
   } catch (error) {
     console.error("[cms] settings read error:", error);
+    warnWhenPublicCMSReadMayFail();
     return structuredClone(cmsDefaults);
   }
 }
 
 export async function getCMSContent(): Promise<CMSContent> {
-  return getCachedCMSContent();
+  return fetchCMSFromDb();
 }
 
-const getCachedCMSContent = unstable_cache(
-  fetchCMSFromDb,
-  ["cms-content"],
-  { tags: ["cms"], revalidate: 60 },
-);
-
 async function fetchCMSLayoutFromDb(): Promise<CMSLayout> {
+  noStore();
   const defaults = defaultCMSLayout();
 
   if (!hasSupabase()) {
@@ -86,6 +99,7 @@ async function fetchCMSLayoutFromDb(): Promise<CMSLayout> {
 
     if (error) {
       console.error("[cms] layout read failed:", error.message);
+      warnWhenPublicCMSReadMayFail();
       return defaults;
     }
 
@@ -96,18 +110,13 @@ async function fetchCMSLayoutFromDb(): Promise<CMSLayout> {
     return mergeLayout(data.value as Partial<CMSLayout>, defaults);
   } catch (error) {
     console.error("[cms] layout read error:", error);
+    warnWhenPublicCMSReadMayFail();
     return defaults;
   }
 }
 
-const getCachedCMSLayout = unstable_cache(
-  fetchCMSLayoutFromDb,
-  ["cms-layout"],
-  { tags: ["cms"], revalidate: 60 },
-);
-
 export async function getCMSLayout(): Promise<CMSLayout> {
-  return getCachedCMSLayout();
+  return fetchCMSLayoutFromDb();
 }
 
 export { getPublishedHomepageSections, isHomepageSectionPublished } from "@/lib/cms/layout";

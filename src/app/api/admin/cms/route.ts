@@ -96,7 +96,7 @@ export async function PUT(request: Request) {
     .from("settings")
     .upsert({ key: CMS_LAYOUT_KEY, value: updatedLayout }, { onConflict: "key" });
 
-  revalidateCMSContent();
+  revalidateCMSContent(key);
   const state = await loadCMSState(auth.supabase!);
   return NextResponse.json({ success: true, key, ...state });
 }

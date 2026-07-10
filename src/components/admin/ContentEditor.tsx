@@ -26,6 +26,7 @@ import {
 import { SectionIcon } from "@/components/admin/content/SectionIcon";
 import { Button } from "@/components/ui/Button";
 import { defaultCMSLayout, formatLayoutDate, getHomepageOrder, applyHomepageOrder, reorderFullOrder, setLayoutSectionStatus, type CMSLayout } from "@/lib/cms/layout";
+import { getSectionLivePath, isHomepageSection } from "@/lib/cms/pages";
 import { computeCMSStats } from "@/lib/cms/stats";
 import {
   FILTER_TABS,
@@ -131,6 +132,18 @@ export function ContentEditor() {
     return JSON.stringify(content[activeSection]) !== JSON.stringify(savedContent[activeSection]);
   }, [activeSection, content, savedContent]);
 
+  const livePreviewPath = getSectionLivePath(activeSection);
+
+  useEffect(() => {
+    if (!sectionDirty) return;
+    const onBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, [sectionDirty]);
+
   const listReorderEnabled = categoryFilter === "all" && !search.trim();
 
   function selectSection(id: SectionId) {
@@ -180,8 +193,8 @@ export function ContentEditor() {
     }
   }
 
-  async function handleSaveSection() {
-    if (!content || !isCMSKey(activeSection)) return;
+  async function handleSaveSection(): Promise<boolean> {
+    if (!content || !isCMSKey(activeSection)) return false;
     setSaving(true);
     setMessage(null);
 
@@ -197,7 +210,7 @@ export function ContentEditor() {
     if (!res.ok) {
       const data = await res.json();
       setMessage({ type: "error", text: data.error ?? "Failed to save" });
-      return;
+      return false;
     }
 
     const data = await res.json();
@@ -205,8 +218,36 @@ export function ContentEditor() {
 
     setMessage({
       type: "success",
-      text: `${activeDef?.title ?? activeSection} saved and published — live site refreshed`,
+      text: `${activeDef?.title ?? activeSection} saved and published — check ${livePreviewPath} on the live site`,
     });
+    return true;
+  }
+
+  async function saveSectionIfDirty(sectionId: SectionId): Promise<boolean> {
+    if (!content || !savedContent || !isCMSKey(sectionId)) return true;
+    const dirty =
+      JSON.stringify(content[sectionId]) !== JSON.stringify(savedContent[sectionId]);
+    if (!dirty) return true;
+
+    setSaving(true);
+    setMessage(null);
+    const res = await fetch("/api/admin/cms", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify({ key: sectionId, value: content[sectionId] }),
+    });
+    setSaving(false);
+
+    if (!res.ok) {
+      const data = await res.json();
+      setMessage({ type: "error", text: data.error ?? "Failed to save before publishing" });
+      return false;
+    }
+
+    const data = await res.json();
+    applyServerState(data);
+    return true;
   }
 
   async function handleSaveLayout(nextLayout: CMSLayout) {
@@ -271,17 +312,20 @@ export function ContentEditor() {
   }
 
   async function handlePublishDraft(sectionId: string) {
+    const saved = await saveSectionIfDirty(sectionId as SectionId);
+    if (!saved) return;
+
     const previousLayout = layout;
     const nextLayout = setLayoutSectionStatus(layout, sectionId, "published");
     setLayout(nextLayout);
     try {
-      const saved = await handleSaveLayout(nextLayout);
-      setLayout(saved);
-      setSavedLayout(saved);
+      const savedLayoutState = await handleSaveLayout(nextLayout);
+      setLayout(savedLayoutState);
+      setSavedLayout(savedLayoutState);
       setActiveSection(sectionId as SectionId);
       setMessage({
         type: "success",
-        text: `${SECTION_BY_ID[sectionId as SectionId]?.title ?? sectionId} published — live on homepage and site pages.`,
+        text: `${SECTION_BY_ID[sectionId as SectionId]?.title ?? sectionId} published — check ${getSectionLivePath(sectionId as SectionId)} on the live site`,
       });
     } catch {
       setLayout(previousLayout);
@@ -447,6 +491,12 @@ export function ContentEditor() {
                           <span className="text-amber-300">Unsaved changes</span>
                         </>
                       )}
+                      {activeStatus === "draft" && isHomepageSection(activeSection) && (
+                        <>
+                          <span>·</span>
+                          <span className="text-amber-300">Hidden on homepage until published</span>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -482,6 +532,19 @@ export function ContentEditor() {
                   >
                     Edit Section
                   </button>
+                  {!activeDef.isLinked && (
+                    <button
+                      type="button"
+                      className="admin-btn-ghost text-xs"
+                      onClick={() =>
+                        activeStatus === "published"
+                          ? handleToggleStatus(activeSection)
+                          : void handlePublishDraft(activeSection)
+                      }
+                    >
+                      {activeStatus === "published" ? "Unpublish" : "Publish"}
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -530,10 +593,24 @@ export function ContentEditor() {
                     >
                       {saving ? "Saving…" : sectionDirty ? "Save Section" : "Saved"}
                     </Button>
+                    {activeStatus === "draft" && (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        className="admin-btn-ghost"
+                        onClick={() => void handlePublishDraft(activeSection)}
+                      >
+                        Publish Section
+                      </Button>
+                    )}
                     <Button type="button" variant="ghost" className="admin-btn-ghost" onClick={handleSeed} disabled={seeding}>
                       {seeding ? "Seeding…" : "Seed Defaults"}
                     </Button>
-                    <Link href="/" target="_blank" className="admin-btn-ghost inline-flex items-center text-sm">
+                    <Link
+                      href={livePreviewPath}
+                      target="_blank"
+                      className="admin-btn-ghost inline-flex items-center text-sm"
+                    >
                       View on site
                     </Link>
                   </div>

@@ -35,6 +35,10 @@ function mergeObjectSection(
 export function mergeSection<K extends CMSKey>(key: K, dbValue: unknown): CMSContent[K] {
   const defaults = cmsDefaults[key];
 
+  if (dbValue === undefined || dbValue === null) {
+    return defaults;
+  }
+
   if (Array.isArray(defaults)) {
     return (Array.isArray(dbValue) ? dbValue : defaults) as CMSContent[K];
   }

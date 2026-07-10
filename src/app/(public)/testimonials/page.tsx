@@ -7,6 +7,7 @@ import { siteConfig } from "@/lib/constants";
 import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
 
 export async function generateMetadata(): Promise<Metadata> {
   return createPageMetadata({

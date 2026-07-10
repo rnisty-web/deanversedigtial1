@@ -16,6 +16,7 @@ import type { PortfolioCaseStudy } from "@/types";
 import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
 
 interface PortfolioDetailPageProps {
   params: Promise<{ slug: string }>;

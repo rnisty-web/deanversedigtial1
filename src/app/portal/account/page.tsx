@@ -6,7 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { AdminAlert } from "@/components/admin/AdminAlert";
 import { AdminField } from "@/components/admin/AdminField";
 import { PortalAccountSidebar } from "@/components/portal/PortalAccountSidebar";
-import { PortalPageContent } from "@/components/portal/PortalPageContent";
+import { PortalPageShell } from "@/components/portal/PortalPageShell";
 import { PortalPageHeader } from "@/components/portal/PortalPageHeader";
 import { PortalSectionCard } from "@/components/portal/PortalCard";
 import { Button } from "@/components/ui/Button";
@@ -139,18 +139,21 @@ export default function PortalAccountPage() {
   }
 
   return (
-    <PortalPageContent>
-      <PortalPageHeader
-        title="Account settings"
-        subtitle="Manage your profile, contact details, and portal security."
-        breadcrumb={[
-          { label: "Dashboard", href: "/portal" },
-          { label: "Account" },
-        ]}
-        tabs={sections.map((s) => ({ id: s.id, label: s.label }))}
-        activeTab={activeSection}
-        onTabChange={scrollToSection}
-      />
+    <PortalPageShell
+      header={
+        <PortalPageHeader
+          title="Account settings"
+          subtitle="Manage your profile, contact details, and portal security."
+          breadcrumb={[
+            { label: "Dashboard", href: "/portal" },
+            { label: "Account" },
+          ]}
+          tabs={sections.map((s) => ({ id: s.id, label: s.label }))}
+          activeTab={activeSection}
+          onTabChange={scrollToSection}
+        />
+      }
+    >
 
       {message && (
         <AdminAlert tone={message.tone} className="mb-6">
@@ -264,6 +267,6 @@ export default function PortalAccountPage() {
           />
         </div>
       ) : null}
-    </PortalPageContent>
+    </PortalPageShell>
   );
 }

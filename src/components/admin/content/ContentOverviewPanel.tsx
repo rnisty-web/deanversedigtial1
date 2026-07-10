@@ -51,7 +51,7 @@ export function ContentOverviewStats({ stats }: { stats: CMSStats }) {
     <div className="admin-cms-stats shrink-0 px-6 lg:px-8">
       <div className="admin-cms-stats-grid">
         {cards.map((card) => (
-          <div key={card.label} className="admin-cms-stat-card">
+          <div key={card.label} className="admin-portal-stat-card admin-cms-stat-card">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
                 <p className="text-[11px] font-medium uppercase tracking-wider text-[var(--admin-text-muted)]">

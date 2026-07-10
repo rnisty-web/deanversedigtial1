@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useRef } from "react";
+import { AdminPortalHeader } from "@/components/admin/AdminPortalHeader";
 import { AdminShortcutHint } from "@/components/admin/AdminShortcutHint";
 import { cn } from "@/lib/utils";
 import type { UserFilterTab } from "@/lib/users/utils";
@@ -41,25 +41,20 @@ export function UsersAdminHeader({
   const tabs: { id: UserFilterTab; label: string; count?: number }[] = [
     { id: "all", label: "All", count: counts.all },
     { id: "staff", label: "Staff", count: counts.staff },
-    { id: "clients", label: "Clients", count: counts.clients },
+    { id: "clients", label: "Portal accounts", count: counts.clients },
     { id: "online", label: "Live", count: counts.online },
     ...(canManage ? [{ id: "roles" as const, label: "Roles" }] : []),
   ];
 
   return (
-    <header className="admin-content-header sticky top-0 z-20 shrink-0 border-b border-[var(--admin-border-subtle)] bg-[color-mix(in_srgb,var(--admin-bg)_90%,transparent)] px-6 backdrop-blur-xl lg:px-8">
+    <AdminPortalHeader>
       <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div className="min-w-0">
-          <div className="flex flex-wrap items-start gap-3 pt-0.5">
-            <h1 className="admin-heading-serif admin-content-title text-2xl text-[var(--admin-text)] md:text-3xl">
-              Users <span className="admin-section-emoji" aria-hidden>👥</span>
-            </h1>
-            <Link href="/admin/settings" className="admin-btn-ghost inline-flex items-center gap-1.5 px-3 py-1.5 text-xs">
-              Workspace Settings
-            </Link>
-          </div>
+          <h1 className="admin-heading-serif admin-content-title text-2xl text-[var(--admin-text)] md:text-3xl">
+            Users <span className="admin-section-emoji" aria-hidden>👥</span>
+          </h1>
           <p className="mt-1 text-sm text-[var(--admin-text-muted)]">
-            Manage accounts, roles, permissions, and live team presence.
+            Manage login accounts, roles, permissions, and live team presence.
           </p>
         </div>
 
@@ -109,7 +104,7 @@ export function UsersAdminHeader({
           </button>
         ))}
       </div>
-    </header>
+    </AdminPortalHeader>
   );
 }
 
@@ -125,7 +120,7 @@ export function UsersStatCard({
   icon?: React.ReactNode;
 }) {
   return (
-    <div className="admin-users-stat-card">
+    <div className="admin-portal-stat-card admin-users-stat-card">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <p className="text-[11px] font-medium uppercase tracking-wider text-[var(--admin-text-muted)]">{label}</p>

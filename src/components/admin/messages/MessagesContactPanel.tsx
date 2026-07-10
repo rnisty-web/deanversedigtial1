@@ -17,6 +17,7 @@ type MessagesContactPanelProps = {
   starred: boolean;
   onToggleStar: () => void;
   hidden?: boolean;
+  className?: string;
 };
 
 export function MessagesContactPanel({
@@ -24,10 +25,11 @@ export function MessagesContactPanel({
   starred,
   onToggleStar,
   hidden,
+  className,
 }: MessagesContactPanelProps) {
   if (!conversation) {
     return (
-      <aside className={cn("admin-messages-contact-panel", hidden && "admin-messages-panel-hidden")}>
+      <aside className={cn("admin-messages-contact-panel", hidden && "admin-messages-panel-hidden", className)}>
         <div className="admin-messages-contact-empty">
           <p className="text-sm text-[var(--admin-text-muted)]">Contact details appear here when you open a thread.</p>
         </div>
@@ -42,7 +44,7 @@ export function MessagesContactPanel({
   const lastActivity = conversation.latestMessage.created_at;
 
   return (
-    <aside className={cn("admin-messages-contact-panel", hidden && "admin-messages-panel-hidden")}>
+    <aside className={cn("admin-messages-contact-panel", hidden && "admin-messages-panel-hidden", className)}>
       <div className="admin-messages-contact-card">
         <div className="admin-messages-contact-profile">
           <div className="admin-messages-avatar admin-messages-avatar-lg">{initials(name)}</div>

@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 export function DashboardWidget({
   title,
   subtitle,
+  eyebrow,
   actionHref,
   actionLabel = "View all",
   children,
@@ -13,6 +14,7 @@ export function DashboardWidget({
 }: {
   title: string;
   subtitle?: string;
+  eyebrow?: string;
   actionHref?: string;
   actionLabel?: string;
   children: React.ReactNode;
@@ -21,10 +23,12 @@ export function DashboardWidget({
 }) {
   return (
     <AdminCard hover={false} padding={padding} className={cn("admin-dashboard-widget h-full", className)}>
-      <div className="mb-4 flex items-start justify-between gap-3">
+      <div className="admin-dashboard-widget-shine" aria-hidden />
+      <div className="admin-dashboard-widget-header">
         <div className="min-w-0">
-          <h3 className="text-sm font-semibold text-[var(--admin-text)]">{title}</h3>
-          {subtitle ? <p className="mt-0.5 text-xs text-[var(--admin-text-muted)]">{subtitle}</p> : null}
+          {eyebrow ? <p className="admin-dashboard-widget-eyebrow">{eyebrow}</p> : null}
+          <h3 className="admin-dashboard-widget-title">{title}</h3>
+          {subtitle ? <p className="admin-dashboard-widget-subtitle">{subtitle}</p> : null}
         </div>
         {actionHref ? (
           <Link href={actionHref} className="admin-dashboard-link shrink-0">
@@ -32,7 +36,7 @@ export function DashboardWidget({
           </Link>
         ) : null}
       </div>
-      {children}
+      <div className="admin-dashboard-widget-body">{children}</div>
     </AdminCard>
   );
 }
@@ -47,14 +51,26 @@ export function DashboardWidgetLink({
   className?: string;
 }) {
   return (
-    <Link
-      href={href}
-      className={cn(
-        "admin-dashboard-list-item block transition-colors hover:border-[var(--admin-gold)]/30 hover:bg-[var(--admin-gold-soft)]",
-        className,
-      )}
-    >
+    <Link href={href} className={cn("admin-dashboard-list-item block", className)}>
       {children}
     </Link>
+  );
+}
+
+export function DashboardSectionHeader({
+  eyebrow,
+  title,
+  subtitle,
+}: {
+  eyebrow: string;
+  title: string;
+  subtitle?: string;
+}) {
+  return (
+    <div className="admin-dashboard-section-header">
+      <p className="admin-dashboard-section-eyebrow">{eyebrow}</p>
+      <h2 className="admin-dashboard-section-title admin-heading-serif">{title}</h2>
+      {subtitle ? <p className="admin-dashboard-section-subtitle">{subtitle}</p> : null}
+    </div>
   );
 }

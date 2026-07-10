@@ -1,5 +1,6 @@
 "use client";
 
+import { AdminPortalHeader } from "@/components/admin/AdminPortalHeader";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import type { CalendarViewMode } from "@/lib/calendar/types";
@@ -41,7 +42,7 @@ export function CalendarAdminHeader({
   const years = Array.from({ length: 5 }, (_, i) => cursorDate.getFullYear() - 2 + i);
 
   return (
-    <header className="admin-content-header sticky top-0 z-20 shrink-0 border-b border-[var(--admin-border-subtle)] bg-[color-mix(in_srgb,var(--admin-bg)_90%,transparent)] px-6 backdrop-blur-xl lg:px-8">
+    <AdminPortalHeader>
       <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-start gap-3 pt-0.5">
@@ -117,7 +118,7 @@ export function CalendarAdminHeader({
       </div>
 
       <p className="sr-only">{monthYearLabel(cursorDate)} — {viewMode} view</p>
-    </header>
+    </AdminPortalHeader>
   );
 }
 
@@ -133,7 +134,7 @@ export function CalendarStatCard({
   icon: React.ReactNode;
 }) {
   return (
-    <div className="admin-calendar-stat-card">
+    <div className="admin-portal-stat-card admin-calendar-stat-card">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <p className="text-[11px] font-medium uppercase tracking-wider text-[var(--admin-text-muted)]">

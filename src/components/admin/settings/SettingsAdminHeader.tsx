@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef } from "react";
+import { AdminPortalHeader } from "@/components/admin/AdminPortalHeader";
 import { AdminShortcutHint } from "@/components/admin/AdminShortcutHint";
 import { cn } from "@/lib/utils";
 
@@ -25,7 +26,7 @@ export function SettingsAdminHeader({
   breadcrumb,
   hideSearch = false,
   title = "Settings",
-  subtitle = "Manage your account, workspace preferences, integrations, and platform configuration.",
+  subtitle = "Account preferences, portal appearance, and connected services.",
   actionHref = "/admin/settings/my-account",
   actionLabel = "My Account",
   sections,
@@ -46,7 +47,7 @@ export function SettingsAdminHeader({
   }, []);
 
   return (
-    <header className="admin-content-header sticky top-0 z-20 shrink-0 border-b border-[var(--admin-border-subtle)] bg-[color-mix(in_srgb,var(--admin-bg)_90%,transparent)] px-6 backdrop-blur-xl lg:px-8">
+    <AdminPortalHeader>
       {breadcrumb?.length ? (
         <nav className="mb-3 flex flex-wrap items-center gap-2 text-sm" aria-label="Breadcrumb">
           {breadcrumb.map((item, index) => (
@@ -137,7 +138,7 @@ export function SettingsAdminHeader({
           ))}
         </div>
       ) : null}
-    </header>
+    </AdminPortalHeader>
   );
 }
 
@@ -153,7 +154,7 @@ export function SettingsStatCard({
   icon?: React.ReactNode;
 }) {
   return (
-    <div className="admin-settings-stat-card">
+    <div className="admin-portal-stat-card admin-settings-stat-card">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <p className="text-[11px] font-medium uppercase tracking-wider text-[var(--admin-text-muted)]">{label}</p>

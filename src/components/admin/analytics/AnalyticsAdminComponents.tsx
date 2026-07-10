@@ -1,5 +1,6 @@
 "use client";
 
+import { AdminPortalHeader } from "@/components/admin/AdminPortalHeader";
 import { AdminSearchField } from "@/components/admin/AdminPageHeader";
 import { cn } from "@/lib/utils";
 import type { AnalyticsPeriod } from "@/lib/analytics/admin-metrics";
@@ -37,8 +38,8 @@ export function AnalyticsAdminHeader({
   onSearchChange,
 }: AnalyticsAdminHeaderProps) {
   return (
-    <header className="admin-content-header sticky top-0 z-20 shrink-0 border-b border-[var(--admin-border-subtle)] bg-[color-mix(in_srgb,var(--admin-bg)_90%,transparent)] px-4 backdrop-blur-xl sm:px-6 lg:px-8">
-      <div className="mx-auto flex max-w-[1680px] flex-col gap-5">
+    <AdminPortalHeader maxWidth>
+      <div className="flex flex-col gap-5">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
           <div className="min-w-0">
             <h1 className="admin-heading-serif admin-content-title text-2xl text-[var(--admin-text)] md:text-3xl">
@@ -108,7 +109,7 @@ export function AnalyticsAdminHeader({
           </div>
         </div>
       </div>
-    </header>
+    </AdminPortalHeader>
   );
 }
 
@@ -128,7 +129,7 @@ export function AnalyticsKpiCard({
   const positive = invertTrend ? change <= 0 : change >= 0;
 
   return (
-    <div className="admin-stat-card admin-analytics-kpi">
+    <div className="admin-stat-card admin-portal-stat-card admin-analytics-kpi">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-[11px] font-medium uppercase tracking-wider text-[var(--admin-text-muted)]">{label}</p>

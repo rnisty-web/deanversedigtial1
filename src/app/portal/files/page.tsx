@@ -4,8 +4,9 @@ import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "rea
 import { useRouter, useSearchParams } from "next/navigation";
 import { AdminAlert } from "@/components/admin/AdminAlert";
 import { Button } from "@/components/ui/Button";
-import { PortalPageContent } from "@/components/portal/PortalPageContent";
+import { PortalPageShell } from "@/components/portal/PortalPageShell";
 import { PortalPageHeader } from "@/components/portal/PortalPageHeader";
+import { PortalPageContent } from "@/components/portal/PortalPageContent";
 import { PortalCard } from "@/components/portal/PortalCard";
 import { cn } from "@/lib/utils";
 
@@ -218,15 +219,18 @@ function PortalFilesInner() {
   }
 
   return (
-    <PortalPageContent>
-      <PortalPageHeader
-        title="Project files"
-        subtitle="Secure deliverables hub — upload assets, download proofs, and share project materials."
-        breadcrumb={[
-          { label: "Dashboard", href: "/portal" },
-          { label: "Files" },
-        ]}
-      />
+    <PortalPageShell
+      header={
+        <PortalPageHeader
+          title="Project files"
+          subtitle="Secure deliverables hub — upload assets, download proofs, and share project materials."
+          breadcrumb={[
+            { label: "Dashboard", href: "/portal" },
+            { label: "Files" },
+          ]}
+        />
+      }
+    >
 
       <PortalCard padding="md" className="mb-6">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -367,7 +371,7 @@ function PortalFilesInner() {
           ))}
         </div>
       )}
-    </PortalPageContent>
+    </PortalPageShell>
   );
 }
 

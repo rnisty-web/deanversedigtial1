@@ -2,7 +2,7 @@ import { requireAuth } from "@/lib/auth";
 import { getClientProjects } from "@/lib/portal/get-client-projects";
 import { getPendingInquiryState } from "@/lib/portal/pending-inquiry";
 import { ProjectList } from "@/components/portal/ProjectList";
-import { PortalPageContent } from "@/components/portal/PortalPageContent";
+import { PortalPageShell } from "@/components/portal/PortalPageShell";
 import { PortalPageHeader } from "@/components/portal/PortalPageHeader";
 import { PortalStatCard } from "@/components/portal/PortalStatCard";
 import { PendingInquiryNotice } from "@/components/portal/PendingInquiryNotice";
@@ -16,27 +16,29 @@ export default async function PortalProjectsPage() {
   ]);
 
   return (
-    <PortalPageContent>
-      <PortalPageHeader
-        title="My project"
-        subtitle={
-          client
-            ? `A private view of work commissioned for ${client.name}. Every detail here belongs to you alone.`
-            : "Your project appears here once your contact request is linked to this account."
-        }
-        actions={
-          <Link href="/contact" className="admin-btn-ghost whitespace-nowrap px-4 py-2 text-sm">
-            New request
-          </Link>
-        }
-        breadcrumb={[
-          { label: "Dashboard", href: "/portal" },
-          { label: "My Project" },
-        ]}
-      />
-
+    <PortalPageShell
+      header={
+        <PortalPageHeader
+          title="My project"
+          subtitle={
+            client
+              ? `A private view of work commissioned for ${client.name}. Every detail here belongs to you alone.`
+              : "Your project appears here once your contact request is linked to this account."
+          }
+          actions={
+            <Link href="/contact" className="admin-btn-ghost whitespace-nowrap px-4 py-2 text-sm">
+              New request
+            </Link>
+          }
+          breadcrumb={[
+            { label: "Dashboard", href: "/portal" },
+            { label: "My Project" },
+          ]}
+        />
+      }
+    >
       {stats.total > 0 && (
-        <div className="mb-8 grid gap-4 sm:grid-cols-3">
+        <div className="admin-portal-stats-grid mb-8 grid gap-4 sm:grid-cols-3">
           <PortalStatCard label="Active" value={stats.active} accent="primary" />
           <PortalStatCard label="Completed" value={stats.completed} accent="accent" />
           <PortalStatCard label="Total" value={stats.total} accent="neutral" />
@@ -48,6 +50,6 @@ export default async function PortalProjectsPage() {
       {(inquiryState.isPending && projects.length === 0) ? null : (
         <ProjectList projects={projects} inquiryState={inquiryState} />
       )}
-    </PortalPageContent>
+    </PortalPageShell>
   );
 }

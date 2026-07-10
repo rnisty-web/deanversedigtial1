@@ -77,7 +77,7 @@ export function ProjectList({
     const fromInquiry = inquiryState?.hasLead || inquiryState?.hasClient;
 
     return (
-      <div className="admin-luxury-card relative overflow-hidden px-8 py-16 text-center">
+      <div className="admin-luxury-card admin-portal-empty relative overflow-hidden px-8 py-16 text-center">
         <div
           className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_50%_0%,rgba(201,169,98,0.08),transparent_60%)]"
           aria-hidden

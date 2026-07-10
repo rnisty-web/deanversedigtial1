@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { AdminPortalHeader } from "@/components/admin/AdminPortalHeader";
 import { cn } from "@/lib/utils";
 
 export function PortalPageHeader({
@@ -23,18 +24,26 @@ export function PortalPageHeader({
   className?: string;
 }) {
   return (
-    <header className={cn("portal-page-header admin-content-header -mx-4 mb-6 border-b border-[var(--admin-border-subtle)] px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8", className)}>
+    <AdminPortalHeader className={className}>
       {breadcrumb?.length ? (
-        <nav className="portal-page-breadcrumb mb-3 flex flex-wrap items-center gap-2 text-sm" aria-label="Breadcrumb">
+        <nav
+          className="portal-page-breadcrumb mb-3 flex flex-wrap items-center gap-2 text-sm"
+          aria-label="Breadcrumb"
+        >
           {breadcrumb.map((item, index) => (
             <span key={`${item.label}-${index}`} className="flex items-center gap-2">
               {index > 0 ? <span className="text-[var(--admin-text-muted)]">/</span> : null}
               {item.href ? (
-                <Link href={item.href} className="max-w-[12rem] truncate text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] sm:max-w-none">
+                <Link
+                  href={item.href}
+                  className="max-w-[12rem] truncate text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] sm:max-w-none"
+                >
                   {item.label}
                 </Link>
               ) : (
-                <span className="max-w-[12rem] truncate text-[var(--admin-gold-light)] sm:max-w-none">{item.label}</span>
+                <span className="max-w-[12rem] truncate text-[var(--admin-gold-light)] sm:max-w-none">
+                  {item.label}
+                </span>
               )}
             </span>
           ))}
@@ -43,10 +52,14 @@ export function PortalPageHeader({
 
       <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div className="min-w-0">
-          <p className="portal-eyebrow">Client Portal</p>
-          <h1 className="admin-heading-serif mt-1 truncate text-2xl text-[var(--admin-text)] md:text-3xl">{title}</h1>
+          <p className="admin-dashboard-hero-eyebrow">Client portal</p>
+          <h1 className="admin-heading-serif admin-content-title admin-portal-section-title mt-1 truncate text-2xl text-[var(--admin-text)] md:text-3xl">
+            {title}
+          </h1>
           {subtitle ? (
-            <p className="portal-page-subtitle mt-2 max-w-2xl text-sm leading-relaxed text-[var(--admin-text-muted)]">{subtitle}</p>
+            <p className="portal-page-subtitle mt-2 max-w-2xl text-sm leading-relaxed text-[var(--admin-text-muted)]">
+              {subtitle}
+            </p>
           ) : null}
         </div>
         {actions ? <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div> : null}
@@ -69,6 +82,6 @@ export function PortalPageHeader({
           ))}
         </div>
       ) : null}
-    </header>
+    </AdminPortalHeader>
   );
 }

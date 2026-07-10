@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef } from "react";
+import { AdminPortalHeader } from "@/components/admin/AdminPortalHeader";
 import { AdminShortcutHint } from "@/components/admin/AdminShortcutHint";
 import { cn } from "@/lib/utils";
 
@@ -36,7 +37,7 @@ export function InvoicesAdminHeader({
   }, []);
 
   return (
-    <header className="admin-content-header sticky top-0 z-20 shrink-0 border-b border-[var(--admin-border-subtle)] bg-[color-mix(in_srgb,var(--admin-bg)_90%,transparent)] px-6 backdrop-blur-xl lg:px-8">
+    <AdminPortalHeader>
       <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-start gap-3 pt-0.5">
@@ -94,7 +95,7 @@ export function InvoicesAdminHeader({
           </button>
         </div>
       </div>
-    </header>
+    </AdminPortalHeader>
   );
 }
 
@@ -112,7 +113,7 @@ export function InvoicesStatCard({
   hintTone?: "up" | "down" | "neutral" | "gold";
 }) {
   return (
-    <div className="admin-invoices-stat-card">
+    <div className="admin-portal-stat-card admin-invoices-stat-card">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <p className="text-[11px] font-medium uppercase tracking-wider text-[var(--admin-text-muted)]">{label}</p>

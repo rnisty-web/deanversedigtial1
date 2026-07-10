@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { PresenceStat } from "@/components/admin/PresenceIndicator";
 import { getRoleLabel } from "@/lib/roles";
 import type { RoleDefinition } from "@/lib/roles/catalog";
@@ -34,7 +33,7 @@ export function UsersSidebar({
           <PresenceStat status="away" count={stats.awayCount} />
         </div>
         <p className="mt-3 text-xs text-[var(--admin-text-muted)]">
-          {stats.staffCount} staff · {stats.clientCount} client accounts
+          {stats.staffCount} staff · {stats.clientCount} portal accounts
         </p>
       </div>
 
@@ -54,37 +53,28 @@ export function UsersSidebar({
         )}
       </div>
 
-      <div className="admin-users-sidebar-panel">
-        <p className="admin-users-sidebar-title">Quick actions</p>
-        <div className="admin-users-quick-grid">
-          {canManageUsers ? (
+      {canManageUsers ? (
+        <div className="admin-users-sidebar-panel">
+          <p className="admin-users-sidebar-title">Actions</p>
+          <div className="admin-users-quick-grid">
             <button type="button" className="admin-users-quick-btn" onClick={onInviteUser}>
               + Invite user
             </button>
-          ) : null}
-          {canManageUsers && onManageRoles ? (
-            <button type="button" className="admin-users-quick-btn" onClick={onManageRoles}>
-              Manage roles
-            </button>
-          ) : null}
-          <Link href="/admin/settings" className="admin-users-quick-btn">
-            Settings
-          </Link>
-          <Link href="/admin/messages" className="admin-users-quick-btn">
-            Messages
-          </Link>
-          <Link href="/admin/clients" className="admin-users-quick-btn">
-            Clients
-          </Link>
+            {onManageRoles ? (
+              <button type="button" className="admin-users-quick-btn" onClick={onManageRoles}>
+                Manage roles
+              </button>
+            ) : null}
+          </div>
         </div>
-      </div>
+      ) : null}
 
       <div className="admin-users-sidebar-panel">
-        <p className="admin-users-sidebar-title">Security</p>
+        <p className="admin-users-sidebar-title">Notes</p>
         <ul className="admin-users-security-list">
-          <li>Founder accounts cannot be deleted</li>
-          <li>Role changes require staff permissions</li>
-          <li>Live presence refreshes every minute</li>
+          <li>Lead Creator accounts cannot be deleted</li>
+          <li>Role changes require users permission</li>
+          <li>Portal accounts are login profiles — CRM clients live under Clients</li>
         </ul>
       </div>
     </aside>

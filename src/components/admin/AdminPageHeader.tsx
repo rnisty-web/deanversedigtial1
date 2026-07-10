@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, type ReactNode } from "react";
+import { AdminPortalHeader } from "@/components/admin/AdminPortalHeader";
 import { AdminShortcutHint } from "@/components/admin/AdminShortcutHint";
 import { getAdminSectionMeta, type AdminSectionId } from "@/lib/admin/section-meta";
 import { cn } from "@/lib/utils";
@@ -46,13 +47,7 @@ export function AdminPageHeader({
   }, []);
 
   return (
-    <header
-      className={cn(
-        "admin-page-header admin-content-header shrink-0 border-b border-[var(--admin-border-subtle)] px-6 lg:px-8",
-        sticky && "sticky top-0 z-20 bg-[color-mix(in_srgb,var(--admin-bg)_92%,transparent)] backdrop-blur-xl",
-        className,
-      )}
-    >
+    <AdminPortalHeader sticky={sticky} className={className}>
       <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div className="min-w-0">
           <h1 className="admin-heading-serif admin-content-title truncate text-2xl text-[var(--admin-text)] md:text-3xl">
@@ -72,7 +67,7 @@ export function AdminPageHeader({
         {actions ? <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center lg:w-auto">{actions}</div> : null}
       </div>
       {toolbar ? <div className="mt-4">{toolbar}</div> : null}
-    </header>
+    </AdminPortalHeader>
   );
 }
 
@@ -151,6 +146,7 @@ export function AdminStatCard({
   icon,
   hintTone = "neutral",
   goldValue = true,
+  className,
 }: {
   label: string;
   value: string | number;
@@ -158,9 +154,10 @@ export function AdminStatCard({
   icon?: ReactNode;
   hintTone?: "up" | "down" | "neutral";
   goldValue?: boolean;
+  className?: string;
 }) {
   return (
-    <div className="admin-stat-card">
+    <div className={cn("admin-stat-card admin-portal-stat-card", className)}>
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <p className="text-[11px] font-medium uppercase tracking-wider text-[var(--admin-text-muted)]">{label}</p>

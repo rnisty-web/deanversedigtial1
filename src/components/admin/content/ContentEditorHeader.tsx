@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 import type { SectionDefinition } from "@/lib/cms/sections";
+import { AdminPortalHeader } from "@/components/admin/AdminPortalHeader";
 import { AdminShortcutHint } from "@/components/admin/AdminShortcutHint";
 import { cn } from "@/lib/utils";
 
@@ -44,7 +45,7 @@ export function ContentEditorHeader({
   }, [showAddMenu, onToggleAddMenu]);
 
   return (
-    <header className="admin-content-header sticky top-0 z-20 shrink-0 border-b border-[var(--admin-border-subtle)] bg-[color-mix(in_srgb,var(--admin-bg)_90%,transparent)] px-6 backdrop-blur-xl lg:px-8">
+    <AdminPortalHeader>
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-start gap-3 pt-0.5">
@@ -159,7 +160,7 @@ export function ContentEditorHeader({
           </div>
         </div>
       </div>
-    </header>
+    </AdminPortalHeader>
   );
 }
 

@@ -23,7 +23,7 @@ export function AdminEmptyState({
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center rounded-2xl border border-dashed border-[var(--admin-border-subtle)] bg-[var(--admin-panel)] px-6 py-16 text-center",
+        "admin-portal-empty flex flex-col items-center justify-center rounded-2xl border border-dashed border-[var(--admin-border-subtle)] bg-[var(--admin-panel)] px-6 py-16 text-center",
         className,
       )}
     >

@@ -4,7 +4,7 @@ import { requireAuth } from "@/lib/auth";
 import { projectStatuses } from "@/lib/constants";
 import { getProjectDetail } from "@/lib/portal/get-client-data";
 import { progressForStatus } from "@/lib/projects/utils";
-import { PortalPageContent } from "@/components/portal/PortalPageContent";
+import { PortalPageShell } from "@/components/portal/PortalPageShell";
 import { PortalPageHeader } from "@/components/portal/PortalPageHeader";
 import { PortalCard } from "@/components/portal/PortalCard";
 import { PortalStatCard } from "@/components/portal/PortalStatCard";
@@ -28,29 +28,36 @@ export default async function PortalProjectDetailPage({
   const progress = progressForStatus(project.status);
 
   return (
-    <PortalPageContent>
-      <PortalPageHeader
-        title={project.title}
-        subtitle={project.description ?? project.request_summary ?? "Your private project hub — deliverables, messages, and billing in one place."}
-        breadcrumb={[
-          { label: "Dashboard", href: "/portal" },
-          { label: "My Project", href: "/portal/projects" },
-          { label: project.title },
-        ]}
-        actions={
-          <>
-            <Link href="/portal/messages" className="admin-btn-gold px-4 py-2 text-sm">
-              Message team
-            </Link>
-            <Link
-              href={`/portal/files?project=${project.id}`}
-              className="admin-btn-ghost px-4 py-2 text-sm"
-            >
-              Upload file
-            </Link>
-          </>
-        }
-      />
+    <PortalPageShell
+      header={
+        <PortalPageHeader
+          title={project.title}
+          subtitle={
+            project.description ??
+            project.request_summary ??
+            "Your private project hub — deliverables, messages, and billing in one place."
+          }
+          breadcrumb={[
+            { label: "Dashboard", href: "/portal" },
+            { label: "My Project", href: "/portal/projects" },
+            { label: project.title },
+          ]}
+          actions={
+            <>
+              <Link href="/portal/messages" className="admin-btn-gold px-4 py-2 text-sm">
+                Message team
+              </Link>
+              <Link
+                href={`/portal/files?project=${project.id}`}
+                className="admin-btn-ghost px-4 py-2 text-sm"
+              >
+                Upload file
+              </Link>
+            </>
+          }
+        />
+      }
+    >
 
       <div className="mb-8 flex flex-wrap items-center gap-3">
         <AdminStatusBadge status={project.status} className="px-3 py-1 text-sm" />
@@ -61,7 +68,7 @@ export default async function PortalProjectDetailPage({
         ) : null}
       </div>
 
-      <div className="mb-8 grid gap-4 sm:grid-cols-3">
+      <div className="admin-portal-stats-grid mb-8 grid gap-4 sm:grid-cols-3">
         <PortalStatCard
           label="Target delivery"
           value={
@@ -192,6 +199,6 @@ export default async function PortalProjectDetailPage({
           )}
         </PortalCard>
       </div>
-    </PortalPageContent>
+    </PortalPageShell>
   );
 }

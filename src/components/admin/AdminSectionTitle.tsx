@@ -13,7 +13,7 @@ export function AdminSectionTitle({ section, title, className }: AdminSectionTit
   return (
     <h1
       className={cn(
-        "admin-heading-serif admin-content-title text-2xl text-[var(--admin-text)] md:text-3xl",
+        "admin-heading-serif admin-content-title admin-portal-section-title text-2xl text-[var(--admin-text)] md:text-3xl",
         className,
       )}
     >

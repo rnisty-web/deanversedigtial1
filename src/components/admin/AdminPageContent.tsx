@@ -13,7 +13,7 @@ export function AdminPageContent({ children, className }: AdminPageContentProps)
         className,
       )}
     >
-      <div className="mx-auto max-w-[1600px]">{children}</div>
+      <div className="admin-portal-content-inner mx-auto max-w-[1680px]">{children}</div>
     </div>
   );
 }

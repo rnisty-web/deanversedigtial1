@@ -387,7 +387,8 @@ export default function AdminMessagesPage() {
               conversation={selected}
               starred={selected ? starredKeys.has(selected.key) : false}
               onToggleStar={() => selected && handleToggleStar(selected.key)}
-              hidden={!mobileChatOpen}
+              className="max-xl:hidden"
+              hidden={!selected}
             />
             {mobileContactOpen && selected ? (
               <div className="admin-messages-contact-drawer xl:hidden">

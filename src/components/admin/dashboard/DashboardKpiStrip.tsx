@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { AdminStatCard } from "@/components/admin/AdminPageHeader";
+import { cn } from "@/lib/utils";
 
 const icons = {
   revenue: (
@@ -59,6 +60,7 @@ export function DashboardKpiStrip({
       hint: revenueHint ?? "Paid invoices to date",
       icon: icons.revenue,
       href: "/admin/invoices",
+      accent: "gold",
       goldValue: true,
     },
     {
@@ -67,6 +69,7 @@ export function DashboardKpiStrip({
       hint: `${totalProjects} total projects`,
       icon: icons.projects,
       href: "/admin/projects",
+      accent: "emerald",
     },
     {
       label: "Total Clients",
@@ -74,6 +77,7 @@ export function DashboardKpiStrip({
       hint: "Active relationships",
       icon: icons.clients,
       href: "/admin/clients",
+      accent: "neutral",
     },
     {
       label: "Leads This Month",
@@ -81,6 +85,7 @@ export function DashboardKpiStrip({
       hint: "New inquiries",
       icon: icons.leads,
       href: "/admin/leads",
+      accent: "emerald",
     },
     {
       label: "Website Traffic",
@@ -88,19 +93,26 @@ export function DashboardKpiStrip({
       hint: `${conversionRate}% conversion · 7 days`,
       icon: icons.traffic,
       href: "/admin/analytics",
+      accent: "gold",
     },
   ];
 
   return (
     <div className="admin-dashboard-kpi-grid">
-      {cards.map((card) => (
-        <Link key={card.label} href={card.href} className="block">
+      {cards.map((card, index) => (
+        <Link
+          key={card.label}
+          href={card.href}
+          className={cn("admin-dashboard-kpi-link", `admin-dashboard-kpi-link--${card.accent}`)}
+          style={{ animationDelay: `${index * 60}ms` }}
+        >
           <AdminStatCard
             label={card.label}
             value={card.value}
             hint={card.hint}
             icon={card.icon}
             goldValue={card.goldValue}
+            className="admin-dashboard-kpi-card"
           />
         </Link>
       ))}

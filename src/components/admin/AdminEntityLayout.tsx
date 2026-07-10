@@ -27,7 +27,7 @@ export function AdminEntityLayout({
       {header}
       <AdminPageContent className={cn("admin-entity-content", contentClassName)}>
         {alerts}
-        {stats ? <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">{stats}</div> : null}
+        {stats ? <div className="admin-portal-stats-grid mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">{stats}</div> : null}
         <div className="admin-entity-layout">
           <div className="admin-entity-main">{main}</div>
           {sidebar}

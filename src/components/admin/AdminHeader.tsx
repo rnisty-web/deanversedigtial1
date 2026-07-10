@@ -1,5 +1,6 @@
 "use client";
 
+import { AdminPortalHeader } from "@/components/admin/AdminPortalHeader";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -34,8 +35,8 @@ export function AdminHeader({
   }
 
   return (
-    <header className="admin-content-header sticky top-0 z-10 shrink-0 border-b border-[var(--admin-border-subtle)] bg-[color-mix(in_srgb,var(--admin-bg)_88%,transparent)] px-4 py-4 backdrop-blur-xl sm:px-6 lg:px-8">
-      <div className="mx-auto flex max-w-[1600px] flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+    <AdminPortalHeader zIndex={10} maxWidth className="py-4">
+      <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
         <div className="min-w-0 flex-1">
           {showPortalBadge && (
             <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-[var(--admin-gold)]">
@@ -68,7 +69,7 @@ export function AdminHeader({
           </div>
         </div>
       </div>
-    </header>
+    </AdminPortalHeader>
   );
 }
 

@@ -1,21 +1,26 @@
 export function DashboardSkeleton() {
   return (
-    <div className="admin-dashboard-page space-y-6">
+    <div className="admin-dashboard-page space-y-10">
       <div className="admin-dashboard-kpi-grid">
         {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="admin-stat-card h-28 animate-pulse" />
+          <div key={i} className="admin-dashboard-skeleton-kpi animate-pulse" />
         ))}
       </div>
-      <div className="grid gap-6 xl:grid-cols-12">
-        <div className="admin-luxury-card h-[380px] animate-pulse xl:col-span-7" />
-        <div className="flex flex-col gap-6 xl:col-span-5">
-          <div className="admin-luxury-card h-52 animate-pulse" />
-          <div className="admin-luxury-card h-52 animate-pulse" />
-        </div>
+
+      <div className="admin-dashboard-featured-grid">
+        <div className="admin-dashboard-skeleton-panel admin-dashboard-skeleton-panel--tall animate-pulse" />
+        <div className="admin-dashboard-skeleton-panel animate-pulse" />
       </div>
-      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-5">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="admin-luxury-card h-64 animate-pulse" />
+
+      <div className="admin-dashboard-widget-grid">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="admin-dashboard-skeleton-panel animate-pulse" />
+        ))}
+      </div>
+
+      <div className="admin-dashboard-widget-grid">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="admin-dashboard-skeleton-panel animate-pulse" />
         ))}
       </div>
     </div>

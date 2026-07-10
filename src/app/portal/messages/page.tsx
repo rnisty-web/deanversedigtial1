@@ -7,7 +7,7 @@ import { MessagesChatPanel } from "@/components/admin/messages/MessagesChatPanel
 import { ConversationListPanel } from "@/components/messages/ConversationListPanel";
 import { Button } from "@/components/ui/Button";
 import { PortalModal } from "@/components/portal/PortalModal";
-import { PortalPageContent } from "@/components/portal/PortalPageContent";
+import { PortalPageShell } from "@/components/portal/PortalPageShell";
 import { PortalPageHeader } from "@/components/portal/PortalPageHeader";
 import { PortalCard } from "@/components/portal/PortalCard";
 import type { MessageRecord } from "@/lib/messages/utils";
@@ -226,33 +226,38 @@ export default function PortalMessagesPage() {
   ];
 
   return (
-    <PortalPageContent className="portal-messages-page flex min-h-0 flex-1 flex-col">
-      <PortalPageHeader
-        title="Messages"
-        subtitle="Chat directly with your DeanVerse project team — fast replies, one thread."
-        className="portal-messages-header"
-        breadcrumb={[
-          { label: "Dashboard", href: "/portal" },
-          { label: "Messages" },
-        ]}
-        tabs={tabs}
-        activeTab={filter}
-        onTabChange={(id) => setFilter(id as "all" | "unread")}
-        actions={
-          <Button
-            size="sm"
-            className="admin-btn-gold"
-            onClick={() => {
-              const defaultRecipient = recipients.find((item) => item.is_default) ?? recipients[0];
-              if (defaultRecipient) setRecipientId(defaultRecipient.id);
-              setShowCompose(true);
-            }}
-            disabled={recipients.length === 0}
-          >
-            New message
-          </Button>
-        }
-      />
+    <PortalPageShell
+      className="flex min-h-0 flex-1 flex-col"
+      contentClassName="portal-messages-page flex min-h-0 flex-1 flex-col"
+      header={
+        <PortalPageHeader
+          title="Messages"
+          subtitle="Chat directly with your DeanVerse project team — fast replies, one thread."
+          className="portal-messages-header"
+          breadcrumb={[
+            { label: "Dashboard", href: "/portal" },
+            { label: "Messages" },
+          ]}
+          tabs={tabs}
+          activeTab={filter}
+          onTabChange={(id) => setFilter(id as "all" | "unread")}
+          actions={
+            <Button
+              size="sm"
+              className="admin-btn-gold"
+              onClick={() => {
+                const defaultRecipient = recipients.find((item) => item.is_default) ?? recipients[0];
+                if (defaultRecipient) setRecipientId(defaultRecipient.id);
+                setShowCompose(true);
+              }}
+              disabled={recipients.length === 0}
+            >
+              New message
+            </Button>
+          }
+        />
+      }
+    >
 
       {error ? (
         <AdminAlert tone="error" className="mb-4">
@@ -396,6 +401,6 @@ export default function PortalMessagesPage() {
           </div>
         </form>
       </PortalModal>
-    </PortalPageContent>
+    </PortalPageShell>
   );
 }

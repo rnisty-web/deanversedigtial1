@@ -7,15 +7,11 @@ import { siteConfig } from "@/lib/constants";
 type SettingsOverviewPanelProps = {
   profileName: string;
   profileEmail: string;
-  teamCount: number | null;
-  mediaCount: number | null;
 };
 
 export function SettingsOverviewPanel({
   profileName,
   profileEmail,
-  teamCount,
-  mediaCount,
 }: SettingsOverviewPanelProps) {
   return (
     <aside className="admin-settings-overview">
@@ -39,14 +35,6 @@ export function SettingsOverviewPanel({
 
         <dl className="admin-settings-overview-meta">
           <div>
-            <dt>Team</dt>
-            <dd>{teamCount ?? "—"}</dd>
-          </div>
-          <div>
-            <dt>Media assets</dt>
-            <dd>{mediaCount ?? "—"}</dd>
-          </div>
-          <div>
             <dt>Domain</dt>
             <dd className="truncate">{siteConfig.url.replace(/^https?:\/\//, "")}</dd>
           </div>
@@ -54,13 +42,7 @@ export function SettingsOverviewPanel({
 
         <div className="admin-settings-quick-grid">
           <Link href="/admin/settings/my-account" className="admin-settings-quick-btn">
-            Profile
-          </Link>
-          <Link href="/admin/users" className="admin-settings-quick-btn">
-            Team
-          </Link>
-          <Link href="/admin/content" className="admin-settings-quick-btn">
-            Site CMS
+            My account
           </Link>
           <Link href="/admin/settings/appearance" className="admin-settings-quick-btn">
             Appearance
@@ -95,7 +77,7 @@ export function SettingsOverviewPanel({
       </div>
 
       <div className="admin-settings-overview-panel">
-        <p className="admin-settings-overview-title">Security snapshot</p>
+        <p className="admin-settings-overview-title">Security</p>
         <ul className="admin-settings-security-list">
           <li>
             <span className="admin-settings-security-dot" aria-hidden />

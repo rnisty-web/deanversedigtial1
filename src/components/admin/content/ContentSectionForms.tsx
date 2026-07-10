@@ -1,7 +1,9 @@
 "use client";
 
+import { useRef } from "react";
 import { AdminField } from "@/components/admin/AdminField";
 import { MediaPicker } from "@/components/admin/MediaPicker";
+import { DragHandleIcon } from "@/components/admin/content/SectionIcon";
 import { Button } from "@/components/ui/Button";
 import type {
   AboutSettings,
@@ -32,24 +34,54 @@ import type {
   TestimonialsPageSettings,
 } from "@/lib/cms/types";
 
+function reorderArray<T>(items: T[], from: number, to: number): T[] {
+  const next = [...items];
+  const [moved] = next.splice(from, 1);
+  next.splice(to, 0, moved);
+  return next;
+}
+
 function SectionCard({
   title,
   children,
   onRemove,
+  dragHandle,
 }: {
   title: string;
   children: React.ReactNode;
   onRemove?: () => void;
+  dragHandle?: {
+    onDragStart: () => void;
+    onDragOver: (e: React.DragEvent<HTMLDivElement>) => void;
+    onDragEnd: () => void;
+  };
 }) {
   return (
-    <div className="admin-luxury-card rounded-xl p-4">
-      <div className="mb-3 flex items-center justify-between">
-        <h4 className="text-sm font-medium text-[#a3c9a8]">{title}</h4>
+    <div
+      className="admin-luxury-card rounded-xl p-4"
+      onDragOver={dragHandle?.onDragOver}
+    >
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <div className="flex min-w-0 items-center gap-2">
+          {dragHandle && (
+            <button
+              type="button"
+              draggable
+              onDragStart={dragHandle.onDragStart}
+              onDragEnd={dragHandle.onDragEnd}
+              className="shrink-0 cursor-grab touch-none rounded-lg border border-[var(--admin-border-subtle)] p-1.5 text-[var(--admin-text-muted)] transition-colors hover:border-[var(--admin-gold)]/40 hover:text-[var(--admin-gold-light)] active:cursor-grabbing"
+              aria-label={`Drag to reorder ${title}`}
+            >
+              <DragHandleIcon className="h-4 w-4" />
+            </button>
+          )}
+          <h4 className="truncate text-sm font-medium text-[#a3c9a8]">{title}</h4>
+        </div>
         {onRemove && (
           <button
             type="button"
             onClick={onRemove}
-            className="text-xs text-red-400/80 transition-colors hover:text-red-300"
+            className="shrink-0 text-xs text-red-400/80 transition-colors hover:text-red-300"
           >
             Remove
           </button>
@@ -840,13 +872,122 @@ function renderTestimonialsPageTab(
   );
 }
 
-function renderPricingTab(pricing: CMSContent["pricing"], updateSection: ContentSectionFormsProps["updateSection"]) {
+function PricingTiersEditor({
+  tiers,
+  onTiersChange,
+}: {
+  tiers: PricingTier[];
+  onTiersChange: (tiers: PricingTier[]) => void;
+}) {
+  const dragIndex = useRef<number | null>(null);
+
   const updateTier = (i: number, tier: PricingTier) => {
-    const next = [...pricing.tiers];
+    const next = [...tiers];
     next[i] = tier;
-    updateSection("pricing", { ...pricing, tiers: next });
+    onTiersChange(next);
   };
 
+  const handleReorder = (from: number, to: number) => {
+    onTiersChange(reorderArray(tiers, from, to));
+  };
+
+  return (
+    <div>
+      <h4 className="mb-1 text-sm font-medium text-[#a3c9a8]">Pricing Tiers</h4>
+      <p className="mb-4 text-xs text-[var(--admin-text-muted)]">
+        Drag the handle on each card to change order on the homepage and <strong className="text-[#a3c9a8]">/pricing</strong>{" "}
+        page. Click <strong className="text-[#a3c9a8]">Save Section</strong> when finished.
+      </p>
+      <div className="space-y-4">
+        {tiers.map((tier, i) => (
+          <SectionCard
+            key={tier.id || i}
+            title={tier.name || `Tier ${i + 1}`}
+            dragHandle={{
+              onDragStart: () => {
+                dragIndex.current = i;
+              },
+              onDragOver: (e) => {
+                e.preventDefault();
+                if (dragIndex.current === null || dragIndex.current === i) return;
+                handleReorder(dragIndex.current, i);
+                dragIndex.current = i;
+              },
+              onDragEnd: () => {
+                dragIndex.current = null;
+              },
+            }}
+            onRemove={() => onTiersChange(tiers.filter((_, idx) => idx !== i))}
+          >
+            <div className="grid gap-3 sm:grid-cols-2">
+              <AdminField label="ID" value={tier.id} onChange={(v) => updateTier(i, { ...tier, id: v })} />
+              <AdminField label="Name" value={tier.name} onChange={(v) => updateTier(i, { ...tier, name: v })} />
+              <AdminField
+                label="Price"
+                type="number"
+                value={tier.price === null ? "" : String(tier.price)}
+                onChange={(v) => updateTier(i, { ...tier, price: v === "" ? null : parseInt(v, 10) })}
+                hint="Leave empty for custom quote"
+              />
+              <AdminField
+                label="Price Label"
+                value={tier.priceLabel}
+                onChange={(v) => updateTier(i, { ...tier, priceLabel: v })}
+              />
+            </div>
+            <AdminField
+              label="Description"
+              value={tier.description}
+              onChange={(v) => updateTier(i, { ...tier, description: v })}
+              multiline
+              rows={2}
+            />
+            <AdminField label="CTA Text" value={tier.cta} onChange={(v) => updateTier(i, { ...tier, cta: v })} />
+            <label className="flex items-center gap-2 text-sm text-[var(--admin-text-muted)]">
+              <input
+                type="checkbox"
+                checked={tier.highlighted}
+                onChange={(e) => updateTier(i, { ...tier, highlighted: e.target.checked })}
+                className="rounded border-[var(--admin-border-subtle)] bg-[var(--admin-panel)] text-[var(--admin-emerald)] focus:ring-[var(--admin-gold)]"
+              />
+              Highlighted tier
+            </label>
+            <ArrayFieldEditor
+              label="Features"
+              items={tier.features}
+              onChange={(features) => updateTier(i, { ...tier, features })}
+              placeholder="Add Feature"
+            />
+          </SectionCard>
+        ))}
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          onClick={() =>
+            onTiersChange([
+              ...tiers,
+              {
+                id: `tier-${Date.now()}`,
+                name: "",
+                price: null,
+                priceLabel: "",
+                description: "",
+                features: [],
+                highlighted: false,
+                cta: "Get Started",
+              },
+            ])
+          }
+        >
+          + Add Tier
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function renderPricingTab(pricing: CMSContent["pricing"], updateSection: ContentSectionFormsProps["updateSection"]) {
   const updateFaq = (i: number, faq: PricingFaq) => {
     const next = [...pricing.faqs];
     next[i] = faq;
@@ -871,94 +1012,10 @@ function renderPricingTab(pricing: CMSContent["pricing"], updateSection: Content
         onChange={(v) => updateSection("pricing", { ...pricing, homepageButton: v })}
         hint="Link text below pricing cards on the homepage"
       />
-      <div>
-        <h4 className="mb-4 text-sm font-medium text-[#a3c9a8]">Pricing Tiers</h4>
-        <div className="space-y-4">
-          {pricing.tiers.map((tier, i) => (
-            <SectionCard
-              key={tier.id || i}
-              title={tier.name || `Tier ${i + 1}`}
-              onRemove={() =>
-                updateSection("pricing", {
-                  ...pricing,
-                  tiers: pricing.tiers.filter((_, idx) => idx !== i),
-                })
-              }
-            >
-              <div className="grid gap-3 sm:grid-cols-2">
-                <AdminField label="ID" value={tier.id} onChange={(v) => updateTier(i, { ...tier, id: v })} />
-                <AdminField label="Name" value={tier.name} onChange={(v) => updateTier(i, { ...tier, name: v })} />
-                <AdminField
-                  label="Price"
-                  type="number"
-                  value={tier.price === null ? "" : String(tier.price)}
-                  onChange={(v) =>
-                    updateTier(i, { ...tier, price: v === "" ? null : parseInt(v, 10) })
-                  }
-                  hint="Leave empty for custom quote"
-                />
-                <AdminField
-                  label="Price Label"
-                  value={tier.priceLabel}
-                  onChange={(v) => updateTier(i, { ...tier, priceLabel: v })}
-                />
-              </div>
-              <AdminField
-                label="Description"
-                value={tier.description}
-                onChange={(v) => updateTier(i, { ...tier, description: v })}
-                multiline
-                rows={2}
-              />
-              <AdminField
-                label="CTA Text"
-                value={tier.cta}
-                onChange={(v) => updateTier(i, { ...tier, cta: v })}
-              />
-              <label className="flex items-center gap-2 text-sm text-[var(--admin-text-muted)]">
-                <input
-                  type="checkbox"
-                  checked={tier.highlighted}
-                  onChange={(e) => updateTier(i, { ...tier, highlighted: e.target.checked })}
-                  className="rounded border-[var(--admin-border-subtle)] bg-[var(--admin-panel)] text-[var(--admin-emerald)] focus:ring-[var(--admin-gold)]"
-                />
-                Highlighted tier
-              </label>
-              <ArrayFieldEditor
-                label="Features"
-                items={tier.features}
-                onChange={(features) => updateTier(i, { ...tier, features })}
-                placeholder="Add Feature"
-              />
-            </SectionCard>
-          ))}
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            onClick={() =>
-              updateSection("pricing", {
-                ...pricing,
-                tiers: [
-                  ...pricing.tiers,
-                  {
-                    id: `tier-${Date.now()}`,
-                    name: "",
-                    price: null,
-                    priceLabel: "",
-                    description: "",
-                    features: [],
-                    highlighted: false,
-                    cta: "Get Started",
-                  },
-                ],
-              })
-            }
-          >
-            + Add Tier
-          </Button>
-        </div>
-      </div>
+      <PricingTiersEditor
+        tiers={pricing.tiers}
+        onTiersChange={(tiers) => updateSection("pricing", { ...pricing, tiers })}
+      />
       <PageIntroFields
         label="FAQ section header"
         intro={pricing.faqIntro}

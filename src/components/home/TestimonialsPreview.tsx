@@ -1,6 +1,6 @@
 "use client";
 
-import { useSiteConfig } from "@/components/providers/CMSProvider";
+import { useCMS } from "@/components/providers/CMSProvider";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionHeading } from "@/components/ui/SectionHeading";
@@ -29,7 +29,7 @@ function StarRating({ count }: { count: number }) {
 }
 
 export function TestimonialsPreview({ testimonials }: TestimonialsPreviewProps) {
-  const siteConfig = useSiteConfig();
+  const { testimonialsPage } = useCMS();
 
   if (testimonials.length === 0) {
     return null;
@@ -39,9 +39,10 @@ export function TestimonialsPreview({ testimonials }: TestimonialsPreviewProps) 
     <section className="px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
       <div className="mx-auto max-w-7xl">
         <SectionHeading
-          eyebrow="Testimonials"
-          title="Trusted by clients who value quality"
-          subtitle={`Don't just take my word for it — here's what businesses say about working with ${siteConfig.creator}.`}
+          eyebrow={testimonialsPage.homepageIntro.eyebrow}
+          title={testimonialsPage.homepageIntro.title}
+          subtitle={testimonialsPage.homepageIntro.subtitle}
+          level={2}
         />
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 lg:gap-8">
@@ -69,7 +70,7 @@ export function TestimonialsPreview({ testimonials }: TestimonialsPreviewProps) 
 
         <Reveal className="mt-12 text-center">
           <Button href="/testimonials" variant="ghost">
-            Read more testimonials &rarr;
+            {testimonialsPage.homepageButton} &rarr;
           </Button>
         </Reveal>
       </div>

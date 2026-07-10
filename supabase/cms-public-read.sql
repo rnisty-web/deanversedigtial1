@@ -1,7 +1,5 @@
--- Allow anonymous read of public CMS settings (hero, services copy, etc.).
--- Admin write remains restricted by existing policies.
--- Run in Supabase SQL editor if the public site shows defaults despite admin saves
--- and SUPABASE_SERVICE_ROLE_KEY is not set on the server.
+-- Restrict public reads on settings to CMS content keys only.
+-- Admin-only keys (roleCatalog, dashboardTheme, etc.) stay protected.
 -- Safe to re-run.
 
 DROP POLICY IF EXISTS "Public read CMS settings" ON public.settings;
@@ -10,4 +8,26 @@ CREATE POLICY "Public read CMS settings"
   ON public.settings
   FOR SELECT
   TO anon, authenticated
-  USING (true);
+  USING (
+    key IN (
+      'site',
+      'hero',
+      'stats',
+      'process',
+      'processIntro',
+      'hireMePage',
+      'about',
+      'services',
+      'servicesPage',
+      'pricing',
+      'contact',
+      'portfolioPage',
+      'testimonialsPage',
+      'cta',
+      'techStack',
+      'experience',
+      'education',
+      'faq',
+      'cmsLayout'
+    )
+  );

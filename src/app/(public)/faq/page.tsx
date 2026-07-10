@@ -7,9 +7,6 @@ import { getCMSContent, getPublicSiteConfig } from "@/lib/cms/get-content";
 import { createPageMetadata } from "@/lib/seo/metadata";
 import type { Metadata } from "next";
 
-export const dynamic = "force-dynamic";
-export const fetchCache = "force-no-store";
-
 export async function generateMetadata(): Promise<Metadata> {
   const cms = await getCMSContent();
   return createPageMetadata({
@@ -33,9 +30,10 @@ export default async function FaqPage() {
       <section className="px-4 pb-12 pt-16 sm:px-6 sm:pt-20 lg:px-8">
         <div className="mx-auto max-w-3xl">
           <SectionHeading
-            eyebrow="FAQ"
+            eyebrow={faq.eyebrow}
             title={faq.headline}
             subtitle={faq.subtitle}
+            level={1}
           />
 
           <Reveal className="mt-10">

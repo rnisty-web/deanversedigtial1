@@ -53,6 +53,7 @@ export function SearchResults({ portfolio }: SearchResultsProps) {
         eyebrow="Search"
         title="Find pages and projects"
         subtitle="Search across site pages and portfolio work."
+        level={1}
       />
 
       <Reveal className="mt-8">

@@ -3,13 +3,11 @@ import Link from "next/link";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionHeading } from "@/components/ui/SectionHeading";
+import { getCMSContent } from "@/lib/cms/get-content";
 import { getPortfolioItems } from "@/lib/data/queries";
 import { siteConfig } from "@/lib/constants";
 import { createPageMetadata } from "@/lib/seo/metadata";
 import type { Metadata } from "next";
-
-export const dynamic = "force-dynamic";
-export const fetchCache = "force-no-store";
 
 export async function generateMetadata(): Promise<Metadata> {
   return createPageMetadata({
@@ -21,15 +19,17 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function PortfolioPage() {
-  const projects = await getPortfolioItems();
+  const [projects, cms] = await Promise.all([getPortfolioItems(), getCMSContent()]);
+  const { portfolioPage } = cms;
 
   return (
     <section className="px-4 pb-20 pt-16 sm:px-6 sm:pt-20 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <SectionHeading
-          eyebrow="Portfolio"
-          title="Projects built with care and precision"
-          subtitle={`A selection of work from ${siteConfig.creator} — each project crafted to reflect the client's brand and goals.`}
+          eyebrow={portfolioPage.pageIntro.eyebrow}
+          title={portfolioPage.pageIntro.title}
+          subtitle={portfolioPage.pageIntro.subtitle}
+          level={1}
         />
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 lg:gap-8">
@@ -62,9 +62,9 @@ export default async function PortfolioPage() {
                           ))}
                         </div>
                       )}
-                      <h2 className="text-lg font-semibold text-white">
+                      <h3 className="text-lg font-semibold text-white">
                         {project.title}
-                      </h2>
+                      </h3>
                       {project.description && (
                         <p className="mt-1 line-clamp-2 text-sm text-white/60">
                           {project.description}

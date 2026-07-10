@@ -465,6 +465,7 @@ export default function AdminPortfolioPage() {
                   <button
                     type="button"
                     title="Masonry grid"
+                    aria-label="Masonry grid"
                     onClick={() => setViewMode("grid")}
                     className={cn(
                       "admin-portfolio-view-btn",
@@ -478,6 +479,7 @@ export default function AdminPortfolioPage() {
                   <button
                     type="button"
                     title="List view"
+                    aria-label="List view"
                     onClick={() => setViewMode("list")}
                     className={cn(
                       "admin-portfolio-view-btn",

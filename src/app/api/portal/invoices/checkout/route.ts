@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { verifyAuthApi } from "@/lib/auth";
+import { verifyCustomerApi } from "@/lib/auth";
 import { isUnpaidClientInvoice } from "@/lib/portal/client-access";
 import { resolvePortalClient } from "@/lib/portal/resolve-portal-client";
 import { createInvoiceCheckoutSession, isStripeConfigured } from "@/lib/stripe";
@@ -13,7 +13,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const auth = await verifyAuthApi();
+  const auth = await verifyCustomerApi();
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }

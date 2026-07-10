@@ -1,5 +1,5 @@
 import { cmsDefaults } from "@/lib/cms/defaults";
-import type { CMSContent, CMSKey, PricingFaq, PricingSettings, PricingTier } from "@/lib/cms/types";
+import type { CMSContent, CMSKey, PageIntro, PricingFaq, PricingSettings, PricingTier } from "@/lib/cms/types";
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -26,6 +26,18 @@ export function coerceArray<T>(value: unknown, fallback: T[]): T[] {
   return numericKeys
     .sort((a, b) => Number(a) - Number(b))
     .map((key) => value[key]) as T[];
+}
+
+function normalizePageIntro(value: unknown, fallback: PageIntro): PageIntro {
+  if (!isPlainObject(value)) {
+    return fallback;
+  }
+
+  return {
+    eyebrow: typeof value.eyebrow === "string" ? value.eyebrow : fallback.eyebrow,
+    title: typeof value.title === "string" ? value.title : fallback.title,
+    subtitle: typeof value.subtitle === "string" ? value.subtitle : fallback.subtitle,
+  };
 }
 
 function normalizePricingTier(value: unknown, index: number): PricingTier | null {
@@ -91,13 +103,18 @@ export function normalizePricingSettings(
     .map((faq) => normalizePricingFaq(faq))
     .filter((faq): faq is PricingFaq => faq !== null);
 
-  if (tiers.length === 0 && faqs.length === 0) {
-    return defaults;
-  }
-
   return {
+    intro: normalizePageIntro(dbValue.intro, defaults.intro),
+    homepageButton:
+      typeof dbValue.homepageButton === "string"
+        ? dbValue.homepageButton
+        : defaults.homepageButton,
     tiers: tiers.length > 0 ? tiers : defaults.tiers,
+    faqIntro: normalizePageIntro(dbValue.faqIntro, defaults.faqIntro),
     faqs: faqs.length > 0 ? faqs : defaults.faqs,
+    closingText:
+      typeof dbValue.closingText === "string" ? dbValue.closingText : defaults.closingText,
+    closingCta: typeof dbValue.closingCta === "string" ? dbValue.closingCta : defaults.closingCta,
   };
 }
 

@@ -1,5 +1,14 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
+import { createPageMetadata } from "@/lib/seo/metadata";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = createPageMetadata({
+  title: "Page Not Found",
+  description: "The page you are looking for does not exist or may have moved.",
+  path: "/404",
+  noIndex: true,
+});
 
 export default function NotFound() {
   return (

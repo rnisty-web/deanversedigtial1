@@ -2,14 +2,16 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { getPublicSiteConfig } from "@/lib/cms/get-content";
+import { createPageMetadata } from "@/lib/seo/metadata";
 import type { Metadata } from "next";
 
 export async function generateMetadata(): Promise<Metadata> {
   const site = await getPublicSiteConfig();
-  return {
+  return createPageMetadata({
     title: "Privacy Policy",
     description: `How ${site.name} collects, uses, and protects your personal information.`,
-  };
+    path: "/privacy",
+  });
 }
 
 export default async function PrivacyPage() {
@@ -24,6 +26,7 @@ export default async function PrivacyPage() {
           title="Privacy Policy"
           subtitle={`Your privacy matters. This policy explains how ${site.name} handles your information.`}
           align="left"
+          level={1}
         />
 
         <Reveal>

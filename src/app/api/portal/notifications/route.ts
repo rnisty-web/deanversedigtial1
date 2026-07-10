@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { verifyAuthApi } from "@/lib/auth";
+import { verifyCustomerApi } from "@/lib/auth";
 import { getPortalNotifications } from "@/lib/portal/get-portal-notifications";
 
 export async function GET() {
-  const auth = await verifyAuthApi();
+  const auth = await verifyCustomerApi();
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }

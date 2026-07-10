@@ -2,12 +2,9 @@ import { Suspense } from "react";
 import { LeadForm } from "@/components/contact/LeadForm";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionHeading } from "@/components/ui/SectionHeading";
-import { getPublicSiteConfig } from "@/lib/cms/get-content";
+import { getCMSContent, getPublicSiteConfig } from "@/lib/cms/get-content";
 import { createPageMetadata } from "@/lib/seo/metadata";
 import type { Metadata } from "next";
-
-export const dynamic = "force-dynamic";
-export const fetchCache = "force-no-store";
 
 export async function generateMetadata(): Promise<Metadata> {
   const site = await getPublicSiteConfig();
@@ -19,15 +16,17 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function ContactPage() {
-  const site = await getPublicSiteConfig();
+  const [site, cms] = await Promise.all([getPublicSiteConfig(), getCMSContent()]);
+  const { contact } = cms;
 
   return (
     <section className="px-4 pb-20 pt-16 sm:px-6 sm:pt-20 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <SectionHeading
-          eyebrow="Contact"
-          title="Let's build something great together"
-          subtitle="Fill out the form below and I'll respond within 24 hours. Or reach out directly — I'd love to hear about your project."
+          eyebrow={contact.intro.eyebrow}
+          title={contact.intro.title}
+          subtitle={contact.intro.subtitle}
+          level={1}
         />
 
         <div className="grid gap-12 lg:grid-cols-5">
@@ -41,7 +40,7 @@ export default async function ContactPage() {
             <div className="space-y-8">
               <div>
                 <h2 className="text-sm font-semibold uppercase tracking-wider text-[#a3c9a8]">
-                  Direct Contact
+                  {contact.directContactLabel}
                 </h2>
                 <ul className="mt-4 space-y-4">
                   <li>
@@ -66,27 +65,17 @@ export default async function ContactPage() {
 
               <div>
                 <h2 className="text-sm font-semibold uppercase tracking-wider text-[#a3c9a8]">
-                  What happens next?
+                  {contact.nextStepsLabel}
                 </h2>
                 <ol className="mt-4 space-y-3 text-sm text-white/60">
-                  <li className="flex gap-3">
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#6f8f72]/20 text-xs font-bold text-[#a3c9a8]">
-                      1
-                    </span>
-                    I review your project details within 24 hours.
-                  </li>
-                  <li className="flex gap-3">
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#6f8f72]/20 text-xs font-bold text-[#a3c9a8]">
-                      2
-                    </span>
-                    We schedule a free discovery call to discuss goals and scope.
-                  </li>
-                  <li className="flex gap-3">
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#6f8f72]/20 text-xs font-bold text-[#a3c9a8]">
-                      3
-                    </span>
-                    You receive a tailored proposal with timeline and pricing.
-                  </li>
+                  {contact.nextSteps.map((step, index) => (
+                    <li key={step} className="flex gap-3">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#6f8f72]/20 text-xs font-bold text-[#a3c9a8]">
+                        {index + 1}
+                      </span>
+                      {step}
+                    </li>
+                  ))}
                 </ol>
               </div>
             </div>

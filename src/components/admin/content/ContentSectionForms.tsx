@@ -7,6 +7,7 @@ import type {
   AboutSettings,
   CMSContent,
   CMSKey,
+  ContactPageSettings,
   CtaSettings,
   EducationItem,
   EducationSettings,
@@ -14,14 +15,21 @@ import type {
   ExperienceSettings,
   FaqItem,
   FaqSettings,
+  HireMePageSettings,
+  HireMeReason,
   HeroSettings,
+  PageIntro,
+  PortfolioPageSettings,
   PricingFaq,
   PricingTier,
+  ProcessIntroSettings,
   ProcessStep,
   ServiceItem,
+  ServicesPageSettings,
   SiteSettings,
   StatItem,
   TechItem,
+  TestimonialsPageSettings,
 } from "@/lib/cms/types";
 
 function SectionCard({
@@ -101,6 +109,31 @@ function ArrayFieldEditor({
   );
 }
 
+function PageIntroFields({
+  label,
+  intro,
+  onChange,
+}: {
+  label: string;
+  intro: PageIntro;
+  onChange: (intro: PageIntro) => void;
+}) {
+  return (
+    <div className="admin-luxury-card space-y-3 rounded-xl p-4">
+      <h4 className="text-sm font-medium text-[#a3c9a8]">{label}</h4>
+      <AdminField label="Eyebrow" value={intro.eyebrow} onChange={(v) => onChange({ ...intro, eyebrow: v })} />
+      <AdminField label="Title" value={intro.title} onChange={(v) => onChange({ ...intro, title: v })} />
+      <AdminField
+        label="Subtitle"
+        value={intro.subtitle}
+        onChange={(v) => onChange({ ...intro, subtitle: v })}
+        multiline
+        rows={2}
+      />
+    </div>
+  );
+}
+
 type ContentSectionFormsProps = {
   activeKey: CMSKey;
   content: CMSContent;
@@ -117,12 +150,24 @@ export function ContentSectionForms({ activeKey, content, updateSection }: Conte
       return renderStatsTab(content.stats, updateSection);
     case "process":
       return renderProcessTab(content.process, updateSection);
+    case "processIntro":
+      return renderProcessIntroTab(content.processIntro, updateSection);
     case "about":
       return renderAboutTab(content.about, updateSection);
     case "services":
       return renderServicesTab(content.services, updateSection);
+    case "servicesPage":
+      return renderServicesPageTab(content.servicesPage, updateSection);
     case "pricing":
       return renderPricingTab(content.pricing, updateSection);
+    case "contact":
+      return renderContactTab(content.contact, updateSection);
+    case "hireMePage":
+      return renderHireMePageTab(content.hireMePage, updateSection);
+    case "portfolioPage":
+      return renderPortfolioPageTab(content.portfolioPage, updateSection);
+    case "testimonialsPage":
+      return renderTestimonialsPageTab(content.testimonialsPage, updateSection);
     case "cta":
       return renderCtaTab(content.cta, updateSection);
     case "techStack":
@@ -288,6 +333,10 @@ function renderStatsTab(stats: StatItem[], updateSection: ContentSectionFormsPro
 function renderProcessTab(steps: ProcessStep[], updateSection: ContentSectionFormsProps["updateSection"]) {
   return (
     <div className="space-y-4">
+      <p className="rounded-xl border border-[#6f8f72]/20 bg-[#6f8f72]/5 px-4 py-3 text-sm text-[var(--admin-text-muted)]">
+        Edit the step titles and descriptions here. Section headings are in{" "}
+        <strong className="text-[#a3c9a8]">Process Headings</strong>.
+      </p>
       {steps.map((step, i) => (
         <SectionCard
           key={i}
@@ -343,6 +392,26 @@ function renderProcessTab(steps: ProcessStep[], updateSection: ContentSectionFor
   );
 }
 
+function renderProcessIntroTab(
+  processIntro: ProcessIntroSettings,
+  updateSection: ContentSectionFormsProps["updateSection"],
+) {
+  return (
+    <div className="space-y-4">
+      <PageIntroFields
+        label="Homepage process section"
+        intro={processIntro.homepage}
+        onChange={(homepage) => updateSection("processIntro", { ...processIntro, homepage })}
+      />
+      <PageIntroFields
+        label="Hire Me page process section"
+        intro={processIntro.hireMe}
+        onChange={(hireMe) => updateSection("processIntro", { ...processIntro, hireMe })}
+      />
+    </div>
+  );
+}
+
 function renderAboutTab(about: AboutSettings, updateSection: ContentSectionFormsProps["updateSection"]) {
   return (
     <div className="space-y-4">
@@ -350,6 +419,11 @@ function renderAboutTab(about: AboutSettings, updateSection: ContentSectionForms
         This content appears on your <strong className="text-[#a3c9a8]">/about page</strong> only. Edit Tech Stack
         separately for the tools list at the bottom of /about.
       </p>
+      <AdminField
+        label="Page eyebrow"
+        value={about.pageEyebrow}
+        onChange={(v) => updateSection("about", { ...about, pageEyebrow: v })}
+      />
       <AdminField
         label="Headline"
         value={about.headline}
@@ -364,6 +438,14 @@ function renderAboutTab(about: AboutSettings, updateSection: ContentSectionForms
         hint="Shown below the headline on /about"
       />
       <AdminField
+        label="Homepage teaser"
+        value={about.homepageTeaser}
+        onChange={(v) => updateSection("about", { ...about, homepageTeaser: v })}
+        multiline
+        rows={3}
+        hint="Short preview text on the homepage About section"
+      />
+      <AdminField
         label="Story"
         value={about.story}
         onChange={(v) => updateSection("about", { ...about, story: v })}
@@ -376,6 +458,11 @@ function renderAboutTab(about: AboutSettings, updateSection: ContentSectionForms
         items={about.skills}
         onChange={(skills) => updateSection("about", { ...about, skills })}
         placeholder="Add Skill"
+      />
+      <AdminField
+        label="Skills eyebrow"
+        value={about.skillsEyebrow}
+        onChange={(v) => updateSection("about", { ...about, skillsEyebrow: v })}
       />
       <AdminField
         label="Skills section title"
@@ -397,6 +484,30 @@ function renderAboutTab(about: AboutSettings, updateSection: ContentSectionForms
         onChange={(v) => updateSection("about", { ...about, techStackHeadline: v })}
         hint="Title above the tech list on /about (edit list in Tech Stack section)"
       />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <AdminField
+          label="Homepage primary button"
+          value={about.homepagePrimaryCta}
+          onChange={(v) => updateSection("about", { ...about, homepagePrimaryCta: v })}
+        />
+        <AdminField
+          label="Homepage secondary button"
+          value={about.homepageSecondaryCta}
+          onChange={(v) => updateSection("about", { ...about, homepageSecondaryCta: v })}
+        />
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <AdminField
+          label="Primary button"
+          value={about.primaryCta}
+          onChange={(v) => updateSection("about", { ...about, primaryCta: v })}
+        />
+        <AdminField
+          label="Secondary button"
+          value={about.secondaryCta}
+          onChange={(v) => updateSection("about", { ...about, secondaryCta: v })}
+        />
+      </div>
     </div>
   );
 }
@@ -404,6 +515,10 @@ function renderAboutTab(about: AboutSettings, updateSection: ContentSectionForms
 function renderServicesTab(services: ServiceItem[], updateSection: ContentSectionFormsProps["updateSection"]) {
   return (
     <div className="space-y-4">
+      <p className="rounded-xl border border-[#6f8f72]/20 bg-[#6f8f72]/5 px-4 py-3 text-sm text-[var(--admin-text-muted)]">
+        Individual service cards on <strong className="text-[#a3c9a8]">/services</strong>. Page headings and bottom
+        CTA are in <strong className="text-[#a3c9a8]">Services Page</strong>.
+      </p>
       {services.map((service, i) => (
         <SectionCard
           key={service.id || i}
@@ -496,6 +611,235 @@ function renderServicesTab(services: ServiceItem[], updateSection: ContentSectio
   );
 }
 
+function renderServicesPageTab(
+  servicesPage: ServicesPageSettings,
+  updateSection: ContentSectionFormsProps["updateSection"],
+) {
+  return (
+    <div className="space-y-4">
+      <PageIntroFields
+        label="Homepage preview"
+        intro={servicesPage.homepageIntro}
+        onChange={(homepageIntro) => updateSection("servicesPage", { ...servicesPage, homepageIntro })}
+      />
+      <AdminField
+        label="Homepage button"
+        value={servicesPage.homepageButton}
+        onChange={(v) => updateSection("servicesPage", { ...servicesPage, homepageButton: v })}
+      />
+      <PageIntroFields
+        label="Page header"
+        intro={servicesPage.intro}
+        onChange={(intro) => updateSection("servicesPage", { ...servicesPage, intro })}
+      />
+      <AdminField
+        label="Bottom CTA title"
+        value={servicesPage.bottomCtaTitle}
+        onChange={(v) => updateSection("servicesPage", { ...servicesPage, bottomCtaTitle: v })}
+      />
+      <AdminField
+        label="Bottom CTA body"
+        value={servicesPage.bottomCtaBody}
+        onChange={(v) => updateSection("servicesPage", { ...servicesPage, bottomCtaBody: v })}
+        multiline
+        rows={3}
+      />
+      <AdminField
+        label="Bottom CTA button"
+        value={servicesPage.bottomCtaButton}
+        onChange={(v) => updateSection("servicesPage", { ...servicesPage, bottomCtaButton: v })}
+      />
+    </div>
+  );
+}
+
+function renderHireMePageTab(
+  hireMePage: HireMePageSettings,
+  updateSection: ContentSectionFormsProps["updateSection"],
+) {
+  const updateReason = (i: number, reason: HireMeReason) => {
+    const next = [...hireMePage.reasons];
+    next[i] = reason;
+    updateSection("hireMePage", { ...hireMePage, reasons: next });
+  };
+
+  return (
+    <div className="space-y-4">
+      <p className="rounded-xl border border-[#6f8f72]/20 bg-[#6f8f72]/5 px-4 py-3 text-sm text-[var(--admin-text-muted)]">
+        Controls the full <strong className="text-[#a3c9a8]">/hire-me page</strong>. Process steps and headings are in
+        Process Steps / Process Headings sections.
+      </p>
+      <AdminField
+        label="Hero badge"
+        value={hireMePage.heroBadge}
+        onChange={(v) => updateSection("hireMePage", { ...hireMePage, heroBadge: v })}
+      />
+      <AdminField
+        label="Hero title"
+        value={hireMePage.heroTitle}
+        onChange={(v) => updateSection("hireMePage", { ...hireMePage, heroTitle: v })}
+      />
+      <AdminField
+        label="Hero title accent"
+        value={hireMePage.heroTitleAccent}
+        onChange={(v) => updateSection("hireMePage", { ...hireMePage, heroTitleAccent: v })}
+      />
+      <AdminField
+        label="Hero subtitle"
+        value={hireMePage.heroSubtitle}
+        onChange={(v) => updateSection("hireMePage", { ...hireMePage, heroSubtitle: v })}
+        multiline
+        rows={3}
+      />
+      <PageIntroFields
+        label="Why hire me section"
+        intro={hireMePage.whyHireIntro}
+        onChange={(whyHireIntro) => updateSection("hireMePage", { ...hireMePage, whyHireIntro })}
+      />
+      <h4 className="text-sm font-medium text-[#a3c9a8]">Benefit cards</h4>
+      {hireMePage.reasons.map((reason, i) => (
+        <SectionCard
+          key={i}
+          title={reason.title || `Benefit ${i + 1}`}
+          onRemove={() =>
+            updateSection("hireMePage", {
+              ...hireMePage,
+              reasons: hireMePage.reasons.filter((_, idx) => idx !== i),
+            })
+          }
+        >
+          <AdminField label="Title" value={reason.title} onChange={(v) => updateReason(i, { ...reason, title: v })} />
+          <AdminField
+            label="Description"
+            value={reason.description}
+            onChange={(v) => updateReason(i, { ...reason, description: v })}
+            multiline
+            rows={3}
+          />
+        </SectionCard>
+      ))}
+      <Button
+        type="button"
+        variant="secondary"
+        size="sm"
+        onClick={() =>
+          updateSection("hireMePage", {
+            ...hireMePage,
+            reasons: [...hireMePage.reasons, { title: "", description: "" }],
+          })
+        }
+      >
+        + Add benefit
+      </Button>
+      <PageIntroFields
+        label="Pricing teaser section"
+        intro={hireMePage.pricingTeaser}
+        onChange={(pricingTeaser) => updateSection("hireMePage", { ...hireMePage, pricingTeaser })}
+      />
+      <AdminField
+        label="Pricing button"
+        value={hireMePage.pricingButton}
+        onChange={(v) => updateSection("hireMePage", { ...hireMePage, pricingButton: v })}
+      />
+      <PageIntroFields
+        label="Contact form section"
+        intro={hireMePage.formIntro}
+        onChange={(formIntro) => updateSection("hireMePage", { ...hireMePage, formIntro })}
+      />
+      <AdminField
+        label="Email prompt"
+        value={hireMePage.emailPrompt}
+        onChange={(v) => updateSection("hireMePage", { ...hireMePage, emailPrompt: v })}
+        hint='Shown above email link, e.g. "Prefer email?"'
+      />
+    </div>
+  );
+}
+
+function renderContactTab(contact: ContactPageSettings, updateSection: ContentSectionFormsProps["updateSection"]) {
+  return (
+    <div className="space-y-4">
+      <PageIntroFields
+        label="Page header"
+        intro={contact.intro}
+        onChange={(intro) => updateSection("contact", { ...contact, intro })}
+      />
+      <AdminField
+        label="Direct contact label"
+        value={contact.directContactLabel}
+        onChange={(v) => updateSection("contact", { ...contact, directContactLabel: v })}
+      />
+      <AdminField
+        label="Next steps label"
+        value={contact.nextStepsLabel}
+        onChange={(v) => updateSection("contact", { ...contact, nextStepsLabel: v })}
+      />
+      <ArrayFieldEditor
+        label="Next steps"
+        items={contact.nextSteps}
+        onChange={(nextSteps) => updateSection("contact", { ...contact, nextSteps })}
+        placeholder="Add step"
+      />
+    </div>
+  );
+}
+
+function renderPortfolioPageTab(
+  portfolioPage: PortfolioPageSettings,
+  updateSection: ContentSectionFormsProps["updateSection"],
+) {
+  return (
+    <div className="space-y-4">
+      <p className="rounded-xl border border-[#6f8f72]/20 bg-[#6f8f72]/5 px-4 py-3 text-sm text-[var(--admin-text-muted)]">
+        Project cards come from <strong className="text-[#a3c9a8]">Portfolio admin</strong>. Edit headings here.
+      </p>
+      <PageIntroFields
+        label="Homepage portfolio preview"
+        intro={portfolioPage.homepageIntro}
+        onChange={(homepageIntro) => updateSection("portfolioPage", { ...portfolioPage, homepageIntro })}
+      />
+      <AdminField
+        label="Homepage button text"
+        value={portfolioPage.homepageButton}
+        onChange={(v) => updateSection("portfolioPage", { ...portfolioPage, homepageButton: v })}
+      />
+      <PageIntroFields
+        label="Full portfolio page (/portfolio)"
+        intro={portfolioPage.pageIntro}
+        onChange={(pageIntro) => updateSection("portfolioPage", { ...portfolioPage, pageIntro })}
+      />
+    </div>
+  );
+}
+
+function renderTestimonialsPageTab(
+  testimonialsPage: TestimonialsPageSettings,
+  updateSection: ContentSectionFormsProps["updateSection"],
+) {
+  return (
+    <div className="space-y-4">
+      <p className="rounded-xl border border-[#6f8f72]/20 bg-[#6f8f72]/5 px-4 py-3 text-sm text-[var(--admin-text-muted)]">
+        Review cards come from <strong className="text-[#a3c9a8]">Testimonials admin</strong>. Edit headings here.
+      </p>
+      <PageIntroFields
+        label="Homepage testimonials preview"
+        intro={testimonialsPage.homepageIntro}
+        onChange={(homepageIntro) => updateSection("testimonialsPage", { ...testimonialsPage, homepageIntro })}
+      />
+      <AdminField
+        label="Homepage button text"
+        value={testimonialsPage.homepageButton}
+        onChange={(v) => updateSection("testimonialsPage", { ...testimonialsPage, homepageButton: v })}
+      />
+      <PageIntroFields
+        label="Full testimonials page (/testimonials)"
+        intro={testimonialsPage.pageIntro}
+        onChange={(pageIntro) => updateSection("testimonialsPage", { ...testimonialsPage, pageIntro })}
+      />
+    </div>
+  );
+}
+
 function renderPricingTab(pricing: CMSContent["pricing"], updateSection: ContentSectionFormsProps["updateSection"]) {
   const updateTier = (i: number, tier: PricingTier) => {
     const next = [...pricing.tiers];
@@ -512,10 +856,21 @@ function renderPricingTab(pricing: CMSContent["pricing"], updateSection: Content
   return (
     <div className="space-y-8">
       <p className="rounded-xl border border-[#6f8f72]/20 bg-[#6f8f72]/5 px-4 py-3 text-sm text-[var(--admin-text-muted)]">
-        This controls your <strong className="text-[#a3c9a8]">/pricing page</strong> only. After editing tier names,
-        prices, or FAQs, click <strong className="text-[#a3c9a8]">Save Section</strong> — do not use Seed Defaults
-        unless you want to wipe custom pricing.
+        This controls your <strong className="text-[#a3c9a8]">/pricing page</strong> and homepage pricing preview.
+        After editing tier names, prices, or FAQs, click <strong className="text-[#a3c9a8]">Save Section</strong> — do
+        not use Seed Defaults unless you want to wipe custom pricing.
       </p>
+      <PageIntroFields
+        label="Page header"
+        intro={pricing.intro}
+        onChange={(intro) => updateSection("pricing", { ...pricing, intro })}
+      />
+      <AdminField
+        label="Homepage button"
+        value={pricing.homepageButton}
+        onChange={(v) => updateSection("pricing", { ...pricing, homepageButton: v })}
+        hint="Link text below pricing cards on the homepage"
+      />
       <div>
         <h4 className="mb-4 text-sm font-medium text-[#a3c9a8]">Pricing Tiers</h4>
         <div className="space-y-4">
@@ -604,6 +959,11 @@ function renderPricingTab(pricing: CMSContent["pricing"], updateSection: Content
           </Button>
         </div>
       </div>
+      <PageIntroFields
+        label="FAQ section header"
+        intro={pricing.faqIntro}
+        onChange={(faqIntro) => updateSection("pricing", { ...pricing, faqIntro })}
+      />
       <div>
         <h4 className="mb-4 text-sm font-medium text-[#a3c9a8]">FAQs</h4>
         <div className="space-y-4">
@@ -647,6 +1007,18 @@ function renderPricingTab(pricing: CMSContent["pricing"], updateSection: Content
           </Button>
         </div>
       </div>
+      <AdminField
+        label="Closing text"
+        value={pricing.closingText}
+        onChange={(v) => updateSection("pricing", { ...pricing, closingText: v })}
+        multiline
+        rows={2}
+      />
+      <AdminField
+        label="Closing button"
+        value={pricing.closingCta}
+        onChange={(v) => updateSection("pricing", { ...pricing, closingCta: v })}
+      />
     </div>
   );
 }
@@ -743,6 +1115,11 @@ function renderExperienceTab(
   return (
     <div className="space-y-4">
       <AdminField
+        label="Eyebrow"
+        value={experience.eyebrow}
+        onChange={(v) => updateSection("experience", { ...experience, eyebrow: v })}
+      />
+      <AdminField
         label="Headline"
         value={experience.headline}
         onChange={(v) => updateSection("experience", { ...experience, headline: v })}
@@ -834,6 +1211,11 @@ function renderEducationTab(
   return (
     <div className="space-y-4">
       <AdminField
+        label="Eyebrow"
+        value={education.eyebrow}
+        onChange={(v) => updateSection("education", { ...education, eyebrow: v })}
+      />
+      <AdminField
         label="Headline"
         value={education.headline}
         onChange={(v) => updateSection("education", { ...education, headline: v })}
@@ -910,6 +1292,11 @@ function renderFaqTab(faq: FaqSettings, updateSection: ContentSectionFormsProps[
 
   return (
     <div className="space-y-4">
+      <AdminField
+        label="Eyebrow"
+        value={faq.eyebrow}
+        onChange={(v) => updateSection("faq", { ...faq, eyebrow: v })}
+      />
       <AdminField
         label="Headline"
         value={faq.headline}

@@ -1,13 +1,11 @@
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionHeading } from "@/components/ui/SectionHeading";
+import { getCMSContent } from "@/lib/cms/get-content";
 import { getTestimonials } from "@/lib/data/queries";
 import { createPageMetadata } from "@/lib/seo/metadata";
 import { siteConfig } from "@/lib/constants";
 import type { Metadata } from "next";
-
-export const dynamic = "force-dynamic";
-export const fetchCache = "force-no-store";
 
 export async function generateMetadata(): Promise<Metadata> {
   return createPageMetadata({
@@ -35,15 +33,17 @@ function StarRating({ count }: { count: number }) {
 }
 
 export default async function TestimonialsPage() {
-  const testimonials = await getTestimonials();
+  const [testimonials, cms] = await Promise.all([getTestimonials(), getCMSContent()]);
+  const { testimonialsPage } = cms;
 
   return (
     <section className="px-4 pb-20 pt-16 sm:px-6 sm:pt-20 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <SectionHeading
-          eyebrow="Testimonials"
-          title="Trusted by clients who value quality"
-          subtitle={`Real feedback from businesses who partnered with ${siteConfig.creator} to build their online presence.`}
+          eyebrow={testimonialsPage.pageIntro.eyebrow}
+          title={testimonialsPage.pageIntro.title}
+          subtitle={testimonialsPage.pageIntro.subtitle}
+          level={1}
         />
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 lg:gap-8">

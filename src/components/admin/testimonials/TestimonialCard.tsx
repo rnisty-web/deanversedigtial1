@@ -110,7 +110,7 @@ export function TestimonialCard({
               </button>
               <Link
                 href="/testimonials"
-                target="_blank"
+                target="_blank" rel="noopener noreferrer"
                 className="admin-sidebar-menu-item block"
                 onClick={() => setMenuOpen(false)}
               >

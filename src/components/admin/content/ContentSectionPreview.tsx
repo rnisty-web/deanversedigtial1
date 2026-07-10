@@ -139,7 +139,8 @@ function renderPreviewContent(sectionId: SectionId, content: CMSContent, fallbac
       );
     case "pricing":
       return (
-        <PreviewBlock title="Pricing">
+        <PreviewBlock title={content.pricing.intro.title || "Pricing"}>
+          <p className="text-xs uppercase tracking-widest text-[#a3c9a8]">{content.pricing.intro.eyebrow}</p>
           <div className="grid gap-2 sm:grid-cols-3">
             {content.pricing.tiers.slice(0, 3).map((tier) => (
               <div
@@ -182,7 +183,7 @@ function renderPreviewContent(sectionId: SectionId, content: CMSContent, fallbac
       );
     case "process":
       return (
-        <PreviewBlock title="Process">
+        <PreviewBlock title={content.processIntro.homepage.title || "Process"}>
           {content.process.slice(0, 3).map((step) => (
             <div key={step.step} className="flex gap-3 py-2">
               <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#6f8f72]/25 text-xs font-bold text-[#a3c9a8]">
@@ -232,6 +233,52 @@ function renderPreviewContent(sectionId: SectionId, content: CMSContent, fallbac
               </div>
             </div>
           ))}
+        </PreviewBlock>
+      );
+    case "processIntro":
+      return (
+        <PreviewBlock title="Process headings">
+          <p className="text-xs text-white/55">Home: {content.processIntro.homepage.title}</p>
+          <p className="mt-2 text-xs text-white/55">Hire Me: {content.processIntro.hireMe.title}</p>
+        </PreviewBlock>
+      );
+    case "servicesPage":
+      return (
+        <PreviewBlock title={content.servicesPage.intro.title}>
+          <p className="text-xs text-white/55">Home: {content.servicesPage.homepageIntro.title}</p>
+          <p className="mt-2 text-sm text-white/65 line-clamp-2">{content.servicesPage.intro.subtitle}</p>
+        </PreviewBlock>
+      );
+    case "contact":
+      return (
+        <PreviewBlock title={content.contact.intro.title}>
+          <p className="text-sm text-white/70 line-clamp-2">{content.contact.intro.subtitle}</p>
+        </PreviewBlock>
+      );
+    case "portfolioPage":
+      return (
+        <PreviewBlock title={content.portfolioPage.pageIntro.title}>
+          <p className="text-xs text-white/55">Home preview: {content.portfolioPage.homepageIntro.title}</p>
+        </PreviewBlock>
+      );
+    case "testimonialsPage":
+      return (
+        <PreviewBlock title={content.testimonialsPage.pageIntro.title}>
+          <p className="text-xs text-white/55">Home preview: {content.testimonialsPage.homepageIntro.title}</p>
+        </PreviewBlock>
+      );
+    case "hireMePage":
+      return (
+        <PreviewBlock title={content.hireMePage.heroTitle}>
+          <p className="text-xs uppercase tracking-widest text-[#a3c9a8]">{content.hireMePage.heroBadge}</p>
+          <p className="mt-2 text-sm text-white/65 line-clamp-2">{content.hireMePage.heroSubtitle}</p>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            {content.hireMePage.reasons.slice(0, 4).map((reason, i) => (
+              <div key={i} className="rounded-lg border border-white/10 bg-white/5 p-2 text-xs text-white/70">
+                {reason.title || "Benefit"}
+              </div>
+            ))}
+          </div>
         </PreviewBlock>
       );
     default:

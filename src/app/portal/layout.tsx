@@ -9,6 +9,11 @@ import { AdminFooter } from "@/components/admin/AdminFooter";
 import { PortalMobileNav } from "@/components/portal/PortalMobileNav";
 import { PortalNotice } from "@/components/portal/PortalNotice";
 import { PortalSidebar } from "@/components/portal/PortalSidebar";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 const portalSerif = Cormorant_Garamond({
   subsets: ["latin"],

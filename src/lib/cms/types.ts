@@ -38,15 +38,20 @@ export type StatItem = { label: string; value: string };
 export type ProcessStep = { step: number; title: string; description: string };
 
 export type AboutSettings = {
+  pageEyebrow: string;
   headline: string;
   intro: string;
   story: string;
   skills: string[];
-  /** Short teaser on homepage About section (falls back to intro). */
   homepageTeaser: string;
+  skillsEyebrow: string;
   skillsHeadline: string;
   skillsSubtitle: string;
   techStackHeadline: string;
+  homepagePrimaryCta: string;
+  homepageSecondaryCta: string;
+  primaryCta: string;
+  secondaryCta: string;
 };
 
 export type ServiceItem = {
@@ -71,9 +76,71 @@ export type PricingTier = {
 
 export type PricingFaq = { question: string; answer: string };
 
+export type PageIntro = {
+  eyebrow: string;
+  title: string;
+  subtitle: string;
+};
+
+export type ServicesPageSettings = {
+  homepageIntro: PageIntro;
+  homepageButton: string;
+  intro: PageIntro;
+  bottomCtaTitle: string;
+  bottomCtaBody: string;
+  bottomCtaButton: string;
+};
+
+export type ContactPageSettings = {
+  intro: PageIntro;
+  directContactLabel: string;
+  nextStepsLabel: string;
+  nextSteps: string[];
+};
+
+export type PortfolioPageSettings = {
+  homepageIntro: PageIntro;
+  homepageButton: string;
+  pageIntro: PageIntro;
+};
+
+export type TestimonialsPageSettings = {
+  homepageIntro: PageIntro;
+  homepageButton: string;
+  pageIntro: PageIntro;
+};
+
+export type ProcessIntroSettings = {
+  homepage: PageIntro;
+  hireMe: PageIntro;
+};
+
+export type HireMeReason = {
+  title: string;
+  description: string;
+};
+
+export type HireMePageSettings = {
+  heroBadge: string;
+  heroTitle: string;
+  heroTitleAccent: string;
+  heroSubtitle: string;
+  whyHireIntro: PageIntro;
+  reasons: HireMeReason[];
+  pricingTeaser: PageIntro;
+  pricingButton: string;
+  formIntro: PageIntro;
+  emailPrompt: string;
+};
+
 export type PricingSettings = {
+  intro: PageIntro;
+  homepageButton: string;
   tiers: PricingTier[];
+  faqIntro: PageIntro;
   faqs: PricingFaq[];
+  closingText: string;
+  closingCta: string;
 };
 
 export type CtaSettings = {
@@ -97,6 +164,7 @@ export type ExperienceItem = {
 };
 
 export type ExperienceSettings = {
+  eyebrow: string;
   headline: string;
   subtitle: string;
   items: ExperienceItem[];
@@ -111,6 +179,7 @@ export type EducationItem = {
 };
 
 export type EducationSettings = {
+  eyebrow: string;
   headline: string;
   subtitle: string;
   items: EducationItem[];
@@ -119,6 +188,7 @@ export type EducationSettings = {
 export type FaqItem = { question: string; answer: string };
 
 export type FaqSettings = {
+  eyebrow: string;
   headline: string;
   subtitle: string;
   items: FaqItem[];
@@ -129,9 +199,15 @@ export type CMSContent = {
   hero: HeroSettings;
   stats: StatItem[];
   process: ProcessStep[];
+  processIntro: ProcessIntroSettings;
+  hireMePage: HireMePageSettings;
   about: AboutSettings;
   services: ServiceItem[];
+  servicesPage: ServicesPageSettings;
   pricing: PricingSettings;
+  contact: ContactPageSettings;
+  portfolioPage: PortfolioPageSettings;
+  testimonialsPage: TestimonialsPageSettings;
   cta: CtaSettings;
   techStack: TechItem[];
   experience: ExperienceSettings;

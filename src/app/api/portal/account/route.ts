@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import { verifyAuthApi } from "@/lib/auth";
+import { verifyCustomerApi } from "@/lib/auth";
 import { ensurePortalClient } from "@/lib/portal/provision-portal-client";
 import { resolvePortalClient } from "@/lib/portal/resolve-portal-client";
 
 const PROFILE_FIELDS = "id, email, full_name, avatar_url, phone" as const;
 
 export async function GET() {
-  const auth = await verifyAuthApi();
+  const auth = await verifyCustomerApi();
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
@@ -35,7 +35,7 @@ export async function GET() {
 }
 
 export async function PATCH(request: Request) {
-  const auth = await verifyAuthApi();
+  const auth = await verifyCustomerApi();
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }

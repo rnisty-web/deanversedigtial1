@@ -14,9 +14,10 @@ export function PricingPreview() {
     <section className="px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
       <div className="mx-auto max-w-7xl">
         <SectionHeading
-          eyebrow="Pricing"
-          title="Transparent packages, no hidden fees"
-          subtitle="Choose a starting point that fits your scope — every project includes a personal touch and post-launch support."
+          eyebrow={pricing.intro.eyebrow}
+          title={pricing.intro.title}
+          subtitle={pricing.intro.subtitle}
+          level={2}
         />
 
         <div className="grid gap-6 lg:grid-cols-3 lg:gap-8">
@@ -81,7 +82,7 @@ export function PricingPreview() {
 
         <Reveal className="mt-10 text-center">
           <Button href="/pricing" variant="ghost">
-            Compare full pricing details &rarr;
+            {pricing.homepageButton}
           </Button>
         </Reveal>
       </div>

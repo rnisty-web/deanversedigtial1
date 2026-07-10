@@ -17,10 +17,11 @@ export function AboutPreview() {
     <section className="px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
       <div className="mx-auto max-w-7xl">
         <SectionHeading
-          eyebrow="About"
+          eyebrow={about.pageEyebrow}
           title={about.headline}
           subtitle={teaser}
           align="left"
+          level={2}
         />
 
         <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
@@ -59,10 +60,10 @@ export function AboutPreview() {
 
               <div className="flex flex-wrap gap-4 pt-2">
                 <Button href="/about" variant="primary">
-                  Learn More About Me
+                  {about.homepagePrimaryCta}
                 </Button>
                 <Button href="/contact" variant="secondary">
-                  Work With Me
+                  {about.homepageSecondaryCta}
                 </Button>
               </div>
             </div>

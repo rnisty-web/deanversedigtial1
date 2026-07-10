@@ -9,7 +9,7 @@ const PUBLIC_ROUTES: Array<{
   changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"];
   priority: number;
 }> = [
-  { path: "", changeFrequency: "weekly", priority: 1 },
+  { path: "/", changeFrequency: "weekly", priority: 1 },
   { path: "/services", changeFrequency: "monthly", priority: 0.9 },
   { path: "/portfolio", changeFrequency: "weekly", priority: 0.9 },
   { path: "/about", changeFrequency: "monthly", priority: 0.8 },
@@ -54,7 +54,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const staticEntries: MetadataRoute.Sitemap = PUBLIC_ROUTES.map(
     ({ path, changeFrequency, priority }) => ({
-      url: `${baseUrl}${path}`,
+      url: `${baseUrl}${path === "/" ? "/" : path}`,
       lastModified: now,
       changeFrequency,
       priority,

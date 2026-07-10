@@ -1,6 +1,11 @@
 import Link from "next/link";
 import { siteConfig } from "@/lib/constants";
 import { BrandLogo } from "@/components/ui/BrandLogo";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 export default function AuthLayout({
   children,

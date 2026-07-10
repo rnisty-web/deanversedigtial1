@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { verifyAuthApi } from "@/lib/auth";
+import { verifyCustomerApi } from "@/lib/auth";
 import { escapeHtml, sendOwnerNotification } from "@/lib/email";
 import { siteConfig } from "@/lib/constants";
 import { getPortalSenderName } from "@/lib/portal/client-access";
@@ -55,7 +55,7 @@ function sanitizeMessage(message: Record<string, unknown>, userId: string) {
 }
 
 export async function GET() {
-  const auth = await verifyAuthApi();
+  const auth = await verifyCustomerApi();
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
@@ -85,7 +85,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const auth = await verifyAuthApi();
+  const auth = await verifyCustomerApi();
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
@@ -167,7 +167,7 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  const auth = await verifyAuthApi();
+  const auth = await verifyCustomerApi();
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }

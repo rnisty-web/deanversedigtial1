@@ -508,7 +508,7 @@ export default function AdminDashboardPage() {
                 <div className="border-t border-[var(--admin-border-subtle)] pt-4">
                   <Link
                     href="/"
-                    target="_blank"
+                    target="_blank" rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--admin-gold-light)] hover:text-[var(--admin-text)]"
                   >
                     Preview public site

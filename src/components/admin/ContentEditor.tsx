@@ -455,7 +455,7 @@ export function ContentEditor() {
             {" "}
             <Link
               href={activePageGroup.path}
-              target="_blank"
+              target="_blank" rel="noopener noreferrer"
               className="text-[#a3c9a8] hover:underline"
             >
               View {activePageGroup.path}
@@ -655,7 +655,7 @@ export function ContentEditor() {
                     </Button>
                     <Link
                       href={livePreviewPath}
-                      target="_blank"
+                      target="_blank" rel="noopener noreferrer"
                       className="admin-btn-ghost inline-flex items-center text-sm"
                     >
                       View on site

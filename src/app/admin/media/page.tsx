@@ -312,6 +312,7 @@ export default function AdminMediaPage() {
                   <button
                     type="button"
                     title="Grid view"
+                    aria-label="Grid view"
                     onClick={() => setViewMode("grid")}
                     className={cn("admin-media-view-btn", viewMode === "grid" && "admin-media-view-btn-active")}
                   >
@@ -322,6 +323,7 @@ export default function AdminMediaPage() {
                   <button
                     type="button"
                     title="List view"
+                    aria-label="List view"
                     onClick={() => setViewMode("list")}
                     className={cn("admin-media-view-btn", viewMode === "list" && "admin-media-view-btn-active")}
                   >

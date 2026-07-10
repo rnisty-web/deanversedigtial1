@@ -61,11 +61,32 @@ export async function POST(request: Request) {
           { status: 400 },
         );
       }
+    } else if (process.env.NODE_ENV === "production") {
+      console.error("[leads] Turnstile is not configured in production");
+      return NextResponse.json(
+        { error: "Contact form is temporarily unavailable. Please email us directly." },
+        { status: 503 },
+      );
     }
 
     if (!name || !email) {
       return NextResponse.json(
         { error: "Name and email are required" },
+        { status: 400 },
+      );
+    }
+
+    if (typeof name !== "string" || typeof email !== "string") {
+      return NextResponse.json({ error: "Invalid submission" }, { status: 400 });
+    }
+
+    const trimmedName = name.trim().slice(0, 120);
+    const trimmedEmail = email.trim().slice(0, 254);
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!trimmedName || !trimmedEmail || !emailPattern.test(trimmedEmail)) {
+      return NextResponse.json(
+        { error: "Please provide a valid name and email" },
         { status: 400 },
       );
     }
@@ -79,15 +100,21 @@ export async function POST(request: Request) {
     }
 
     const { error } = await supabase.from("leads").insert({
-      name,
-      email,
-      phone: phone ?? null,
-      company: company ?? null,
-      message: message ?? null,
-      service_interest: service_interest ?? null,
-      budget: budget ?? null,
-      project_type: project_type ?? service_interest ?? null,
-      source: source ?? "website",
+      name: trimmedName,
+      email: trimmedEmail,
+      phone: typeof phone === "string" ? phone.trim().slice(0, 40) : null,
+      company: typeof company === "string" ? company.trim().slice(0, 120) : null,
+      message: typeof message === "string" ? message.trim().slice(0, 5000) : null,
+      service_interest:
+        typeof service_interest === "string" ? service_interest.trim().slice(0, 120) : null,
+      budget: typeof budget === "string" ? budget.trim().slice(0, 80) : null,
+      project_type:
+        typeof project_type === "string"
+          ? project_type.trim().slice(0, 120)
+          : typeof service_interest === "string"
+            ? service_interest.trim().slice(0, 120)
+            : null,
+      source: typeof source === "string" ? source.trim().slice(0, 80) : "website",
       status: "new",
     });
 
@@ -95,13 +122,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    await upsertClientFromLead({ name, email, phone, company });
+    await upsertClientFromLead({
+      name: trimmedName,
+      email: trimmedEmail,
+      phone: typeof phone === "string" ? phone.trim().slice(0, 40) : undefined,
+      company: typeof company === "string" ? company.trim().slice(0, 120) : undefined,
+    });
 
     if (resend) {
       const from = process.env.RESEND_FROM_EMAIL ?? siteConfig.email;
       const to = process.env.CONTACT_FORM_TO ?? siteConfig.email;
-      const safeName = escapeHtml(name);
-      const safeEmail = escapeHtml(email);
+      const safeName = escapeHtml(trimmedName);
+      const safeEmail = escapeHtml(trimmedEmail);
       const safePhone = phone ? escapeHtml(phone) : "";
       const safeCompany = company ? escapeHtml(company) : "";
       const safeService = service_interest ? escapeHtml(service_interest) : "";
@@ -114,7 +146,7 @@ export async function POST(request: Request) {
         await resend.emails.send({
           from: `DeanVerse Digital <${from}>`,
           to,
-          subject: `New lead: ${name}`,
+          subject: `New lead: ${trimmedName}`,
           html: `
             <h2>New Lead from ${siteConfig.name}</h2>
             <p><strong>Name:</strong> ${safeName}</p>

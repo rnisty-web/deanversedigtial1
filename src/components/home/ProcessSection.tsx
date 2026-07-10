@@ -7,15 +7,16 @@ import { Reveal } from "@/components/ui/Reveal";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 
 export function ProcessSection() {
-  const { process } = useCMS();
+  const { process, processIntro } = useCMS();
 
   return (
     <section className="px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
       <div className="mx-auto max-w-7xl">
         <SectionHeading
-          eyebrow="Process"
-          title="A clear path from idea to launch"
-          subtitle="No surprises, no jargon — just a proven workflow that keeps you informed at every step."
+          eyebrow={processIntro.homepage.eyebrow}
+          title={processIntro.homepage.title}
+          subtitle={processIntro.homepage.subtitle}
+          level={2}
         />
 
         <div className="relative">

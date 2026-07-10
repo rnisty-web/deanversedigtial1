@@ -167,7 +167,7 @@ export function PortalInvoiceList({ invoices, stripeEnabled }: Props) {
                 <div className="mt-4 flex flex-wrap items-center gap-3">
                   <Link
                     href={`/portal/invoices/${invoice.id}/print`}
-                    target="_blank"
+                    target="_blank" rel="noopener noreferrer"
                     className="inline-flex min-h-[44px] items-center text-sm text-[var(--admin-gold-light)] hover:underline"
                   >
                     Download summary
@@ -220,7 +220,7 @@ export function PortalInvoiceList({ invoices, stripeEnabled }: Props) {
                       <div className="flex flex-col items-end gap-2">
                         <Link
                           href={`/portal/invoices/${invoice.id}/print`}
-                          target="_blank"
+                          target="_blank" rel="noopener noreferrer"
                           className="text-xs text-[var(--admin-text-muted)] hover:text-[var(--admin-gold-light)]"
                         >
                           Download summary

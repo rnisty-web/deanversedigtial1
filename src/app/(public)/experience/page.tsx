@@ -6,9 +6,6 @@ import { getCMSContent } from "@/lib/cms/get-content";
 import { createPageMetadata } from "@/lib/seo/metadata";
 import type { Metadata } from "next";
 
-export const dynamic = "force-dynamic";
-export const fetchCache = "force-no-store";
-
 export async function generateMetadata(): Promise<Metadata> {
   const cms = await getCMSContent();
   return createPageMetadata({
@@ -27,9 +24,10 @@ export default async function ExperiencePage() {
       <section className="px-4 pb-12 pt-16 sm:px-6 sm:pt-20 lg:px-8">
         <div className="mx-auto max-w-4xl">
           <SectionHeading
-            eyebrow="Experience"
+            eyebrow={experience.eyebrow}
             title={experience.headline}
             subtitle={experience.subtitle}
+            level={1}
           />
 
           <div className="relative mt-12">
@@ -46,9 +44,9 @@ export default async function ExperiencePage() {
                     <GlassCard hover={false} className="liquid-glass">
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div>
-                          <h2 className="text-xl font-semibold text-white">
+                          <h3 className="text-xl font-semibold text-white">
                             {item.role}
-                          </h2>
+                          </h3>
                           <p className="mt-1 text-[#a3c9a8]">{item.company}</p>
                         </div>
                         <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-white/60">

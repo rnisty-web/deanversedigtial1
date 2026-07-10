@@ -18,9 +18,14 @@ export type SectionIconKey =
   | "hero"
   | "stats"
   | "process"
+  | "processIntro"
   | "about"
   | "services"
+  | "servicesPage"
   | "pricing"
+  | "contact"
+  | "portfolioPage"
+  | "testimonialsPage"
   | "cta"
   | "tech"
   | "experience"
@@ -94,11 +99,19 @@ export const SECTION_REGISTRY: SectionDefinition[] = [
     isArray: true,
   },
   {
-    id: "services",
-    title: "Services",
+    id: "servicesPage",
+    title: "Services Page",
     typeLabel: "Dedicated Page",
     category: "services",
-    description: "Content for the /services page only (not shown on the homepage).",
+    description: "Headings and bottom call-to-action on /services.",
+    icon: "servicesPage",
+  },
+  {
+    id: "services",
+    title: "Service Offerings",
+    typeLabel: "Dedicated Page",
+    category: "services",
+    description: "Individual services listed on the /services page.",
     icon: "services",
     isArray: true,
   },
@@ -107,8 +120,32 @@ export const SECTION_REGISTRY: SectionDefinition[] = [
     title: "Pricing",
     typeLabel: "Dedicated Page",
     category: "services",
-    description: "Content for the /pricing page only (not shown on the homepage).",
+    description: "Page headings, tiers, FAQs, and closing CTA on /pricing.",
     icon: "pricing",
+  },
+  {
+    id: "contact",
+    title: "Contact Page",
+    typeLabel: "Dedicated Page",
+    category: "cta",
+    description: "Headings, sidebar labels, and next steps on /contact.",
+    icon: "contact",
+  },
+  {
+    id: "hireMePage",
+    title: "Hire Me Page",
+    typeLabel: "Dedicated Page",
+    category: "cta",
+    description: "Hero, benefits, pricing teaser, and form copy on /hire-me.",
+    icon: "cta",
+  },
+  {
+    id: "portfolioPage",
+    title: "Portfolio Page",
+    typeLabel: "Homepage + /portfolio",
+    category: "other",
+    description: "Headings for the homepage portfolio preview and full /portfolio page.",
+    icon: "portfolioPage",
   },
   {
     id: "techStack",
@@ -121,12 +158,20 @@ export const SECTION_REGISTRY: SectionDefinition[] = [
   },
   {
     id: "process",
-    title: "Process",
+    title: "Process Steps",
     typeLabel: "Homepage + /hire-me",
     category: "services",
-    description: "Workflow steps on the homepage and Hire Me page.",
+    description: "Workflow step content on the homepage and Hire Me page.",
     icon: "process",
     isArray: true,
+  },
+  {
+    id: "processIntro",
+    title: "Process Headings",
+    typeLabel: "Homepage + /hire-me",
+    category: "services",
+    description: "Section titles and subtitles above the process steps.",
+    icon: "processIntro",
   },
   {
     id: "cta",
@@ -147,20 +192,28 @@ export const SECTION_REGISTRY: SectionDefinition[] = [
   },
   {
     id: "portfolio",
-    title: "Portfolio",
+    title: "Portfolio Projects",
     typeLabel: "Linked",
     category: "other",
-    description: "Case studies and project showcase — managed separately.",
+    description: "Case studies and project showcase — add and edit in Portfolio admin.",
     icon: "portfolio",
     href: "/admin/portfolio",
     isLinked: true,
   },
   {
+    id: "testimonialsPage",
+    title: "Testimonials Page",
+    typeLabel: "Homepage + /testimonials",
+    category: "other",
+    description: "Headings for the homepage reviews preview and full /testimonials page.",
+    icon: "testimonialsPage",
+  },
+  {
     id: "testimonials",
-    title: "Testimonials",
+    title: "Client Reviews",
     typeLabel: "Linked",
     category: "other",
-    description: "Client reviews and quotes — managed separately.",
+    description: "Client quotes and ratings — add and edit in Testimonials admin.",
     icon: "testimonials",
     href: "/admin/testimonials",
     isLinked: true,
@@ -231,6 +284,21 @@ export function getSectionDisplayTitle(
   }
   if (section.id === "education" && "headline" in data) {
     return (data as CMSContent["education"]).headline || section.title;
+  }
+  if (section.id === "servicesPage" && "intro" in data) {
+    return (data as CMSContent["servicesPage"]).intro.title || section.title;
+  }
+  if (section.id === "contact" && "intro" in data) {
+    return (data as CMSContent["contact"]).intro.title || section.title;
+  }
+  if (section.id === "portfolioPage" && "pageIntro" in data) {
+    return (data as CMSContent["portfolioPage"]).pageIntro.title || section.title;
+  }
+  if (section.id === "testimonialsPage" && "pageIntro" in data) {
+    return (data as CMSContent["testimonialsPage"]).pageIntro.title || section.title;
+  }
+  if (section.id === "pricing" && "intro" in data) {
+    return (data as CMSContent["pricing"]).intro.title || section.title;
   }
   return section.title;
 }

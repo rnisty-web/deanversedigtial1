@@ -6,17 +6,15 @@ import { getCMSContent, getPublicSiteConfig } from "@/lib/cms/get-content";
 import { createPageMetadata } from "@/lib/seo/metadata";
 import type { Metadata } from "next";
 
-export const dynamic = "force-dynamic";
-export const fetchCache = "force-no-store";
-
 export async function generateMetadata(): Promise<Metadata> {
   const config = await getPublicSiteConfig();
   const cms = await getCMSContent();
 
   return createPageMetadata({
     title: "Services",
-    description: `${config.name} offers end-to-end digital services — ${cms.services.map((s) => s.title.toLowerCase()).slice(0, 4).join(", ")}, and more.`,
+    description: `${config.name} offers end-to-end digital services — ${cms.services.map((s) => s.title.toLowerCase()).slice(0, 4).join(", ")}, and more.`.slice(0, 160),
     path: "/services",
+    ogImage: config.assets.ogImage,
   });
 }
 
@@ -69,20 +67,18 @@ const serviceIcons: Record<string, React.ReactNode> = {
 };
 
 export default async function ServicesPage() {
-  const [cms, config] = await Promise.all([
-    getCMSContent(),
-    getPublicSiteConfig(),
-  ]);
-  const { services } = cms;
+  const cms = await getCMSContent();
+  const { services, servicesPage } = cms;
 
   return (
     <>
       <section className="px-4 pb-12 pt-16 sm:px-6 sm:pt-20 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <SectionHeading
-            eyebrow="Services"
-            title="Web design and development built for growth"
-            subtitle={`${config.name} offers end-to-end digital services — from first sketch to launch and beyond.`}
+            eyebrow={servicesPage.intro.eyebrow}
+            title={servicesPage.intro.title}
+            subtitle={servicesPage.intro.subtitle}
+            level={1}
           />
 
           <div className="grid gap-8 lg:grid-cols-2">
@@ -95,9 +91,9 @@ export default async function ServicesPage() {
                     </div>
                     <div className="flex-1">
                       <div className="flex flex-wrap items-start justify-between gap-3">
-                        <h2 className="text-xl font-semibold text-white">
+                        <h3 className="text-xl font-semibold text-white">
                           {service.title}
-                        </h2>
+                        </h3>
                         <span className="rounded-full bg-[#6f8f72]/20 px-3 py-1 text-sm font-medium text-[#a3c9a8]">
                           {service.startingPrice}
                         </span>
@@ -156,15 +152,12 @@ export default async function ServicesPage() {
         <Reveal>
           <div className="mx-auto max-w-3xl rounded-3xl border border-[#6f8f72]/30 bg-gradient-to-br from-[#6f8f72]/20 via-[#0f1a17]/80 to-[#2f5d50]/30 p-8 text-center backdrop-blur-xl sm:p-12">
             <h2 className="text-2xl font-bold text-white md:text-3xl">
-              Not sure which service fits?
+              {servicesPage.bottomCtaTitle}
             </h2>
-            <p className="mt-4 text-white/60">
-              Book a free consultation and I&apos;ll help you find the right
-              approach for your goals and budget.
-            </p>
+            <p className="mt-4 text-white/60">{servicesPage.bottomCtaBody}</p>
             <div className="mt-8">
               <Button href="/contact" variant="solid" size="lg">
-                Schedule a Free Call
+                {servicesPage.bottomCtaButton}
               </Button>
             </div>
           </div>

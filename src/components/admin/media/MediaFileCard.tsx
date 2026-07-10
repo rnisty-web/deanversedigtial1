@@ -117,7 +117,7 @@ export function MediaFileCard({
               <button type="button" className="admin-sidebar-menu-item w-full text-left" onClick={() => { onCopyUrl(); setMenuOpen(false); }}>
                 {copied ? "Copied!" : "Copy URL"}
               </button>
-              <Link href={file.url} target="_blank" className="admin-sidebar-menu-item block" onClick={() => setMenuOpen(false)}>
+              <Link href={file.url} target="_blank" rel="noopener noreferrer" className="admin-sidebar-menu-item block" onClick={() => setMenuOpen(false)}>
                 Open
               </Link>
               <button
@@ -156,7 +156,7 @@ export function MediaFileListRow({
       )}
       <div className="relative h-12 w-16 shrink-0 overflow-hidden rounded-lg bg-[var(--admin-panel)]">
         {type === "image" ? (
-          <Image src={file.url} alt="" fill className="object-cover" unoptimized />
+          <Image src={file.url} alt={file.name} fill className="object-cover" unoptimized />
         ) : (
           <div className="flex h-full items-center justify-center text-[10px] font-bold text-[var(--admin-gold-light)]">
             {ext}

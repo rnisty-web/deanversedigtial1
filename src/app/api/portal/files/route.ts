@@ -1,12 +1,16 @@
 import { NextResponse } from "next/server";
-import { verifyAuthApi } from "@/lib/auth";
+import { verifyCustomerApi } from "@/lib/auth";
 import { escapeHtml, sendOwnerNotification } from "@/lib/email";
 import { siteConfig } from "@/lib/constants";
-import { validatePortalUpload } from "@/lib/portal/file-upload";
+import {
+  safeContentDispositionFilename,
+  sanitizePortalFileName,
+  validatePortalUpload,
+} from "@/lib/portal/file-upload";
 import { resolvePortalClient } from "@/lib/portal/resolve-portal-client";
 
 async function getClientProjects(
-  supabase: NonNullable<Awaited<ReturnType<typeof verifyAuthApi>>["supabase"]>,
+  supabase: NonNullable<Awaited<ReturnType<typeof verifyCustomerApi>>["supabase"]>,
   userId: string,
   userEmail: string,
 ) {
@@ -25,7 +29,7 @@ async function getClientProjects(
 const FILE_FIELDS = "id, name, file_path, project_id, file_size, mime_type, created_at" as const;
 
 export async function GET(request: Request) {
-  const auth = await verifyAuthApi();
+  const auth = await verifyCustomerApi();
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
@@ -68,7 +72,7 @@ export async function GET(request: Request) {
     return new NextResponse(data, {
       headers: {
         "Content-Type": "application/octet-stream",
-        "Content-Disposition": `attachment; filename="${ownedFile.name}"`,
+        "Content-Disposition": safeContentDispositionFilename(ownedFile.name),
       },
     });
   }
@@ -104,7 +108,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const auth = await verifyAuthApi();
+  const auth = await verifyCustomerApi();
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
@@ -134,7 +138,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Project not found" }, { status: 403 });
   }
 
-  const filePath = `${projectId}/${Date.now()}-${file.name}`;
+  const safeName = sanitizePortalFileName(file.name);
+  const filePath = `${projectId}/${Date.now()}-${safeName}`;
   const buffer = Buffer.from(await file.arrayBuffer());
 
   const { error: uploadError } = await auth.supabase!.storage
@@ -150,7 +155,7 @@ export async function POST(request: Request) {
     .insert({
       project_id: projectId,
       uploaded_by: auth.user!.id,
-      name: file.name,
+      name: safeName,
       file_path: filePath,
       file_size: file.size,
       mime_type: file.type,

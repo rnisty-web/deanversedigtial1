@@ -1,4 +1,4 @@
-import { StructuredData } from "@/components/seo/StructuredData";
+import { StructuredDataLoader } from "@/components/seo/StructuredDataLoader";
 import { siteConfig } from "@/lib/constants";
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
@@ -75,7 +75,7 @@ export default function RootLayout({
         className="min-h-full flex flex-col bg-[#0f1a17] font-sans text-white"
         suppressHydrationWarning
       >
-        <StructuredData />
+        <StructuredDataLoader />
         {children}
       </body>
     </html>

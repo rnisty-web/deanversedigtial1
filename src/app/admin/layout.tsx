@@ -8,6 +8,11 @@ import { AdminShell } from "@/components/admin/AdminShell";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { PresenceHeartbeat } from "@/components/admin/PresenceHeartbeat";
 import { getDashboardThemeSafe } from "@/lib/settings/dashboard-theme-server";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 const adminSerif = Cormorant_Garamond({
   subsets: ["latin"],

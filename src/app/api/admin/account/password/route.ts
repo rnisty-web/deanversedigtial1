@@ -1,7 +1,21 @@
 import { NextResponse } from "next/server";
 import { verifyAdminApi } from "@/lib/auth";
+import {
+  checkRateLimit,
+  getClientIp,
+  rateLimitResponse,
+} from "@/lib/rate-limit";
+
+const PASSWORD_LIMIT = 5;
+const PASSWORD_WINDOW_MS = 15 * 60 * 1000;
 
 export async function POST(request: Request) {
+  const ip = getClientIp(request);
+  const limit = await checkRateLimit(`admin-password:${ip}`, PASSWORD_LIMIT, PASSWORD_WINDOW_MS);
+  if (!limit.success) {
+    return rateLimitResponse(limit.resetAt);
+  }
+
   const auth = await verifyAdminApi();
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });

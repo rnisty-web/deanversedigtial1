@@ -1,9 +1,22 @@
 import { NextResponse } from "next/server";
-import { verifyAuthApi } from "@/lib/auth";
+import { verifyCustomerApi } from "@/lib/auth";
+import {
+  checkRateLimit,
+  getClientIp,
+  rateLimitResponse,
+} from "@/lib/rate-limit";
+
+const PASSWORD_LIMIT = 5;
+const PASSWORD_WINDOW_MS = 15 * 60 * 1000;
 
 export async function POST(request: Request) {
-  const auth = await verifyAuthApi();
-  if (auth.error) {
+  const ip = getClientIp(request);
+  const limit = await checkRateLimit(`portal-password:${ip}`, PASSWORD_LIMIT, PASSWORD_WINDOW_MS);
+  if (!limit.success) {
+    return rateLimitResponse(limit.resetAt);
+  }
+
+  const auth = await verifyCustomerApi();  if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
 

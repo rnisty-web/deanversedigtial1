@@ -361,6 +361,7 @@ export default function AdminTestimonialsPage() {
                   <button
                     type="button"
                     title="Masonry grid"
+                    aria-label="Masonry grid"
                     onClick={() => setViewMode("grid")}
                     className={cn(
                       "admin-testimonials-view-btn",
@@ -374,6 +375,7 @@ export default function AdminTestimonialsPage() {
                   <button
                     type="button"
                     title="List view"
+                    aria-label="List view"
                     onClick={() => setViewMode("list")}
                     className={cn(
                       "admin-testimonials-view-btn",

@@ -2,14 +2,10 @@ import { Button } from "@/components/ui/Button";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionHeading } from "@/components/ui/SectionHeading";
-import { getCMSContent, getPublicSiteConfig } from "@/lib/cms/get-content";
-import { FaqStructuredData } from "@/components/seo/FaqStructuredData";
+import { getCMSContent } from "@/lib/cms/get-content";
 import { createPageMetadata } from "@/lib/seo/metadata";
 import { cn } from "@/lib/utils";
 import type { Metadata } from "next";
-
-export const dynamic = "force-dynamic";
-export const fetchCache = "force-no-store";
 
 export async function generateMetadata(): Promise<Metadata> {
   return createPageMetadata({
@@ -21,22 +17,18 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function PricingPage() {
-  const [cms, config] = await Promise.all([
-    getCMSContent(),
-    getPublicSiteConfig(),
-  ]);
-  const { tiers, faqs } = cms.pricing;
+  const cms = await getCMSContent();
+  const { tiers, faqs, intro, faqIntro, closingText, closingCta } = cms.pricing;
 
   return (
     <>
-      <FaqStructuredData faqs={faqs} pageUrl="/pricing" />
-
       <section className="px-4 pb-12 pt-16 sm:px-6 sm:pt-20 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <SectionHeading
-            eyebrow="Pricing"
-            title="Transparent packages, no hidden fees"
-            subtitle={`Every ${config.name} project includes personal attention, quality craftsmanship, and post-launch support.`}
+            eyebrow={intro.eyebrow}
+            title={intro.title}
+            subtitle={intro.subtitle}
+            level={1}
           />
 
           <div className="grid gap-6 lg:grid-cols-3 lg:gap-8">
@@ -56,9 +48,9 @@ export default async function PricingPage() {
                   )}
 
                   <div className="mb-6">
-                    <h2 className="text-xl font-semibold text-white">
+                    <h3 className="text-xl font-semibold text-white">
                       {tier.name}
-                    </h2>
+                    </h3>
                     <p className="mt-2 text-sm text-white/50">
                       {tier.description}
                     </p>
@@ -108,9 +100,10 @@ export default async function PricingPage() {
       <section className="px-4 pb-20 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-3xl">
           <SectionHeading
-            eyebrow="FAQ"
-            title="Frequently asked questions"
-            subtitle="Everything you need to know before starting your project."
+            eyebrow={faqIntro.eyebrow}
+            title={faqIntro.title}
+            subtitle={faqIntro.subtitle}
+            level={2}
           />
 
           <div className="space-y-4">
@@ -129,12 +122,10 @@ export default async function PricingPage() {
           </div>
 
           <Reveal className="mt-12 text-center">
-            <p className="text-white/60">
-              Still have questions? I&apos;m happy to help.
-            </p>
+            <p className="text-white/60">{closingText}</p>
             <div className="mt-6">
               <Button href="/contact" variant="primary" size="lg">
-                Get in Touch
+                {closingCta}
               </Button>
             </div>
           </Reveal>

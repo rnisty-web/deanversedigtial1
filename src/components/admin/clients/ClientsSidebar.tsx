@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useRef } from "react";
 import { StatsChart } from "@/components/admin/StatsChart";
 import type { ClientRecord } from "@/lib/clients/utils";

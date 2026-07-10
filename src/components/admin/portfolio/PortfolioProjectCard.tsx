@@ -105,7 +105,7 @@ export function PortfolioProjectCard({
               </button>
               <Link
                 href={`/portfolio/${item.slug}`}
-                target="_blank"
+                target="_blank" rel="noopener noreferrer"
                 className="admin-sidebar-menu-item block"
                 onClick={() => setMenuOpen(false)}
               >

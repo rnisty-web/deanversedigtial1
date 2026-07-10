@@ -13,6 +13,15 @@ import {
   faqDefaults,
   pricingFaqs,
 } from "@/lib/data/fallbacks";
+import {
+  defaultContactPage,
+  defaultHireMePage,
+  defaultPortfolioPage,
+  defaultPricingPageCopy,
+  defaultProcessIntro,
+  defaultServicesPage,
+  defaultTestimonialsPage,
+} from "@/lib/cms/page-copy-defaults";
 import type { CMSContent } from "@/lib/cms/types";
 
 export const cmsDefaults: CMSContent = {
@@ -46,16 +55,24 @@ export const cmsDefaults: CMSContent = {
     title: s.title,
     description: s.description,
   })),
+  processIntro: defaultProcessIntro(),
+  hireMePage: defaultHireMePage(),
   about: {
+    pageEyebrow: "About",
     headline: aboutStory.headline,
     intro: aboutStory.intro,
     story: aboutStory.paragraphs.join("\n\n"),
     skills: [...aboutStory.skills],
     homepageTeaser: aboutStory.intro,
+    skillsEyebrow: "Skills",
     skillsHeadline: "Tools and expertise I bring to every project",
     skillsSubtitle:
       "A modern stack focused on performance, maintainability, and beautiful user experiences.",
     techStackHeadline: "Tech Stack",
+    homepagePrimaryCta: "Learn More About Me",
+    homepageSecondaryCta: "Work With Me",
+    primaryCta: "Work With Me",
+    secondaryCta: "View Portfolio",
   },
   services: allServices.map((s) => ({
     id: s.id,
@@ -65,7 +82,9 @@ export const cmsDefaults: CMSContent = {
     startingPrice: s.startingPrice,
     icon: s.icon,
   })),
+  servicesPage: defaultServicesPage(),
   pricing: {
+    ...defaultPricingPageCopy(),
     tiers: pricingTiers.map((t) => ({
       id: t.id,
       name: t.name,
@@ -78,6 +97,9 @@ export const cmsDefaults: CMSContent = {
     })),
     faqs: pricingFaqs.map((f) => ({ question: f.question, answer: f.answer })),
   },
+  contact: defaultContactPage(),
+  portfolioPage: defaultPortfolioPage(),
+  testimonialsPage: defaultTestimonialsPage(),
   cta: {
     eyebrow: "Ready to Start?",
     headline: "Let's build something",
@@ -88,6 +110,7 @@ export const cmsDefaults: CMSContent = {
   },
   techStack: techStack.map((t) => ({ name: t.name, category: t.category })),
   experience: {
+    eyebrow: "Experience",
     headline: experienceDefaults.headline,
     subtitle: experienceDefaults.subtitle,
     items: experienceDefaults.items.map((item) => ({
@@ -96,11 +119,13 @@ export const cmsDefaults: CMSContent = {
     })),
   },
   education: {
+    eyebrow: "Education",
     headline: educationDefaults.headline,
     subtitle: educationDefaults.subtitle,
     items: educationDefaults.items.map((item) => ({ ...item })),
   },
   faq: {
+    eyebrow: "FAQ",
     headline: faqDefaults.headline,
     subtitle: faqDefaults.subtitle,
     items: faqDefaults.items.map((f) => ({ question: f.question, answer: f.answer })),

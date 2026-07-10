@@ -1,29 +1,25 @@
-"use client";
-
 import Image from "next/image";
-import { useSiteConfig } from "@/components/providers/CMSProvider";
 import { cn } from "@/lib/utils";
 
 interface BackgroundLayerProps {
+  backgroundSrc: string;
   className?: string;
 }
 
-export function BackgroundLayer({ className }: BackgroundLayerProps) {
-  const siteConfig = useSiteConfig();
-
+export function BackgroundLayer({ backgroundSrc, className }: BackgroundLayerProps) {
   return (
     <div
       className={cn("pointer-events-none fixed inset-0 -z-10 overflow-hidden", className)}
       aria-hidden="true"
     >
       <Image
-        src={siteConfig.assets.background}
+        src={backgroundSrc}
         alt=""
         fill
-        priority
+        quality={50}
+        fetchPriority="low"
         className="object-cover object-center scale-105"
         sizes="100vw"
-        suppressHydrationWarning
       />
       <div className="absolute inset-0 bg-[#0f1a17]/55" />
       <div className="absolute inset-0 bg-gradient-to-b from-[#0f1a17]/70 via-[#0f1a17]/20 to-[#0f1a17]/85" />

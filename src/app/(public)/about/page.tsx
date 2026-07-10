@@ -7,9 +7,6 @@ import { getCMSContent, getPublicSiteConfig } from "@/lib/cms/get-content";
 import { createPageMetadata } from "@/lib/seo/metadata";
 import type { Metadata } from "next";
 
-export const dynamic = "force-dynamic";
-export const fetchCache = "force-no-store";
-
 export async function generateMetadata(): Promise<Metadata> {
   const config = await getPublicSiteConfig();
 
@@ -33,10 +30,11 @@ export default async function AboutPage() {
       <section className="px-4 pb-12 pt-16 sm:px-6 sm:pt-20 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <SectionHeading
-            eyebrow="About"
+            eyebrow={about.pageEyebrow}
             title={about.headline}
             subtitle={about.intro}
             align="left"
+            level={1}
           />
 
           <div className="grid items-start gap-12 lg:grid-cols-2 lg:gap-16">
@@ -71,10 +69,10 @@ export default async function AboutPage() {
 
                 <div className="flex flex-wrap gap-4 pt-4">
                   <Button href="/contact" variant="primary">
-                    Work With Me
+                    {about.primaryCta}
                   </Button>
                   <Button href="/portfolio" variant="secondary">
-                    View Portfolio
+                    {about.secondaryCta}
                   </Button>
                 </div>
               </div>
@@ -86,9 +84,10 @@ export default async function AboutPage() {
       <section className="px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
         <div className="mx-auto max-w-7xl">
           <SectionHeading
-            eyebrow="Skills"
+            eyebrow={about.skillsEyebrow}
             title={about.skillsHeadline}
             subtitle={about.skillsSubtitle}
+            level={2}
           />
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

@@ -5,18 +5,29 @@ function getBaseUrl(): string {
   return siteConfig.url.replace(/\/$/, "");
 }
 
+function normalizePath(path: string): string {
+  if (path === "/" || path === "") return "/";
+  return path.startsWith("/") ? path : `/${path}`;
+}
+
 export function createPageMetadata({
   title,
   description,
   path,
   noIndex = false,
+  ogImage,
+  twitterCard = "summary_large_image",
 }: {
   title: string;
   description: string;
   path: string;
   noIndex?: boolean;
+  ogImage?: string;
+  twitterCard?: "summary" | "summary_large_image";
 }): Metadata {
-  const url = `${getBaseUrl()}${path}`;
+  const normalizedPath = normalizePath(path);
+  const url = `${getBaseUrl()}${normalizedPath === "/" ? "/" : normalizedPath}`;
+  const image = ogImage || siteConfig.ogImage;
 
   return {
     title,
@@ -26,18 +37,20 @@ export function createPageMetadata({
       title: `${title} | ${siteConfig.name}`,
       description,
       url,
-      images: [{ url: siteConfig.ogImage, alt: siteConfig.name }],
+      type: "website",
+      images: [{ url: image, alt: siteConfig.name }],
     },
     twitter: {
+      card: twitterCard,
       title: `${title} | ${siteConfig.name}`,
       description,
-      images: [siteConfig.ogImage],
+      images: [image],
     },
-    ...(noIndex && { robots: { index: false, follow: true } }),
+    ...(noIndex && { robots: { index: false, follow: false } }),
   };
 }
 
 export function getAbsoluteUrl(path: string): string {
   const base = getBaseUrl();
-  return path.startsWith("http") ? path : `${base}${path}`;
+  return path.startsWith("http") ? path : `${base}${normalizePath(path)}`;
 }

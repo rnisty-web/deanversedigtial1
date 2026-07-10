@@ -15,8 +15,7 @@ import { createPageMetadata } from "@/lib/seo/metadata";
 import type { PortfolioCaseStudy } from "@/types";
 import type { Metadata } from "next";
 
-export const dynamic = "force-dynamic";
-export const fetchCache = "force-no-store";
+export const revalidate = 60;
 
 interface PortfolioDetailPageProps {
   params: Promise<{ slug: string }>;
@@ -61,7 +60,12 @@ export async function generateMetadata({
   const project = await getPortfolioBySlug(slug);
 
   if (!project) {
-    return { title: "Project Not Found" };
+    return createPageMetadata({
+      title: "Project Not Found",
+      description: "The requested portfolio project could not be found.",
+      path: `/portfolio/${slug}`,
+      noIndex: true,
+    });
   }
 
   return createPageMetadata({
@@ -70,6 +74,7 @@ export async function generateMetadata({
       project.description ??
       `Case study: ${project.title} by ${siteConfig.name}.`,
     path: `/portfolio/${slug}`,
+    ...(project.image_url ? { ogImage: project.image_url } : {}),
   });
 }
 
@@ -129,7 +134,7 @@ export default async function PortfolioDetailPage({
                   fill
                   priority
                   className="object-cover"
-                  sizes="100vw"
+                  sizes="(max-width: 1280px) 100vw, 1280px"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0f1a17] via-[#0f1a17]/40 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-10">

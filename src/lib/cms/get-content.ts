@@ -1,4 +1,5 @@
-import { unstable_noStore as noStore } from "next/cache";
+import { unstable_cache } from "next/cache";
+import { cache } from "react";
 import { createAnonServerClient, createServiceRoleClient } from "@/lib/supabase/server";
 import { cmsDefaults, cmsKeys } from "@/lib/cms/defaults";
 import { defaultCMSLayout, mergeLayout, type CMSLayout } from "@/lib/cms/layout";
@@ -35,9 +36,7 @@ function warnWhenPublicCMSReadMayFail() {
   }
 }
 
-async function fetchCMSFromDb(): Promise<CMSContent> {
-  noStore();
-
+async function fetchCMSFromDbUncached(): Promise<CMSContent> {
   if (!hasSupabase()) {
     return cmsDefaults;
   }
@@ -67,7 +66,7 @@ async function fetchCMSFromDb(): Promise<CMSContent> {
 
     const merged = mergeCMSContent(data);
     const hasPricingRow = data.some((row) => row.key === "pricing");
-    if (!hasPricingRow) {
+    if (!hasPricingRow && process.env.NODE_ENV === "development") {
       console.warn(
         "[cms] no pricing row in database — using template defaults until you save Site Content → Pricing",
       );
@@ -81,12 +80,17 @@ async function fetchCMSFromDb(): Promise<CMSContent> {
   }
 }
 
-export async function getCMSContent(): Promise<CMSContent> {
-  return fetchCMSFromDb();
-}
+const getCachedCMSContent = unstable_cache(
+  fetchCMSFromDbUncached,
+  ["cms-content"],
+  { tags: ["cms"], revalidate: 60 },
+);
 
-async function fetchCMSLayoutFromDb(): Promise<CMSLayout> {
-  noStore();
+export const getCMSContent = cache(async (): Promise<CMSContent> => {
+  return getCachedCMSContent();
+});
+
+async function fetchCMSLayoutFromDbUncached(): Promise<CMSLayout> {
   const defaults = defaultCMSLayout();
 
   if (!hasSupabase()) {
@@ -123,17 +127,23 @@ async function fetchCMSLayoutFromDb(): Promise<CMSLayout> {
   }
 }
 
-export async function getCMSLayout(): Promise<CMSLayout> {
-  return fetchCMSLayoutFromDb();
-}
+const getCachedCMSLayout = unstable_cache(
+  fetchCMSLayoutFromDbUncached,
+  ["cms-layout"],
+  { tags: ["cms"], revalidate: 60 },
+);
+
+export const getCMSLayout = cache(async (): Promise<CMSLayout> => {
+  return getCachedCMSLayout();
+});
 
 export { getPublishedHomepageSections, isHomepageSectionPublished } from "@/lib/cms/layout";
 
-export async function getPublicSiteConfig(): Promise<PublicSiteConfig> {
+export const getPublicSiteConfig = cache(async (): Promise<PublicSiteConfig> => {
   const cms = await getCMSContent();
   return {
     ...cms.site,
     url: siteConfig.url,
     colors: siteConfig.colors,
   };
-}
+});

@@ -1,5 +1,8 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useCMS } from "@/components/providers/CMSProvider";
 import { siteConfig } from "@/lib/constants";
 import { Button } from "@/components/ui/Button";
 import { GlassCard } from "@/components/ui/GlassCard";
@@ -12,6 +15,8 @@ interface PortfolioPreviewProps {
 }
 
 export function PortfolioPreview({ projects }: PortfolioPreviewProps) {
+  const { portfolioPage } = useCMS();
+
   if (projects.length === 0) {
     return null;
   }
@@ -20,9 +25,10 @@ export function PortfolioPreview({ projects }: PortfolioPreviewProps) {
     <section className="px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
       <div className="mx-auto max-w-7xl">
         <SectionHeading
-          eyebrow="Portfolio"
-          title="Recent work that speaks for itself"
-          subtitle="A selection of projects built with care — each one crafted to reflect the client's unique brand and goals."
+          eyebrow={portfolioPage.homepageIntro.eyebrow}
+          title={portfolioPage.homepageIntro.title}
+          subtitle={portfolioPage.homepageIntro.subtitle}
+          level={2}
         />
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 lg:gap-8">
@@ -52,13 +58,9 @@ export function PortfolioPreview({ projects }: PortfolioPreviewProps) {
                           ))}
                         </div>
                       )}
-                      <h3 className="text-lg font-semibold text-white">
-                        {project.title}
-                      </h3>
+                      <h3 className="text-lg font-semibold text-white">{project.title}</h3>
                       {project.description && (
-                        <p className="mt-1 text-sm text-white/60 line-clamp-2">
-                          {project.description}
-                        </p>
+                        <p className="mt-1 text-sm text-white/60 line-clamp-2">{project.description}</p>
                       )}
                     </div>
                   </div>
@@ -70,7 +72,7 @@ export function PortfolioPreview({ projects }: PortfolioPreviewProps) {
 
         <Reveal className="mt-12 text-center">
           <Button href="/portfolio" variant="secondary">
-            View Full Portfolio
+            {portfolioPage.homepageButton}
           </Button>
         </Reveal>
       </div>

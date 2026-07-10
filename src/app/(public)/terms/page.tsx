@@ -2,14 +2,16 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { getPublicSiteConfig } from "@/lib/cms/get-content";
+import { createPageMetadata } from "@/lib/seo/metadata";
 import type { Metadata } from "next";
 
 export async function generateMetadata(): Promise<Metadata> {
   const site = await getPublicSiteConfig();
-  return {
+  return createPageMetadata({
     title: "Terms of Service",
     description: `Terms and conditions for using ${site.name} and the client portal.`,
-  };
+    path: "/terms",
+  });
 }
 
 export default async function TermsPage() {
@@ -24,6 +26,7 @@ export default async function TermsPage() {
           title="Terms of Service"
           subtitle={`Please read these terms before using ${site.name} or the client portal.`}
           align="left"
+          level={1}
         />
 
         <Reveal>

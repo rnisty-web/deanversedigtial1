@@ -5,8 +5,7 @@ import { Header } from "@/components/layout/Header";
 import { CMSProvider } from "@/components/providers/CMSProvider";
 import { getCMSContent, getPublicSiteConfig } from "@/lib/cms/get-content";
 
-export const dynamic = "force-dynamic";
-export const fetchCache = "force-no-store";
+export const revalidate = 60;
 
 export default async function PublicLayout({
   children,
@@ -21,7 +20,7 @@ export default async function PublicLayout({
   return (
     <CMSProvider config={config} content={content}>
       <PageViewTracker />
-      <BackgroundLayer />
+      <BackgroundLayer backgroundSrc={config.assets.background} />
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-xl focus:border focus:border-white/20 focus:bg-[#0f1a17] focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-white focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#a3c9a8]"

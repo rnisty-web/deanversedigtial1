@@ -55,16 +55,17 @@ const iconMap: Record<string, React.ReactNode> = {
 };
 
 export function ServicesPreview() {
-  const { services } = useCMS();
+  const { services, servicesPage } = useCMS();
   const previewServices = services.slice(0, 4);
 
   return (
     <section className="px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
       <div className="mx-auto max-w-7xl">
         <SectionHeading
-          eyebrow="Services"
-          title="Everything you need to launch and grow online"
-          subtitle="From first sketch to final deployment — tailored solutions for businesses ready to make an impression."
+          eyebrow={servicesPage.homepageIntro.eyebrow}
+          title={servicesPage.homepageIntro.title}
+          subtitle={servicesPage.homepageIntro.subtitle}
+          level={2}
         />
 
         <div className="grid gap-6 md:grid-cols-2 lg:gap-8">
@@ -102,7 +103,7 @@ export function ServicesPreview() {
 
         <Reveal className="mt-12 text-center">
           <Button href="/services" variant="ghost">
-            Explore all services &rarr;
+            {servicesPage.homepageButton}
           </Button>
         </Reveal>
       </div>

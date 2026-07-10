@@ -9,9 +9,6 @@ import { createPageMetadata } from "@/lib/seo/metadata";
 import { cn } from "@/lib/utils";
 import type { Metadata } from "next";
 
-export const dynamic = "force-dynamic";
-export const fetchCache = "force-no-store";
-
 export async function generateMetadata(): Promise<Metadata> {
   const config = await getPublicSiteConfig();
   return createPageMetadata({
@@ -21,35 +18,12 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
-const whyHireReasons = [
-  {
-    title: "Direct partnership",
-    description:
-      "No account managers or hand-offs. You work with me from discovery through launch and beyond.",
-  },
-  {
-    title: "Premium craft",
-    description:
-      "Custom design, fast performance, and attention to detail — never cookie-cutter templates.",
-  },
-  {
-    title: "Clear communication",
-    description:
-      "Regular updates, honest timelines, and a client portal to keep everything organized.",
-  },
-  {
-    title: "Results-focused",
-    description:
-      "Sites built to convert visitors into customers with SEO, accessibility, and UX best practices.",
-  },
-];
-
 export default async function HireMePage() {
   const [cms, config] = await Promise.all([
     getCMSContent(),
     getPublicSiteConfig(),
   ]);
-  const { process, pricing, cta } = cms;
+  const { process, pricing, cta, processIntro, hireMePage } = cms;
   const highlightedTier =
     pricing.tiers.find((t) => t.highlighted) ?? pricing.tiers[0];
 
@@ -62,22 +36,20 @@ export default async function HireMePage() {
         <div className="relative mx-auto max-w-4xl text-center">
           <Reveal>
             <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#a3c9a8]/30 bg-[#a3c9a8]/10 px-4 py-1.5 text-sm font-medium text-[#a3c9a8]">
-              Available for new projects
+              {hireMePage.heroBadge}
             </p>
           </Reveal>
           <Reveal delay={0.1}>
             <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
-              Hire {config.creator} for your{" "}
+              {hireMePage.heroTitle}{" "}
               <span className="bg-gradient-to-r from-[#a3c9a8] to-[#6f8f72] bg-clip-text text-transparent">
-                next website
+                {hireMePage.heroTitleAccent}
               </span>
             </h1>
           </Reveal>
           <Reveal delay={0.2}>
             <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-white/60">
-              {config.name} delivers custom web design and development for businesses
-              that want to stand out. Based in {config.location}, working with clients
-              worldwide.
+              {hireMePage.heroSubtitle}
             </p>
           </Reveal>
           <Reveal delay={0.3}>
@@ -96,15 +68,16 @@ export default async function HireMePage() {
       <section className="px-4 py-16 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <SectionHeading
-            eyebrow="Why hire me"
-            title="What you get when we work together"
-            subtitle="A focused, personal approach to building websites that perform."
+            eyebrow={hireMePage.whyHireIntro.eyebrow}
+            title={hireMePage.whyHireIntro.title}
+            subtitle={hireMePage.whyHireIntro.subtitle}
+            level={2}
           />
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {whyHireReasons.map((reason, index) => (
-              <Reveal key={reason.title} delay={index * 0.06}>
+            {hireMePage.reasons.map((reason, index) => (
+              <Reveal key={reason.title || index} delay={index * 0.06}>
                 <GlassCard hover={false} className="h-full liquid-glass">
-                  <h2 className="text-lg font-semibold text-white">{reason.title}</h2>
+                  <h3 className="text-lg font-semibold text-white">{reason.title}</h3>
                   <p className="mt-3 text-sm leading-relaxed text-white/60">
                     {reason.description}
                   </p>
@@ -118,9 +91,10 @@ export default async function HireMePage() {
       <section className="px-4 py-16 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-4xl">
           <SectionHeading
-            eyebrow="Process"
-            title="How we'll work together"
-            subtitle="A proven four-step workflow from idea to launch."
+            eyebrow={processIntro.hireMe.eyebrow}
+            title={processIntro.hireMe.title}
+            subtitle={processIntro.hireMe.subtitle}
+            level={2}
           />
           <div className="mt-10 space-y-4">
             {process.map((step, index) => (
@@ -145,9 +119,10 @@ export default async function HireMePage() {
       <section className="px-4 py-16 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-3xl">
           <SectionHeading
-            eyebrow="Pricing"
-            title="Transparent packages to get started"
-            subtitle="Most projects begin with one of these tiers — custom scope available anytime."
+            eyebrow={hireMePage.pricingTeaser.eyebrow}
+            title={hireMePage.pricingTeaser.title}
+            subtitle={hireMePage.pricingTeaser.subtitle}
+            level={2}
           />
           <Reveal>
             <GlassCard
@@ -167,7 +142,7 @@ export default async function HireMePage() {
               )}
               <div className="mt-6">
                 <Button href="/pricing" variant="secondary">
-                  View Full Pricing
+                  {hireMePage.pricingButton}
                 </Button>
               </div>
             </GlassCard>
@@ -178,9 +153,10 @@ export default async function HireMePage() {
       <section id="hire-form" className="px-4 pb-20 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-3xl">
           <SectionHeading
-            eyebrow="Get started"
-            title="Tell me about your project"
-            subtitle="Fill out the form below and I'll respond within 24 hours."
+            eyebrow={hireMePage.formIntro.eyebrow}
+            title={hireMePage.formIntro.title}
+            subtitle={hireMePage.formIntro.subtitle}
+            level={2}
           />
           <Reveal className="mt-8">
             <Suspense
@@ -193,7 +169,7 @@ export default async function HireMePage() {
           </Reveal>
           <Reveal className="mt-8 text-center">
             <p className="text-sm text-white/50">
-              Prefer email?{" "}
+              {hireMePage.emailPrompt}{" "}
               <a
                 href={`mailto:${config.email}`}
                 className="text-[#a3c9a8] transition-colors hover:text-white"

@@ -19,7 +19,8 @@ Run these scripts **in order** in the Supabase SQL Editor (or via CLI). Each fil
 | 11 | `portal-auto-provision.sql` | Auto client rows on signup, invoice/lead RLS for portal users |
 | 12 | `storage-email-clients.sql` | Storage read access for email-matched clients (optional) |
 | 13 | `storage-upload-clients.sql` | Storage upload restricted to owned projects (optional) |
-| 14 | `cms-public-read.sql` | Public read of CMS settings for live site (if service role key not set on host) |
+| 14 | `cms-public-read.sql` | Scoped public read of CMS settings keys only |
+| 15 | `protect-profile-roles.sql` | Block non-admin profile role escalation |
 
 ## Notes
 

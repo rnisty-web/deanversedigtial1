@@ -15,7 +15,7 @@ type PermissionsEditorProps = {
   showSelectAll?: boolean;
 };
 
-const GROUPS = ["Overview", "Content", "Business", "System"] as const;
+const ADMIN_GROUPS = ["Overview", "Content", "Business", "System"] as const;
 
 export function PermissionsEditor({
   value,
@@ -34,16 +34,6 @@ export function PermissionsEditor({
     onChange(next);
   }
 
-  function selectAll() {
-    if (disabled) return;
-    onChange([...ALL_ADMIN_PERMISSIONS]);
-  }
-
-  function clearAll() {
-    if (disabled) return;
-    onChange([]);
-  }
-
   return (
     <div className={cn("admin-permissions-editor", compact && "admin-permissions-editor-compact")}>
       {showSelectAll ? (
@@ -56,7 +46,7 @@ export function PermissionsEditor({
               type="button"
               className="admin-permissions-quick-btn"
               disabled={disabled}
-              onClick={selectAll}
+              onClick={() => onChange([...ALL_ADMIN_PERMISSIONS])}
             >
               Select all
             </button>
@@ -64,7 +54,7 @@ export function PermissionsEditor({
               type="button"
               className="admin-permissions-quick-btn"
               disabled={disabled}
-              onClick={clearAll}
+              onClick={() => onChange([])}
             >
               Clear all
             </button>
@@ -73,7 +63,7 @@ export function PermissionsEditor({
       ) : null}
 
       <div className="admin-permissions-groups">
-        {GROUPS.map((group) => {
+        {ADMIN_GROUPS.map((group) => {
           const items = ADMIN_PERMISSION_META.filter((item) => item.group === group);
           if (items.length === 0) return null;
 
@@ -99,12 +89,8 @@ export function PermissionsEditor({
                         onChange={() => toggle(item.key)}
                       />
                       <span className="min-w-0">
-                        <span className="block text-sm font-medium text-[var(--admin-text)]">
-                          {item.label}
-                        </span>
-                        <span className="mt-0.5 block text-xs text-[var(--admin-text-muted)]">
-                          {item.description}
-                        </span>
+                        <span className="block text-sm font-medium text-[var(--admin-text)]">{item.label}</span>
+                        <span className="mt-0.5 block text-xs text-[var(--admin-text-muted)]">{item.description}</span>
                       </span>
                     </label>
                   );

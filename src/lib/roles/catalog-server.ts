@@ -9,6 +9,7 @@ import {
   slugifyRoleLabel,
   type RoleDefinition,
 } from "@/lib/roles/catalog";
+import { ALL_CLIENT_PERMISSIONS } from "@/lib/roles/client-permissions";
 
 export async function fetchRoleCatalog(supabase: SupabaseClient): Promise<RoleDefinition[]> {
   const { data, error } = await supabase
@@ -65,6 +66,7 @@ export async function createCustomRoleDefinition(input: {
     isSystem: false,
     sortOrder: Math.max(...input.catalog.map((role) => role.sortOrder), 0) + 10,
     permissions: input.isStaff ? ["dashboard", "messages"] : [],
+    clientPermissions: input.isStaff ? [] : [...ALL_CLIENT_PERMISSIONS],
   };
 
   return { role: nextRole, catalog: [...input.catalog, nextRole] };

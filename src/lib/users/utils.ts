@@ -13,6 +13,12 @@ import {
   mergePermissionsFromRoles,
   type AdminPermission,
 } from "@/lib/roles/permissions";
+import {
+  formatClientPermissionsLabel,
+  getEffectiveClientPermissions,
+  mergeClientPermissionsFromRoles,
+  type ClientPermission,
+} from "@/lib/roles/client-permissions";
 
 export type UserRecord = {
   id: string;
@@ -21,6 +27,7 @@ export type UserRecord = {
   role: UserRole;
   roles: UserRole[];
   admin_permissions: AdminPermission[] | null;
+  client_permissions: ClientPermission[] | null;
   company: string | null;
   phone: string | null;
   avatar_url: string | null;
@@ -135,9 +142,22 @@ export function getInheritedPermissions(user: UserRecord, roleCatalog: RoleDefin
   return mergePermissionsFromRoles(user.roles ?? [user.role], roleCatalog);
 }
 
+export function getInheritedClientPermissions(user: UserRecord, roleCatalog: RoleDefinition[]) {
+  return mergeClientPermissionsFromRoles(user.roles ?? [user.role], roleCatalog);
+}
+
+export function getUserEffectiveClientPermissions(user: UserRecord, roleCatalog: RoleDefinition[]) {
+  return getEffectiveClientPermissions(user, roleCatalog);
+}
+
 export function permissionsSummary(user: UserRecord, roleCatalog: RoleDefinition[]) {
   const effective = getUserEffectivePermissions(user, roleCatalog);
   return formatPermissionsLabel(effective);
+}
+
+export function clientPermissionsSummary(user: UserRecord, roleCatalog: RoleDefinition[]) {
+  const effective = getUserEffectiveClientPermissions(user, roleCatalog);
+  return formatClientPermissionsLabel(effective);
 }
 
 export function formatJoinedDate(dateStr: string) {

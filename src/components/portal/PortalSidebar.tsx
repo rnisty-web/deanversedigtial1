@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Profile } from "@/lib/auth";
+import type { RoleDefinition } from "@/lib/roles/catalog";
 import { siteConfig } from "@/lib/constants";
 import { BrandLogo } from "@/components/ui/BrandLogo";
 import { PortalNav } from "@/components/portal/PortalNav";
@@ -8,10 +9,11 @@ import { PortalSwitcher } from "@/components/shared/PortalSwitcher";
 
 type PortalSidebarProps = {
   profile: Profile;
+  roleCatalog: RoleDefinition[];
   canAccessAdmin: boolean;
 };
 
-export function PortalSidebar({ profile, canAccessAdmin }: PortalSidebarProps) {
+export function PortalSidebar({ profile, roleCatalog, canAccessAdmin }: PortalSidebarProps) {
   return (
     <aside className="admin-sidebar relative z-20 hidden h-screen shrink-0 flex-col lg:sticky lg:top-0 lg:flex">
       <div className="flex flex-col items-center px-4 pb-4 pt-6">
@@ -24,7 +26,7 @@ export function PortalSidebar({ profile, canAccessAdmin }: PortalSidebarProps) {
       </div>
 
       <div className="flex-1 overflow-y-auto overscroll-contain px-3 pb-4">
-        <PortalNav />
+        <PortalNav profile={profile} roleCatalog={roleCatalog} />
       </div>
 
       <div className="shrink-0 space-y-2 px-3 pb-4 pt-2">

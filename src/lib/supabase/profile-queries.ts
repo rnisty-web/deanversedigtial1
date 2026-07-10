@@ -1,9 +1,10 @@
 import type { PostgrestError, SupabaseClient } from "@supabase/supabase-js";
 import { parseUserRoles, type UserRole } from "@/lib/roles";
 import { parseAdminPermissions, type AdminPermission } from "@/lib/roles/permissions";
+import { parseClientPermissions, type ClientPermission } from "@/lib/roles/client-permissions";
 
 export const ADMIN_USER_SELECT_WITH_PRESENCE =
-  "id, email, full_name, role, roles, admin_permissions, company, phone, avatar_url, created_at, last_seen_at, activity_status";
+  "id, email, full_name, role, roles, admin_permissions, client_permissions, company, phone, avatar_url, created_at, last_seen_at, activity_status";
 
 export const ADMIN_USER_SELECT_BASE =
   "id, email, full_name, role, company, phone, avatar_url, created_at";
@@ -43,21 +44,46 @@ export function isMissingAdminPermissionsColumnError(error: PostgrestError | nul
   return isMissingColumnError(error, "admin_permissions");
 }
 
-function withAdminPermissionsDefault<T extends Record<string, unknown>>(
+export function isMissingClientPermissionsColumnError(error: PostgrestError | null): boolean {
+  return isMissingColumnError(error, "client_permissions");
+}
+
+function isMissingOptionalPermissionColumnError(error: PostgrestError | null): boolean {
+  return (
+    isMissingAdminPermissionsColumnError(error) || isMissingClientPermissionsColumnError(error)
+  );
+}
+
+function stripMissingPermissionColumns(select: string, error: PostgrestError | null): string {
+  let next = select;
+  if (isMissingAdminPermissionsColumnError(error)) {
+    next = next.replace(", admin_permissions", "");
+  }
+  if (isMissingClientPermissionsColumnError(error)) {
+    next = next.replace(", client_permissions", "");
+  }
+  return next;
+}
+
+function withPermissionDefaults<T extends Record<string, unknown>>(
   rows: T[],
-): (T & { admin_permissions: AdminPermission[] | null })[] {
+): (T & { admin_permissions: AdminPermission[] | null; client_permissions: ClientPermission[] | null })[] {
   return rows.map((row) => ({
     ...row,
     admin_permissions:
       row.admin_permissions === undefined || row.admin_permissions === null
         ? null
         : parseAdminPermissions(row.admin_permissions),
+    client_permissions:
+      row.client_permissions === undefined || row.client_permissions === null
+        ? null
+        : parseClientPermissions(row.client_permissions),
   }));
 }
 
-function withAdminPermissionsDefaultSingle<T extends Record<string, unknown>>(
+function withPermissionDefaultsSingle<T extends Record<string, unknown>>(
   row: T | null,
-): (T & { admin_permissions: AdminPermission[] | null }) | null {
+): (T & { admin_permissions: AdminPermission[] | null; client_permissions: ClientPermission[] | null }) | null {
   if (!row) return null;
   return {
     ...row,
@@ -65,13 +91,17 @@ function withAdminPermissionsDefaultSingle<T extends Record<string, unknown>>(
       row.admin_permissions === undefined || row.admin_permissions === null
         ? null
         : parseAdminPermissions(row.admin_permissions),
+    client_permissions:
+      row.client_permissions === undefined || row.client_permissions === null
+        ? null
+        : parseClientPermissions(row.client_permissions),
   };
 }
 
 function withRolesDefaults<T extends ProfileRow>(
   rows: T[],
-): (T & { roles: UserRole[]; admin_permissions: AdminPermission[] | null })[] {
-  return withAdminPermissionsDefault(withRolesDefaultsOnly(rows));
+): (T & { roles: UserRole[]; admin_permissions: AdminPermission[] | null; client_permissions: ClientPermission[] | null })[] {
+  return withPermissionDefaults(withRolesDefaultsOnly(rows));
 }
 
 function withRolesDefaultsOnly<T extends ProfileRow>(
@@ -85,9 +115,9 @@ function withRolesDefaultsOnly<T extends ProfileRow>(
 
 function withRolesDefault<T extends ProfileRow>(
   row: T | null,
-): (T & { roles: UserRole[]; admin_permissions: AdminPermission[] | null }) | null {
+): (T & { roles: UserRole[]; admin_permissions: AdminPermission[] | null; client_permissions: ClientPermission[] | null }) | null {
   if (!row) return null;
-  return withAdminPermissionsDefaultSingle(withRolesDefaultOnly(row));
+  return withPermissionDefaultsSingle(withRolesDefaultOnly(row));
 }
 
 function withRolesDefaultOnly<T extends ProfileRow>(
@@ -129,15 +159,15 @@ export async function fetchAdminUsers(supabase: ProfilesClient) {
     !isMissingLastSeenColumnError(withPresence.error) &&
     !isMissingActivityStatusColumnError(withPresence.error) &&
     !isMissingRolesColumnError(withPresence.error) &&
-    !isMissingAdminPermissionsColumnError(withPresence.error)
+    !isMissingOptionalPermissionColumnError(withPresence.error)
   ) {
     return { data: null, error: withPresence.error };
   }
 
-  if (isMissingAdminPermissionsColumnError(withPresence.error)) {
+  if (isMissingOptionalPermissionColumnError(withPresence.error)) {
     const withoutPermissions = await supabase
       .from("profiles")
-      .select(ADMIN_USER_SELECT_WITH_PRESENCE.replace(", admin_permissions", ""))
+      .select(stripMissingPermissionColumns(ADMIN_USER_SELECT_WITH_PRESENCE, withPresence.error))
       .order("created_at", { ascending: false });
 
     if (!withoutPermissions.error) {
@@ -181,15 +211,15 @@ export async function fetchAdminUserById(supabase: ProfilesClient, id: string) {
     !isMissingLastSeenColumnError(withPresence.error) &&
     !isMissingActivityStatusColumnError(withPresence.error) &&
     !isMissingRolesColumnError(withPresence.error) &&
-    !isMissingAdminPermissionsColumnError(withPresence.error)
+    !isMissingOptionalPermissionColumnError(withPresence.error)
   ) {
     return { data: null, error: withPresence.error };
   }
 
-  if (isMissingAdminPermissionsColumnError(withPresence.error)) {
+  if (isMissingOptionalPermissionColumnError(withPresence.error)) {
     const withoutPermissions = await supabase
       .from("profiles")
-      .select(ADMIN_USER_SELECT_WITH_PRESENCE.replace(", admin_permissions", ""))
+      .select(stripMissingPermissionColumns(ADMIN_USER_SELECT_WITH_PRESENCE, withPresence.error))
       .eq("id", id)
       .single();
 

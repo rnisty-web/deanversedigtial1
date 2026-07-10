@@ -5,6 +5,7 @@ import { AdminAlert } from "@/components/admin/AdminAlert";
 import { AdminField } from "@/components/admin/AdminField";
 import { AdminModal } from "@/components/admin/AdminModal";
 import { PermissionsEditor } from "@/components/admin/users/PermissionsEditor";
+import { ClientPermissionsEditor } from "@/components/admin/users/ClientPermissionsEditor";
 import { RoleBadge } from "@/components/ui/RoleBadge";
 import { Button } from "@/components/ui/Button";
 import {
@@ -18,6 +19,12 @@ import {
   getRolePermissions,
   type AdminPermission,
 } from "@/lib/roles/permissions";
+import {
+  ALL_CLIENT_PERMISSIONS,
+  formatClientPermissionsLabel,
+  getRoleClientPermissions,
+  type ClientPermission,
+} from "@/lib/roles/client-permissions";
 import { cn } from "@/lib/utils";
 
 type RolesManagerProps = {
@@ -32,6 +39,7 @@ type RoleForm = {
   color: string;
   isStaff: boolean;
   permissions: AdminPermission[];
+  clientPermissions: ClientPermission[];
 };
 
 const emptyForm: RoleForm = {
@@ -39,6 +47,7 @@ const emptyForm: RoleForm = {
   color: "#c9a962",
   isStaff: false,
   permissions: ["dashboard", "messages"],
+  clientPermissions: [...ALL_CLIENT_PERMISSIONS],
 };
 
 function RoleColorPicker({
@@ -180,14 +189,15 @@ export function RolesManager({
     const data = await res.json();
     let nextCatalog = data.catalog ?? [];
 
-    if (createForm.isStaff && createForm.permissions.length > 0 && data.role?.slug) {
+    if (data.role?.slug) {
       const patchRes = await fetch("/api/admin/roles", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: "same-origin",
         body: JSON.stringify({
           slug: data.role.slug,
-          permissions: createForm.permissions,
+          permissions: createForm.isStaff ? createForm.permissions : [],
+          clientPermissions: createForm.clientPermissions,
         }),
       });
       if (patchRes.ok) {
@@ -210,6 +220,7 @@ export function RolesManager({
       color: role.color,
       isStaff: role.isStaff,
       permissions: role.isStaff ? getRolePermissions(role) : [],
+      clientPermissions: getRoleClientPermissions(role),
     });
   }
 
@@ -228,6 +239,7 @@ export function RolesManager({
         color: editForm.color,
         isStaff: editForm.isStaff,
         permissions: editForm.isStaff ? editForm.permissions : [],
+        clientPermissions: editForm.clientPermissions,
       }),
     });
     setSaving(false);
@@ -290,6 +302,7 @@ export function RolesManager({
         {sortedCatalog.map((role, index) => {
           const editable = canManage && (!role.founderOnly || viewerIsFounder);
           const permissions = getRolePermissions(role);
+          const clientPermissions = getRoleClientPermissions(role);
           return (
             <article key={role.slug} className="admin-roles-list-item">
               <div className="admin-roles-list-order">
@@ -341,10 +354,14 @@ export function RolesManager({
 
                 {role.isStaff ? (
                   <p className="mt-3 text-xs text-[var(--admin-text-muted)]">
-                    <span className="font-medium text-[var(--admin-gold-light)]">Permissions: </span>
+                    <span className="font-medium text-[var(--admin-gold-light)]">Admin: </span>
                     {formatPermissionsLabel(permissions)}
                   </p>
                 ) : null}
+                <p className="mt-2 text-xs text-[var(--admin-text-muted)]">
+                  <span className="font-medium text-[var(--admin-gold-light)]">Client portal: </span>
+                  {formatClientPermissionsLabel(clientPermissions)}
+                </p>
               </div>
 
               {editable ? (
@@ -408,6 +425,7 @@ export function RolesManager({
                   ...createForm,
                   isStaff: event.target.checked,
                   permissions: event.target.checked ? ["dashboard", "messages"] : [],
+                  clientPermissions: event.target.checked ? createForm.clientPermissions : [...ALL_CLIENT_PERMISSIONS],
                 })
               }
             />
@@ -430,6 +448,16 @@ export function RolesManager({
               />
             </div>
           ) : null}
+          <div>
+            <label className="mb-2 block text-sm font-medium text-[var(--admin-text-muted)]">
+              Client portal permissions
+            </label>
+            <ClientPermissionsEditor
+              value={createForm.clientPermissions}
+              onChange={(clientPermissions) => setCreateForm({ ...createForm, clientPermissions })}
+              compact
+            />
+          </div>
         </form>
       </AdminModal>
 
@@ -520,6 +548,16 @@ export function RolesManager({
                 ) : null}
               </div>
             ) : null}
+            <div>
+              <label className="mb-2 block text-sm font-medium text-[var(--admin-text-muted)]">
+                Client portal permissions
+              </label>
+              <ClientPermissionsEditor
+                value={editForm.clientPermissions}
+                onChange={(clientPermissions) => setEditForm({ ...editForm, clientPermissions })}
+                compact
+              />
+            </div>
           </form>
         ) : null}
       </AdminModal>

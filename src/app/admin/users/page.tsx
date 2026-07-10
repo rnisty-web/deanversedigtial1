@@ -23,6 +23,7 @@ import { RolesManager } from "@/components/admin/users/RolesManager";
 import { toAssignableRoles, type UserRole } from "@/lib/roles";
 import type { RoleDefinition } from "@/lib/roles/catalog";
 import type { AdminPermission } from "@/lib/roles/permissions";
+import type { ClientPermission } from "@/lib/roles/client-permissions";
 import {
   canEditUserRole,
   computeUserStats,
@@ -237,8 +238,10 @@ export default function AdminUsersPage() {
     user: UserRecord,
     draft: {
       roles: UserRole[];
-      permissionsInherit: boolean;
-      customPermissions: AdminPermission[];
+      adminPermissionsInherit: boolean;
+      customAdminPermissions: AdminPermission[];
+      clientPermissionsInherit: boolean;
+      customClientPermissions: ClientPermission[];
     },
   ) {
     setSavingAccess(true);
@@ -246,11 +249,16 @@ export default function AdminUsersPage() {
     const payload: Record<string, unknown> = {
       id: user.id,
       roles: draft.roles,
-      permissions_inherit: draft.permissionsInherit,
+      permissions_inherit: draft.adminPermissionsInherit,
+      client_permissions_inherit: draft.clientPermissionsInherit,
     };
 
-    if (!draft.permissionsInherit) {
-      payload.admin_permissions = draft.customPermissions;
+    if (!draft.adminPermissionsInherit) {
+      payload.admin_permissions = draft.customAdminPermissions;
+    }
+
+    if (!draft.clientPermissionsInherit) {
+      payload.client_permissions = draft.customClientPermissions;
     }
 
     const res = await fetch("/api/admin/users", {

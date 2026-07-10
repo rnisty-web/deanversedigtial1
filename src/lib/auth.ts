@@ -9,6 +9,7 @@ import {
   hasAdminPermission,
   type AdminPermission,
 } from "@/lib/roles/permissions";
+import type { ClientPermission } from "@/lib/roles/client-permissions";
 
 export type Profile = {
   id: string;
@@ -18,6 +19,7 @@ export type Profile = {
   role: UserRole;
   roles?: UserRole[] | null;
   admin_permissions?: AdminPermission[] | null;
+  client_permissions?: ClientPermission[] | null;
   company: string | null;
   phone: string | null;
   last_seen_at: string | null;

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createAdminClient } from "@/lib/supabase/server";
+import { createAdminClient, createServiceRoleClient } from "@/lib/supabase/server";
 import { fetchAdminUserById, fetchAdminUsers } from "@/lib/supabase/profile-queries";
 import {
   getOwnerEmail,
@@ -10,6 +10,7 @@ import {
 import {
   canAssignRoles,
   getPrimaryRole,
+  getRoleAssignmentError,
   parseUserRoles,
   persistRoles,
   type UserRole,
@@ -21,6 +22,16 @@ import {
   sanitizeAdminPermissions,
   type AdminPermission,
 } from "@/lib/roles/permissions";
+import {
+  sanitizeClientPermissions,
+  type ClientPermission,
+} from "@/lib/roles/client-permissions";
+
+function getServiceSupabase() {
+  const supabase = createServiceRoleClient();
+  if (!supabase) return null;
+  return supabase;
+}
 
 function normalizeRolesInput(
   roles: UserRole[] | undefined,
@@ -110,12 +121,12 @@ export async function POST(request: Request) {
 
   if (!canAssignRoles(assignedRoles, assignerIsFounder, roleCatalog)) {
     return NextResponse.json(
-      { error: "Only the founder can assign the Founder role" },
+      { error: getRoleAssignmentError(assignedRoles, assignerIsFounder, roleCatalog) ?? "Invalid role assignment" },
       { status: 403 },
     );
   }
 
-  const adminSupabase = await createAdminClient();
+  const adminSupabase = getServiceSupabase() ?? (await createAdminClient());
   const { data: created, error: createError } = await adminSupabase.auth.admin.createUser({
     email,
     password,
@@ -132,7 +143,7 @@ export async function POST(request: Request) {
       .from("profiles")
       .update({
         roles: assignedRoles,
-        role: getPrimaryRole(assignedRoles),
+        role: getPrimaryRole(assignedRoles, roleCatalog),
         full_name: full_name ?? null,
       })
       .eq("id", created.user.id);
@@ -167,7 +178,7 @@ export async function PATCH(request: Request) {
   );
 
   const body = await request.json();
-  const { id, role, roles, full_name, email, phone, avatar_url, company, admin_permissions, permissions_inherit } = body as {
+  const { id, role, roles, full_name, email, phone, avatar_url, company, admin_permissions, permissions_inherit, client_permissions, client_permissions_inherit } = body as {
     id?: string;
     role?: UserRole;
     roles?: UserRole[];
@@ -178,13 +189,15 @@ export async function PATCH(request: Request) {
     company?: string;
     admin_permissions?: AdminPermission[] | null;
     permissions_inherit?: boolean;
+    client_permissions?: ClientPermission[] | null;
+    client_permissions_inherit?: boolean;
   };
 
   if (!id) {
     return NextResponse.json({ error: "User ID is required" }, { status: 400 });
   }
 
-  const adminSupabase = await createAdminClient();
+  const adminSupabase = getServiceSupabase() ?? (await createAdminClient());
 
   const { data: target } = await adminSupabase
     .from("profiles")
@@ -198,7 +211,7 @@ export async function PATCH(request: Request) {
 
   const targetIsFounder = isFounder(target, target.email);
 
-  const profileUpdates: Record<string, string | UserRole[] | AdminPermission[] | null> = {};
+  const profileUpdates: Record<string, string | UserRole[] | AdminPermission[] | ClientPermission[] | null> = {};
 
   if (full_name !== undefined) {
     profileUpdates.full_name = full_name.trim() || null;
@@ -229,19 +242,25 @@ export async function PATCH(request: Request) {
 
     if (!canAssignRoles(nextRoles, assignerIsFounder, roleCatalog)) {
       return NextResponse.json(
-        { error: "Only the founder can assign the Founder role" },
+        { error: getRoleAssignmentError(nextRoles, assignerIsFounder, roleCatalog) ?? "Invalid role assignment" },
         { status: 403 },
       );
     }
 
     profileUpdates.roles = nextRoles;
-    profileUpdates.role = getPrimaryRole(nextRoles);
+    profileUpdates.role = getPrimaryRole(nextRoles, roleCatalog);
   }
 
   if (permissions_inherit === true) {
     profileUpdates.admin_permissions = null;
   } else if (admin_permissions !== undefined) {
     profileUpdates.admin_permissions = sanitizeAdminPermissions(admin_permissions);
+  }
+
+  if (client_permissions_inherit === true) {
+    profileUpdates.client_permissions = null;
+  } else if (client_permissions !== undefined) {
+    profileUpdates.client_permissions = sanitizeClientPermissions(client_permissions);
   }
 
   let emailUpdated = false;
@@ -313,7 +332,7 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: "You cannot delete your own account" }, { status: 400 });
   }
 
-  const adminSupabase = await createAdminClient();
+  const adminSupabase = getServiceSupabase() ?? (await createAdminClient());
 
   const { data: target } = await adminSupabase
     .from("profiles")

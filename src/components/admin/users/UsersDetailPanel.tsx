@@ -4,21 +4,25 @@ import { useEffect, useMemo, useState } from "react";
 import { ActivityStatusBadge } from "@/components/admin/ActivityStatusPicker";
 import { AdminEmptyState } from "@/components/admin/AdminEmptyState";
 import { PermissionsEditor } from "@/components/admin/users/PermissionsEditor";
+import { ClientPermissionsEditor } from "@/components/admin/users/ClientPermissionsEditor";
 import { PresenceIndicator } from "@/components/admin/PresenceIndicator";
 import { Button } from "@/components/ui/Button";
 import { RoleBadges } from "@/components/ui/RoleBadges";
 import { RoleMultiSelect } from "@/components/ui/RoleMultiSelect";
-import type { UserRole } from "@/lib/roles";
-import { toAssignableRoles } from "@/lib/roles";
+import { isStaffRole, toAssignableRoles, type UserRole } from "@/lib/roles";
 import type { RoleDefinition } from "@/lib/roles/catalog";
 import type { AdminPermission } from "@/lib/roles/permissions";
+import type { ClientPermission } from "@/lib/roles/client-permissions";
 import type { UserRecord } from "@/lib/users/utils";
 import {
   canEditUserRole,
   formatJoinedDate,
+  getInheritedClientPermissions,
   getInheritedPermissions,
+  getUserEffectiveClientPermissions,
   getUserEffectivePermissions,
   isProtectedFounderAccount,
+  clientPermissionsSummary,
   permissionsSummary,
   portalAccessLabel,
 } from "@/lib/users/utils";
@@ -27,9 +31,30 @@ import { UserAvatar } from "./UserAvatar";
 
 type UserAccessDraft = {
   roles: UserRole[];
-  permissionsInherit: boolean;
-  customPermissions: AdminPermission[];
+  adminPermissionsInherit: boolean;
+  customAdminPermissions: AdminPermission[];
+  clientPermissionsInherit: boolean;
+  customClientPermissions: ClientPermission[];
 };
+
+function buildAccessDraft(user: UserRecord, roleCatalog: RoleDefinition[]): UserAccessDraft {
+  const hasCustomAdminPermissions =
+    user.admin_permissions !== null && user.admin_permissions !== undefined;
+  const hasCustomClientPermissions =
+    user.client_permissions !== null && user.client_permissions !== undefined;
+
+  return {
+    roles: toAssignableRoles(user, roleCatalog),
+    adminPermissionsInherit: !hasCustomAdminPermissions,
+    customAdminPermissions: hasCustomAdminPermissions
+      ? (user.admin_permissions ?? [])
+      : getInheritedPermissions(user, roleCatalog),
+    clientPermissionsInherit: !hasCustomClientPermissions,
+    customClientPermissions: hasCustomClientPermissions
+      ? (user.client_permissions ?? [])
+      : getInheritedClientPermissions(user, roleCatalog),
+  };
+}
 
 type UsersDetailPanelProps = {
   user: UserRecord | null;
@@ -39,25 +64,11 @@ type UsersDetailPanelProps = {
   roleCatalog: RoleDefinition[];
   onEdit: (user: UserRecord) => void;
   onDelete: (user: UserRecord) => void;
-  onSaveAccess: (
-    user: UserRecord,
-    draft: UserAccessDraft,
-  ) => Promise<void>;
+  onSaveAccess: (user: UserRecord, draft: UserAccessDraft) => Promise<void>;
   onBack?: () => void;
   hidden?: boolean;
   savingAccess?: boolean;
 };
-
-function buildAccessDraft(user: UserRecord, roleCatalog: RoleDefinition[]): UserAccessDraft {
-  const hasCustomPermissions = user.admin_permissions !== null && user.admin_permissions !== undefined;
-  return {
-    roles: toAssignableRoles(user, roleCatalog),
-    permissionsInherit: !hasCustomPermissions,
-    customPermissions: hasCustomPermissions
-      ? (user.admin_permissions ?? [])
-      : getInheritedPermissions(user, roleCatalog),
-  };
-}
 
 export function UsersDetailPanel({
   user,
@@ -105,6 +116,8 @@ export function UsersDetailPanel({
   const roleEditable =
     canManageUsers && canEditUserRole(selectedUser, founderEmail, viewerIsFounder);
   const effectivePermissions = getUserEffectivePermissions(selectedUser, roleCatalog);
+  const effectiveClientPermissions = getUserEffectiveClientPermissions(selectedUser, roleCatalog);
+  const draftHasStaffRole = draft ? isStaffRole(draft.roles, roleCatalog) : false;
 
   async function handleSaveAccess() {
     if (!draft || !roleEditable) return;
@@ -186,14 +199,17 @@ export function UsersDetailPanel({
             <p className="admin-users-detail-label">Roles & portal permissions</p>
             <p className="mt-1 text-xs text-[var(--admin-text-muted)]">
               {roleEditable
-                ? "Assign roles, then choose inherited or custom admin permissions. Save when you are done."
+                ? "Assign roles, then set admin and client portal access. Save when you are done."
                 : isFounder
                   ? "Founder role is protected."
                   : "You cannot edit this account's roles."}
             </p>
           </div>
           {!roleEditable ? (
-            <p className="text-xs text-[var(--admin-gold-light)]">{permissionsSummary(selectedUser, roleCatalog)}</p>
+            <div className="text-right text-xs text-[var(--admin-gold-light)]">
+              <p>Admin: {permissionsSummary(selectedUser, roleCatalog)}</p>
+              <p className="mt-1">Client: {clientPermissionsSummary(selectedUser, roleCatalog)}</p>
+            </div>
           ) : null}
         </div>
 
@@ -206,40 +222,90 @@ export function UsersDetailPanel({
                 assignerIsFounder={viewerIsFounder}
               />
 
+              {draftHasStaffRole ? (
+                <div className="admin-users-permissions-section">
+                  <p className="admin-users-detail-label">Admin portal access</p>
+                  <label className="admin-roles-toggle mt-3">
+                    <input
+                      type="checkbox"
+                      checked={draft.adminPermissionsInherit}
+                      onChange={(event) =>
+                        setDraft({
+                          ...draft,
+                          adminPermissionsInherit: event.target.checked,
+                          customAdminPermissions: event.target.checked
+                            ? getInheritedPermissions({ ...selectedUser, roles: draft.roles }, roleCatalog)
+                            : draft.customAdminPermissions,
+                        })
+                      }
+                    />
+                    <span>
+                      <strong className="block text-sm text-[var(--admin-text)]">Use role defaults</strong>
+                      <span className="text-xs text-[var(--admin-text-muted)]">
+                        Inherit admin permissions from assigned staff roles.
+                      </span>
+                    </span>
+                  </label>
+
+                  {!draft.adminPermissionsInherit ? (
+                    <div className="mt-4">
+                      <PermissionsEditor
+                        value={draft.customAdminPermissions}
+                        onChange={(customAdminPermissions) => setDraft({ ...draft, customAdminPermissions })}
+                        compact
+                      />
+                    </div>
+                  ) : (
+                    <p className="mt-3 rounded-xl border border-[var(--admin-border-subtle)] bg-white/[0.02] px-3 py-2 text-xs text-[var(--admin-text-muted)]">
+                      Inherited:{" "}
+                      {permissionsSummary(
+                        { ...selectedUser, roles: draft.roles, admin_permissions: null },
+                        roleCatalog,
+                      )}
+                    </p>
+                  )}
+                </div>
+              ) : null}
+
               <div className="admin-users-permissions-section">
-                <label className="admin-roles-toggle">
+                <p className="admin-users-detail-label">Client portal access</p>
+                <label className="admin-roles-toggle mt-3">
                   <input
                     type="checkbox"
-                    checked={draft.permissionsInherit}
+                    checked={draft.clientPermissionsInherit}
                     onChange={(event) =>
                       setDraft({
                         ...draft,
-                        permissionsInherit: event.target.checked,
-                        customPermissions: event.target.checked
-                          ? getInheritedPermissions({ ...selectedUser, roles: draft.roles }, roleCatalog)
-                          : draft.customPermissions,
+                        clientPermissionsInherit: event.target.checked,
+                        customClientPermissions: event.target.checked
+                          ? getInheritedClientPermissions({ ...selectedUser, roles: draft.roles }, roleCatalog)
+                          : draft.customClientPermissions,
                       })
                     }
                   />
                   <span>
                     <strong className="block text-sm text-[var(--admin-text)]">Use role defaults</strong>
                     <span className="text-xs text-[var(--admin-text-muted)]">
-                      Permissions are inherited from assigned roles. Turn off to customize for this user only.
+                      Inherit client portal permissions from assigned roles.
                     </span>
                   </span>
                 </label>
 
-                {!draft.permissionsInherit ? (
+                {!draft.clientPermissionsInherit ? (
                   <div className="mt-4">
-                    <PermissionsEditor
-                      value={draft.customPermissions}
-                      onChange={(customPermissions) => setDraft({ ...draft, customPermissions })}
+                    <ClientPermissionsEditor
+                      value={draft.customClientPermissions}
+                      onChange={(customClientPermissions) => setDraft({ ...draft, customClientPermissions })}
                       compact
                     />
                   </div>
                 ) : (
                   <p className="mt-3 rounded-xl border border-[var(--admin-border-subtle)] bg-white/[0.02] px-3 py-2 text-xs text-[var(--admin-text-muted)]">
-                    Inherited: {permissionsSummary({ ...selectedUser, roles: draft.roles, admin_permissions: null }, roleCatalog)}
+                    Inherited:{" "}
+                    {clientPermissionsSummary(
+                      { ...selectedUser, roles: draft.roles, client_permissions: null },
+                      roleCatalog,
+                    )}
                   </p>
                 )}
               </div>
@@ -268,13 +334,22 @@ export function UsersDetailPanel({
             <>
               <RoleBadges roles={selectedUser.roles ?? selectedUser.role} size="md" />
               <p className="text-xs text-[var(--admin-text-muted)]">
-                Effective access: {permissionsSummary(selectedUser, roleCatalog)}
+                Admin access: {permissionsSummary(selectedUser, roleCatalog)}
                 {!selectedUser.admin_permissions ? " (from roles)" : " (customized)"}
+              </p>
+              <p className="text-xs text-[var(--admin-text-muted)]">
+                Client access: {clientPermissionsSummary(selectedUser, roleCatalog)}
+                {!selectedUser.client_permissions ? " (from roles)" : " (customized)"}
               </p>
               <div className="rounded-xl border border-[var(--admin-border-subtle)] bg-white/[0.02] px-3 py-2 text-xs text-[var(--admin-text-muted)]">
                 {effectivePermissions.length > 0
-                  ? effectivePermissions.join(", ")
+                  ? `Admin: ${effectivePermissions.join(", ")}`
                   : "No admin portal sections enabled"}
+              </div>
+              <div className="rounded-xl border border-[var(--admin-border-subtle)] bg-white/[0.02] px-3 py-2 text-xs text-[var(--admin-text-muted)]">
+                {effectiveClientPermissions.length > 0
+                  ? `Client: ${effectiveClientPermissions.join(", ")}`
+                  : "No client portal sections enabled"}
               </div>
             </>
           )}

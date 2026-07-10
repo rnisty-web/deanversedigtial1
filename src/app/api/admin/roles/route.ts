@@ -15,6 +15,7 @@ import {
   type RoleDefinition,
 } from "@/lib/roles/catalog";
 import { sanitizeAdminPermissions } from "@/lib/roles/permissions";
+import { sanitizeClientPermissions } from "@/lib/roles/client-permissions";
 
 export async function GET() {
   const auth = await verifyUserManagementApi();
@@ -74,6 +75,10 @@ export async function PATCH(request: Request) {
   const isStaff = body.isStaff !== undefined ? Boolean(body.isStaff) : undefined;
   const permissions =
     body.permissions !== undefined ? sanitizeAdminPermissions(body.permissions) : undefined;
+  const clientPermissions =
+    body.clientPermissions !== undefined
+      ? sanitizeClientPermissions(body.clientPermissions)
+      : undefined;
 
   if (!slug) {
     return NextResponse.json({ error: "Role slug is required" }, { status: 400 });
@@ -96,12 +101,17 @@ export async function PATCH(request: Request) {
     color: color ?? current.color,
     isStaff: isStaff ?? current.isStaff,
     permissions: permissions ?? current.permissions,
+    clientPermissions: clientPermissions ?? current.clientPermissions,
   };
 
   if (!next.isStaff) {
     next.permissions = [];
   } else if (!next.permissions?.length && isStaff === true) {
     next.permissions = ["dashboard", "messages"];
+  }
+
+  if (!next.clientPermissions?.length && clientPermissions !== undefined) {
+    next.clientPermissions = clientPermissions;
   }
 
   if (next.isSystem && next.slug === "admin" && isStaff === false) {

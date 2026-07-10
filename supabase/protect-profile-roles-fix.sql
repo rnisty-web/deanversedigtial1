@@ -1,5 +1,5 @@
--- Prevent non-admins from escalating privileges via profiles self-update.
--- Run after schema.sql and multi-roles.sql. Safe to re-run.
+-- Run after protect-profile-roles.sql
+-- Allows service-role admin API updates and Supabase SQL Editor migrations.
 
 CREATE OR REPLACE FUNCTION public.protect_profile_roles()
 RETURNS trigger

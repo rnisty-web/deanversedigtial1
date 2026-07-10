@@ -49,9 +49,9 @@ export default async function PortalLayout({
       className={`portal-theme ${portalSerif.variable} flex h-dvh min-h-dvh overflow-hidden`}
       data-dashboard-theme={dashboardTheme}
     >
-      <PortalSidebar profile={profile} canAccessAdmin={canAccessAdmin} />
+      <PortalSidebar profile={profile} roleCatalog={roleCatalog} canAccessAdmin={canAccessAdmin} />
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-        <PortalMobileNav profile={profile} canAccessAdmin={canAccessAdmin} />
+        <PortalMobileNav profile={profile} roleCatalog={roleCatalog} canAccessAdmin={canAccessAdmin} />
         <Suspense fallback={null}>
           <PortalNotice />
         </Suspense>

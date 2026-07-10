@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import type { Profile } from "@/lib/auth";
+import type { RoleDefinition } from "@/lib/roles/catalog";
 import { siteConfig } from "@/lib/constants";
 import { BrandLogo } from "@/components/ui/BrandLogo";
 import { PortalNav } from "@/components/portal/PortalNav";
@@ -13,10 +14,15 @@ import { cn } from "@/lib/utils";
 
 type PortalMobileNavProps = {
   profile: Profile;
+  roleCatalog: RoleDefinition[];
   canAccessAdmin?: boolean;
 };
 
-export function PortalMobileNav({ profile, canAccessAdmin = false }: PortalMobileNavProps) {
+export function PortalMobileNav({
+  profile,
+  roleCatalog,
+  canAccessAdmin = false,
+}: PortalMobileNavProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
@@ -88,7 +94,7 @@ export function PortalMobileNav({ profile, canAccessAdmin = false }: PortalMobil
           </div>
 
           <div className="flex-1 overflow-y-auto overscroll-contain px-3 pb-4">
-            <PortalNav onNavigate={() => setOpen(false)} />
+            <PortalNav profile={profile} roleCatalog={roleCatalog} onNavigate={() => setOpen(false)} />
           </div>
 
           <div className="shrink-0 space-y-2 px-3 pb-[max(1rem,env(safe-area-inset-bottom))] pt-2">

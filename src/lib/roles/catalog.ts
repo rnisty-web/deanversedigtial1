@@ -1,4 +1,5 @@
 import type { AdminPermission } from "@/lib/roles/permissions";
+import type { ClientPermission } from "@/lib/roles/client-permissions";
 
 export type RoleDefinition = {
   slug: string;
@@ -9,6 +10,7 @@ export type RoleDefinition = {
   founderOnly?: boolean;
   sortOrder: number;
   permissions?: AdminPermission[];
+  clientPermissions?: ClientPermission[];
   archived?: boolean;
 };
 
@@ -90,6 +92,14 @@ export const DEFAULT_ROLE_CATALOG: RoleDefinition[] = [
     isSystem: true,
     sortOrder: 30,
     permissions: [],
+    clientPermissions: [
+      "dashboard",
+      "projects",
+      "files",
+      "messages",
+      "invoices",
+      "account",
+    ],
   },
 ];
 
@@ -130,6 +140,9 @@ export function parseRoleCatalog(raw: unknown): RoleDefinition[] {
       sortOrder: typeof item.sortOrder === "number" ? item.sortOrder : index * 10,
       permissions: item.permissions
         ? (item.permissions as AdminPermission[]).filter((p) => typeof p === "string")
+        : undefined,
+      clientPermissions: item.clientPermissions
+        ? (item.clientPermissions as ClientPermission[]).filter((p) => typeof p === "string")
         : undefined,
       archived: item.archived ? true : undefined,
     }))

@@ -21,6 +21,9 @@ Run these scripts **in order** in the Supabase SQL Editor (or via CLI). Each fil
 | 13 | `storage-upload-clients.sql` | Storage upload restricted to owned projects (optional) |
 | 14 | `cms-public-read.sql` | Scoped public read of CMS settings keys only |
 | 15 | `protect-profile-roles.sql` | Block non-admin profile role escalation |
+| 16 | `user-permissions-upgrade.sql` | Per-user admin portal permission overrides |
+| 17 | `client-permissions-upgrade.sql` | Per-user client portal permission overrides |
+| 18 | `protect-profile-roles-fix.sql` | Allow service-role updates from admin API (run if role saves fail) |
 
 ## Notes
 

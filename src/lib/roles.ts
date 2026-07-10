@@ -169,8 +169,16 @@ export function getPrimaryRole(
     | { role?: UserRole | string | null; roles?: UserRole[] | string[] | null }
     | null
     | undefined,
+  catalog: RoleDefinition[] = DEFAULT_ROLE_CATALOG,
 ): UserRole {
   const roles = parseUserRoles(input);
+  const ordered = getActiveRoleCatalog(catalog).sort((a, b) => a.sortOrder - b.sortOrder);
+  for (const definition of ordered) {
+    if (roles.includes(definition.slug as UserRole)) {
+      return definition.slug as UserRole;
+    }
+  }
+
   for (const priority of PRIMARY_ROLE_PRIORITY) {
     if (roles.includes(priority)) return priority;
   }
@@ -247,9 +255,12 @@ export function toAssignableRole(
   role: UserRole | string | null | undefined,
   catalog: RoleDefinition[] = DEFAULT_ROLE_CATALOG,
 ): UserRole {
+  if (!role) return "customer";
+  const definition = getRoleDefinition(catalog, role);
+  if (definition) return definition.slug as UserRole;
   const resolved = resolveRole(role);
   if (getRoleDefinition(catalog, resolved)) return resolved;
-  return "customer";
+  return resolved;
 }
 
 export function toAssignableRoles(
@@ -281,10 +292,36 @@ export function canAssignRole(
   assignerIsFounder: boolean,
   catalog: RoleDefinition[] = DEFAULT_ROLE_CATALOG,
 ): boolean {
-  const resolved = resolveRole(role);
-  return getAssignableRoleDefinitions(catalog, assignerIsFounder).some(
-    (item) => item.slug === resolved,
-  );
+  const definition = getRoleDefinition(catalog, role);
+  if (!definition || definition.archived) return false;
+  if (definition.founderOnly && !assignerIsFounder) return false;
+  return true;
+}
+
+export function getRoleAssignmentError(
+  roles: UserRole[],
+  assignerIsFounder: boolean,
+  catalog: RoleDefinition[] = DEFAULT_ROLE_CATALOG,
+): string | null {
+  if (roles.length === 0) return "At least one role is required.";
+
+  for (const role of roles) {
+    const definition = getRoleDefinition(catalog, role);
+    if (!definition) {
+      return `Unknown role "${role}". Refresh the page and try again.`;
+    }
+    if (definition.archived) {
+      return `The "${definition.label}" role is archived and cannot be assigned.`;
+    }
+    if (definition.founderOnly && !assignerIsFounder) {
+      return `Only the founder can assign the ${definition.label} role.`;
+    }
+    if (!canAssignRole(role, assignerIsFounder, catalog)) {
+      return `You do not have permission to assign the ${definition.label} role.`;
+    }
+  }
+
+  return null;
 }
 
 export function canAssignRoles(
@@ -312,11 +349,12 @@ export function persistRoles(
   const parsed = parseUserRoles(roles?.length ? roles : fallback ?? "customer");
   const persisted = parsed
     .map((role) => {
+      const definition = getRoleDefinition(catalog, role);
+      if (definition) return definition.slug as UserRole;
       const resolved = resolveRole(role);
       if (resolved === "admin") return "admin" as UserRole;
-      if (isValidAssignableRole(resolved, catalog)) return resolved;
       if (getRoleDefinition(catalog, resolved)) return resolved;
-      return "customer" as UserRole;
+      return resolved;
     })
     .filter((role, index, self) => self.indexOf(role) === index);
 

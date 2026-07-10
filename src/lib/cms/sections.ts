@@ -70,9 +70,9 @@ export const SECTION_REGISTRY: SectionDefinition[] = [
   {
     id: "about",
     title: "About",
-    typeLabel: "Homepage + /about",
+    typeLabel: "Dedicated Page",
     category: "about",
-    description: "Headline, story, and skills — homepage preview and full About page.",
+    description: "Content for the /about page only (not shown on the homepage).",
     icon: "about",
   },
   {

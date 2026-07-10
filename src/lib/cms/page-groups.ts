@@ -40,7 +40,7 @@ export const CONTENT_PAGE_GROUPS: ContentPageGroup[] = [
     label: "Homepage",
     path: "/",
     description: "Main landing page sections",
-    sectionIds: ["hero", "stats", "about", "portfolio", "process", "testimonials", "cta"],
+    sectionIds: ["hero", "stats", "portfolio", "process", "testimonials", "cta"],
   },
   {
     id: "about-page",
@@ -108,7 +108,7 @@ export const SECTION_PAGE_HINTS: Partial<Record<SectionId, string>> = {
   site: "Every page",
   hero: "Homepage",
   stats: "Homepage",
-  about: "Homepage + /about",
+  about: "/about page",
   techStack: "/about page (tech list)",
   services: "/services page",
   pricing: "/pricing page",

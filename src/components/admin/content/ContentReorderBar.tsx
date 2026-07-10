@@ -47,7 +47,7 @@ export function ContentReorderBar({
             Reorder Homepage Sections
           </div>
           <p className="mb-2 text-[11px] text-[var(--admin-text-muted)]">
-            Drag chips to change homepage order. Services and Pricing are edited separately for their own pages.
+            Drag chips to change homepage order. About, Services, and Pricing are edited separately for their own pages.
           </p>
           <div className="flex flex-wrap gap-2">
             {order.map((id, index) => {

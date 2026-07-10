@@ -347,8 +347,8 @@ function renderAboutTab(about: AboutSettings, updateSection: ContentSectionForms
   return (
     <div className="space-y-4">
       <p className="rounded-xl border border-[#6f8f72]/20 bg-[#6f8f72]/5 px-4 py-3 text-sm text-[var(--admin-text-muted)]">
-        This content appears on your <strong className="text-[#a3c9a8]">homepage About section</strong> and the full{" "}
-        <strong className="text-[#a3c9a8]">/about page</strong>. Edit Tech Stack separately for the tools list at the bottom of /about.
+        This content appears on your <strong className="text-[#a3c9a8]">/about page</strong> only. Edit Tech Stack
+        separately for the tools list at the bottom of /about.
       </p>
       <AdminField
         label="Headline"
@@ -361,15 +361,7 @@ function renderAboutTab(about: AboutSettings, updateSection: ContentSectionForms
         onChange={(v) => updateSection("about", { ...about, intro: v })}
         multiline
         rows={2}
-        hint="Full intro on /about page"
-      />
-      <AdminField
-        label="Homepage teaser"
-        value={about.homepageTeaser}
-        onChange={(v) => updateSection("about", { ...about, homepageTeaser: v })}
-        multiline
-        rows={2}
-        hint="Short text on homepage About section (leave empty to use Intro)"
+        hint="Shown below the headline on /about"
       />
       <AdminField
         label="Story"

@@ -201,7 +201,7 @@ export function UsersDetailPanel({
               {roleEditable
                 ? "Assign roles, then set admin and client portal access. Save when you are done."
                 : isFounder
-                  ? "Founder role is protected."
+                  ? "Lead Creator role is protected."
                   : "You cannot edit this account's roles."}
             </p>
           </div>

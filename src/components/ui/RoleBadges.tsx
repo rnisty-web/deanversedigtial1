@@ -2,7 +2,7 @@
 
 import { RoleBadge } from "@/components/ui/RoleBadge";
 import { useRoleCatalog } from "@/components/providers/RoleCatalogProvider";
-import { parseUserRoles, type UserRole } from "@/lib/roles";
+import { getDisplayRoles, type UserRole } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 
 type RoleBadgesProps = {
@@ -19,7 +19,7 @@ export function RoleBadges({
   max,
 }: RoleBadgesProps) {
   const catalog = useRoleCatalog();
-  const parsed = parseUserRoles(roles);
+  const parsed = getDisplayRoles(roles, catalog);
   const visible = max ? parsed.slice(0, max) : parsed;
   const overflow = max && parsed.length > max ? parsed.length - max : 0;
 

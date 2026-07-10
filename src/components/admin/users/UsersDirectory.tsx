@@ -58,14 +58,9 @@ export function UsersDirectory({
                   </span>
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <p className="truncate text-sm font-medium text-[var(--admin-text)]">
-                      {user.full_name ?? "Unnamed user"}
-                    </p>
-                    {isFounder ? (
-                      <span className="admin-users-founder-badge">Founder</span>
-                    ) : null}
-                  </div>
+                  <p className="truncate text-sm font-medium text-[var(--admin-text)]">
+                    {user.full_name ?? "Unnamed user"}
+                  </p>
                   <p className="truncate text-xs text-[var(--admin-text-muted)]">{user.email}</p>
                   <div className="mt-2">
                     <RoleBadges roles={user.roles ?? user.role} size="sm" />

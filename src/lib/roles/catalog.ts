@@ -19,7 +19,7 @@ export const ROLE_CATALOG_SETTINGS_KEY = "roleCatalog";
 export const DEFAULT_ROLE_CATALOG: RoleDefinition[] = [
   {
     slug: "admin",
-    label: "Founder",
+    label: "Lead Creator",
     color: "#fb7185",
     isStaff: true,
     isSystem: true,
@@ -168,6 +168,15 @@ export function getActiveRoleCatalog(catalog: RoleDefinition[]) {
 export function getRoleDefinition(catalog: RoleDefinition[], slug: string) {
   const resolved = slug === "founder" ? "admin" : slug === "client" ? "customer" : slug;
   return catalog.find((role) => role.slug === resolved);
+}
+
+/** Catalog entry for the Lead Creator / founder display role */
+export function getLeadCreatorDefinition(catalog: RoleDefinition[]) {
+  return getActiveRoleCatalog(catalog).find(
+    (role) =>
+      role.label.trim().toLowerCase() === "lead creator" ||
+      role.slug.toLowerCase().includes("lead_creator"),
+  );
 }
 
 export function getStaffRoleSlugs(catalog: RoleDefinition[]) {

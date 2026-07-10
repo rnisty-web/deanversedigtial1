@@ -65,7 +65,15 @@ async function fetchCMSFromDb(): Promise<CMSContent> {
       return structuredClone(cmsDefaults);
     }
 
-    return mergeCMSContent(data);
+    const merged = mergeCMSContent(data);
+    const hasPricingRow = data.some((row) => row.key === "pricing");
+    if (!hasPricingRow) {
+      console.warn(
+        "[cms] no pricing row in database — using template defaults until you save Site Content → Pricing",
+      );
+    }
+
+    return merged;
   } catch (error) {
     console.error("[cms] settings read error:", error);
     warnWhenPublicCMSReadMayFail();

@@ -382,7 +382,11 @@ export function ContentEditor() {
   }
 
   async function handleSeed() {
-    if (!confirm("Reset all CMS sections to defaults? Existing saved content will be overwritten.")) {
+    if (
+      !confirm(
+        "Reset ALL Site Content to template defaults? This overwrites your custom pricing tiers, services, hero text, and every other section. This cannot be undone unless you have a backup.",
+      )
+    ) {
       return;
     }
     setSeeding(true);

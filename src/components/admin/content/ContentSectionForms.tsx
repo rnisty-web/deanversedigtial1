@@ -519,6 +519,11 @@ function renderPricingTab(pricing: CMSContent["pricing"], updateSection: Content
 
   return (
     <div className="space-y-8">
+      <p className="rounded-xl border border-[#6f8f72]/20 bg-[#6f8f72]/5 px-4 py-3 text-sm text-[var(--admin-text-muted)]">
+        This controls your <strong className="text-[#a3c9a8]">/pricing page</strong> only. After editing tier names,
+        prices, or FAQs, click <strong className="text-[#a3c9a8]">Save Section</strong> — do not use Seed Defaults
+        unless you want to wipe custom pricing.
+      </p>
       <div>
         <h4 className="mb-4 text-sm font-medium text-[#a3c9a8]">Pricing Tiers</h4>
         <div className="space-y-4">

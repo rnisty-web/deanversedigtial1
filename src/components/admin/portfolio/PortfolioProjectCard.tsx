@@ -21,8 +21,10 @@ export type PortfolioCardItem = {
 
 type PortfolioProjectCardProps = {
   item: PortfolioCardItem;
+  sortOrder: number;
   onEdit: () => void;
   onTogglePublish: () => void;
+  onToggleFeatured: () => void;
   onDelete: () => void;
 };
 
@@ -37,12 +39,17 @@ function formatDate(dateStr?: string) {
 
 export function PortfolioProjectCard({
   item,
+  sortOrder,
   onEdit,
   onTogglePublish,
+  onToggleFeatured,
   onDelete,
 }: PortfolioProjectCardProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const previewHref = item.published
+    ? `/portfolio/${item.slug}`
+    : `/admin/portfolio/preview/${item.slug}`;
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -77,7 +84,7 @@ export function PortfolioProjectCard({
 
         {item.featured && (
           <span className="absolute left-3 top-3 rounded-md border border-[var(--admin-gold)]/50 bg-[var(--admin-gold)]/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#0a0a0a]">
-            Featured
+            Homepage
           </span>
         )}
 
@@ -96,25 +103,53 @@ export function PortfolioProjectCard({
             </svg>
           </button>
           {menuOpen && (
-            <div className="admin-content-add-menu absolute right-0 z-20 mt-1 w-44 overflow-hidden rounded-xl">
-              <button type="button" className="admin-sidebar-menu-item w-full text-left" onClick={() => { onEdit(); setMenuOpen(false); }}>
+            <div className="admin-content-add-menu absolute right-0 z-20 mt-1 w-48 overflow-hidden rounded-xl">
+              <button
+                type="button"
+                className="admin-sidebar-menu-item w-full text-left"
+                onClick={() => {
+                  onEdit();
+                  setMenuOpen(false);
+                }}
+              >
                 Edit
               </button>
-              <button type="button" className="admin-sidebar-menu-item w-full text-left" onClick={() => { onTogglePublish(); setMenuOpen(false); }}>
+              <button
+                type="button"
+                className="admin-sidebar-menu-item w-full text-left"
+                onClick={() => {
+                  onToggleFeatured();
+                  setMenuOpen(false);
+                }}
+              >
+                {item.featured ? "Remove from homepage" : "Feature on homepage"}
+              </button>
+              <button
+                type="button"
+                className="admin-sidebar-menu-item w-full text-left"
+                onClick={() => {
+                  onTogglePublish();
+                  setMenuOpen(false);
+                }}
+              >
                 {item.published ? "Unpublish" : "Publish"}
               </button>
               <Link
-                href={`/portfolio/${item.slug}`}
-                target="_blank" rel="noopener noreferrer"
+                href={previewHref}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="admin-sidebar-menu-item block"
                 onClick={() => setMenuOpen(false)}
               >
-                Preview
+                {item.published ? "View live page" : "Preview draft"}
               </Link>
               <button
                 type="button"
                 className="admin-sidebar-menu-item w-full text-left text-red-300"
-                onClick={() => { onDelete(); setMenuOpen(false); }}
+                onClick={() => {
+                  onDelete();
+                  setMenuOpen(false);
+                }}
               >
                 Delete
               </button>
@@ -136,12 +171,11 @@ export function PortfolioProjectCard({
 
         <div className="mt-4 flex items-center justify-between gap-2 border-t border-[var(--admin-border-subtle)] pt-3">
           <div className="flex items-center gap-3 text-xs text-[var(--admin-text-muted)]">
-            <span className="inline-flex items-center gap-1" title="Views not tracked yet">
+            <span className="inline-flex items-center gap-1" title="Display order on portfolio page">
               <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12" />
               </svg>
-              —
+              #{sortOrder}
             </span>
             <span className="inline-flex items-center gap-1">
               <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>

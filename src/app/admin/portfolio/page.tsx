@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import Image from "next/image";
 import { AdminAlert } from "@/components/admin/AdminAlert";
 import { AdminEmptyState } from "@/components/admin/AdminEmptyState";
 import { AdminField } from "@/components/admin/AdminField";
@@ -13,6 +12,7 @@ import {
   PortfolioSelect,
   PortfolioStatCard,
 } from "@/components/admin/portfolio/PortfolioAdminHeader";
+import { PortfolioListRow } from "@/components/admin/portfolio/PortfolioListRow";
 import { PortfolioPagination } from "@/components/admin/portfolio/PortfolioPagination";
 import { PortfolioProjectCard } from "@/components/admin/portfolio/PortfolioProjectCard";
 import { PortfolioSidebar } from "@/components/admin/portfolio/PortfolioSidebar";
@@ -139,6 +139,17 @@ export default function AdminPortfolioPage() {
   useEffect(() => {
     fetchItems();
   }, [fetchItems]);
+
+  useEffect(() => {
+    if (!message) return;
+    const timer = window.setTimeout(() => setMessage(null), 5000);
+    return () => window.clearTimeout(timer);
+  }, [message]);
+
+  const homepageFeaturedCount = useMemo(
+    () => items.filter((item) => item.published && item.featured).length,
+    [items],
+  );
 
   useEffect(() => {
     setPage(1);
@@ -331,12 +342,9 @@ export default function AdminPortfolioPage() {
 
   async function togglePublish(item: PortfolioRecord) {
     const nextPublished = !item.published;
-    const nextFeatured = nextPublished ? true : item.featured;
     setItems((current) =>
       current.map((entry) =>
-        entry.id === item.id
-          ? { ...entry, published: nextPublished, featured: nextFeatured }
-          : entry,
+        entry.id === item.id ? { ...entry, published: nextPublished } : entry,
       ),
     );
     const res = await fetch("/api/admin/portfolio", {
@@ -346,15 +354,12 @@ export default function AdminPortfolioPage() {
       body: JSON.stringify({
         id: item.id,
         published: nextPublished,
-        ...(nextPublished ? { featured: true } : {}),
       }),
     });
     if (!res.ok) {
       setItems((current) =>
         current.map((entry) =>
-          entry.id === item.id
-            ? { ...entry, published: item.published, featured: item.featured }
-            : entry,
+          entry.id === item.id ? { ...entry, published: item.published } : entry,
         ),
       );
       const data = await res.json().catch(() => ({}));
@@ -367,8 +372,45 @@ export default function AdminPortfolioPage() {
     );
     setMessage(
       nextPublished
-        ? "Project published — live on portfolio and homepage."
+        ? "Project published — visible on /portfolio."
         : "Project unpublished — removed from the live site.",
+    );
+  }
+
+  async function toggleFeatured(item: PortfolioRecord) {
+    const nextFeatured = !item.featured;
+    setItems((current) =>
+      current.map((entry) =>
+        entry.id === item.id ? { ...entry, featured: nextFeatured } : entry,
+      ),
+    );
+    const res = await fetch("/api/admin/portfolio", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify({
+        id: item.id,
+        featured: nextFeatured,
+      }),
+    });
+    if (!res.ok) {
+      setItems((current) =>
+        current.map((entry) =>
+          entry.id === item.id ? { ...entry, featured: item.featured } : entry,
+        ),
+      );
+      const data = await res.json().catch(() => ({}));
+      setMessage(data.error ?? "Failed to update homepage status");
+      return;
+    }
+    const data = await res.json();
+    setItems((current) =>
+      current.map((entry) => (entry.id === item.id ? normalizePortfolioItem(data.item) : entry)),
+    );
+    setMessage(
+      nextFeatured
+        ? "Project featured — eligible for homepage (up to 3 shown)."
+        : "Project removed from homepage rotation.",
     );
   }
 
@@ -394,6 +436,14 @@ export default function AdminPortfolioPage() {
             {message}
           </AdminAlert>
         )}
+
+        <div className="mb-6 rounded-xl border border-[#6f8f72]/20 bg-[#6f8f72]/5 px-4 py-3 text-sm text-[var(--admin-text-muted)]">
+          <strong className="text-[#a3c9a8]">Homepage:</strong> shows up to 3 projects that are both{" "}
+          <strong className="text-[#a3c9a8]">Published</strong> and{" "}
+          <strong className="text-[#a3c9a8]">Featured</strong>. You currently have{" "}
+          <strong className="text-[#a3c9a8]">{homepageFeaturedCount}</strong> homepage-ready project
+          {homepageFeaturedCount === 1 ? "" : "s"}. Lower sort order appears first.
+        </div>
 
         <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           <PortfolioStatCard
@@ -518,8 +568,10 @@ export default function AdminPortfolioPage() {
                   <div key={item.id} className="admin-portfolio-masonry-item">
                     <PortfolioProjectCard
                       item={item}
+                      sortOrder={item.sort_order}
                       onEdit={() => startEdit(item)}
                       onTogglePublish={() => togglePublish(item)}
+                      onToggleFeatured={() => toggleFeatured(item)}
                       onDelete={() => deleteItem(item.id)}
                     />
                   </div>
@@ -528,38 +580,15 @@ export default function AdminPortfolioPage() {
             ) : (
               <div className="space-y-3">
                 {paginated.map((item) => (
-                  <div key={item.id} className="admin-portfolio-list-row">
-                    <div className="relative h-14 w-20 shrink-0 overflow-hidden rounded-lg bg-[var(--admin-panel)]">
-                      {item.image_url ? (
-                        <Image src={item.image_url} alt="" fill className="object-cover" unoptimized />
-                      ) : null}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[10px] font-semibold uppercase tracking-wider text-emerald-400/90">
-                        {item.industry || "Project"}
-                      </p>
-                      <p className="truncate font-medium text-[var(--admin-text)]">{item.title}</p>
-                      <p className="truncate text-xs text-[var(--admin-text-muted)]">
-                        {item.description || "No description"}
-                      </p>
-                    </div>
-                    <span
-                      className={cn(
-                        "admin-content-status-badge shrink-0",
-                        item.published ? "admin-content-status-published" : "admin-content-status-draft",
-                      )}
-                    >
-                      {item.published ? "Published" : "Draft"}
-                    </span>
-                    <div className="flex shrink-0 gap-1">
-                      <button type="button" className="admin-btn-ghost px-2 py-1 text-xs" onClick={() => startEdit(item)}>
-                        Edit
-                      </button>
-                      <button type="button" className="admin-btn-ghost px-2 py-1 text-xs" onClick={() => togglePublish(item)}>
-                        {item.published ? "Unpublish" : "Publish"}
-                      </button>
-                    </div>
-                  </div>
+                  <PortfolioListRow
+                    key={item.id}
+                    item={item}
+                    sortOrder={item.sort_order}
+                    onEdit={() => startEdit(item)}
+                    onTogglePublish={() => togglePublish(item)}
+                    onToggleFeatured={() => toggleFeatured(item)}
+                    onDelete={() => deleteItem(item.id)}
+                  />
                 ))}
               </div>
             )}
@@ -577,6 +606,7 @@ export default function AdminPortfolioPage() {
 
           <PortfolioSidebar
             items={items}
+            homepageFeaturedCount={homepageFeaturedCount}
             onAddProject={openCreate}
             onImportDefaults={importDefaults}
             showImport={items.length === 0}
@@ -644,16 +674,40 @@ export default function AdminPortfolioPage() {
               </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-3">
-              <AdminField label="Sort order" value={form.sort_order} onChange={(v) => setForm({ ...form, sort_order: v })} />
-              <label className="flex items-center gap-2 self-end pb-2 text-sm text-[var(--admin-text-muted)]">
-                <input type="checkbox" checked={form.featured} onChange={(e) => setForm({ ...form, featured: e.target.checked })} />
-                Featured on homepage
-              </label>
-              <label className="flex items-center gap-2 self-end pb-2 text-sm text-[var(--admin-text-muted)]">
-                <input type="checkbox" checked={form.published} onChange={(e) => setForm({ ...form, published: e.target.checked })} />
-                Published
-              </label>
+            <div className="rounded-xl border border-[var(--admin-border-subtle)] bg-[var(--admin-panel)] p-4">
+              <p className="mb-4 text-sm font-semibold text-[var(--admin-text)]">Visibility</p>
+              <div className="grid gap-4 sm:grid-cols-3">
+                <AdminField
+                  label="Sort order"
+                  value={form.sort_order}
+                  onChange={(v) => setForm({ ...form, sort_order: v })}
+                  hint="Lower numbers appear first on /portfolio"
+                />
+                <label className="flex items-start gap-2 rounded-lg border border-[var(--admin-border-subtle)] p-3 text-sm text-[var(--admin-text-muted)]">
+                  <input
+                    type="checkbox"
+                    checked={form.published}
+                    onChange={(e) => setForm({ ...form, published: e.target.checked })}
+                    className="mt-0.5 rounded border-[var(--admin-border-subtle)] bg-[var(--admin-panel)] text-[var(--admin-emerald)] focus:ring-[var(--admin-gold)]"
+                  />
+                  <span>
+                    <span className="block font-medium text-[var(--admin-text)]">Published</span>
+                    Visible on the live /portfolio page.
+                  </span>
+                </label>
+                <label className="flex items-start gap-2 rounded-lg border border-[var(--admin-border-subtle)] p-3 text-sm text-[var(--admin-text-muted)]">
+                  <input
+                    type="checkbox"
+                    checked={form.featured}
+                    onChange={(e) => setForm({ ...form, featured: e.target.checked })}
+                    className="mt-0.5 rounded border-[var(--admin-border-subtle)] bg-[var(--admin-panel)] text-[var(--admin-emerald)] focus:ring-[var(--admin-gold)]"
+                  />
+                  <span>
+                    <span className="block font-medium text-[var(--admin-text)]">Featured on homepage</span>
+                    Must also be published. Homepage shows up to 3 featured projects.
+                  </span>
+                </label>
+              </div>
             </div>
 
             {formError && <AdminAlert tone="error">{formError}</AdminAlert>}

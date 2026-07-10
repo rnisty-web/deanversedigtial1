@@ -1342,6 +1342,12 @@ body {
   transition: border-color 0.15s ease;
 }
 
+@media (max-width: 900px) {
+  .admin-portfolio-list-row {
+    flex-wrap: wrap;
+  }
+}
+
 .admin-portfolio-list-row:hover {
   border-color: rgba(201, 169, 98, 0.25);
 }

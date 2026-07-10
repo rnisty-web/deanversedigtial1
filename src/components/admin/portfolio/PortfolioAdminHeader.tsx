@@ -39,7 +39,7 @@ export function PortfolioAdminHeader({
     { id: "all", label: "All", count: counts.all },
     { id: "published", label: "Published", count: counts.published },
     { id: "draft", label: "Draft", count: counts.draft },
-    { id: "featured", label: "Featured", count: counts.featured },
+    { id: "featured", label: "Homepage", count: counts.featured },
   ];
 
   return (
@@ -63,7 +63,7 @@ export function PortfolioAdminHeader({
             </Link>
           </div>
           <p className="mt-1 text-sm text-[var(--admin-text-muted)]">
-            Showcase your best work, case studies, and featured homepage projects.
+            Manage case studies for your live portfolio and homepage. Featured + published projects can appear on the main page (up to 3).
           </p>
         </div>
 

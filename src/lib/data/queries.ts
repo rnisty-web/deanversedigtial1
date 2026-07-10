@@ -31,7 +31,7 @@ async function fetchHomepagePortfolio(limit: number): Promise<PortfolioItem[]> {
     .from("portfolio")
     .select("*")
     .eq("published", true)
-    .order("featured", { ascending: false })
+    .eq("featured", true)
     .order("sort_order", { ascending: true })
     .limit(limit);
 
@@ -140,8 +140,8 @@ export async function getFeaturedPortfolio(
 ): Promise<PortfolioItem[]> {
   const useFallback = options.useFallback ?? !hasSupabaseConfig();
   const featuredFallback = fallbackPortfolio
-    .filter((item) => item.published)
-    .sort((a, b) => Number(b.featured) - Number(a.featured))
+    .filter((item) => item.published && item.featured)
+    .sort((a, b) => a.sort_order - b.sort_order)
     .slice(0, limit);
 
   if (!hasSupabaseConfig()) {
@@ -211,9 +211,6 @@ export async function getPortfolioBySlug(
 }
 
 export function getCaseStudyDetails(slug: string) {
-  if (hasSupabaseConfig()) {
-    return null;
-  }
   return fallbackCaseStudies[slug] ?? null;
 }
 

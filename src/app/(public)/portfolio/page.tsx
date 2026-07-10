@@ -32,51 +32,60 @@ export default async function PortfolioPage() {
           level={1}
         />
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 lg:gap-8">
-          {projects.map((project, index) => (
-            <Reveal key={project.id} delay={index * 0.05}>
-              <Link
-                href={`/portfolio/${project.slug}`}
-                className="group block h-full"
-              >
-                <GlassCard padding="sm" className="h-full overflow-hidden p-0">
-                  <div className="relative aspect-[4/3] overflow-hidden">
-                    <Image
-                      src={project.image_url ?? siteConfig.assets.background}
-                      alt={project.title}
-                      fill
-                      className="object-cover transition-transform duration-700 group-hover:scale-105"
-                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#0f1a17] via-[#0f1a17]/20 to-transparent opacity-80 transition-opacity group-hover:opacity-90" />
-                    <div className="absolute bottom-0 left-0 right-0 p-5">
-                      {project.tags && project.tags.length > 0 && (
-                        <div className="mb-2 flex flex-wrap gap-2">
-                          {project.tags.slice(0, 3).map((tag) => (
-                            <span
-                              key={tag}
-                              className="rounded-full bg-[#6f8f72]/30 px-2.5 py-0.5 text-xs font-medium text-[#a3c9a8]"
-                            >
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                      <h3 className="text-lg font-semibold text-white">
-                        {project.title}
-                      </h3>
-                      {project.description && (
-                        <p className="mt-1 line-clamp-2 text-sm text-white/60">
-                          {project.description}
-                        </p>
-                      )}
+        {projects.length === 0 ? (
+          <div className="mx-auto max-w-xl rounded-2xl border border-white/10 bg-white/5 px-6 py-12 text-center">
+            <p className="text-lg font-medium text-white">Portfolio projects coming soon</p>
+            <p className="mt-2 text-sm text-white/55">
+              Publish projects from the admin portal to showcase your work here.
+            </p>
+          </div>
+        ) : (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 lg:gap-8">
+            {projects.map((project, index) => (
+              <Reveal key={project.id} delay={index * 0.05}>
+                <Link
+                  href={`/portfolio/${project.slug}`}
+                  className="group block h-full"
+                >
+                  <GlassCard padding="sm" className="h-full overflow-hidden p-0">
+                    <div className="relative aspect-[4/3] overflow-hidden">
+                      <Image
+                        src={project.image_url ?? siteConfig.assets.background}
+                        alt={project.title}
+                        fill
+                        className="object-cover transition-transform duration-700 group-hover:scale-105"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#0f1a17] via-[#0f1a17]/20 to-transparent opacity-80 transition-opacity group-hover:opacity-90" />
+                      <div className="absolute bottom-0 left-0 right-0 p-5">
+                        {project.tags && project.tags.length > 0 && (
+                          <div className="mb-2 flex flex-wrap gap-2">
+                            {project.tags.slice(0, 3).map((tag) => (
+                              <span
+                                key={tag}
+                                className="rounded-full bg-[#6f8f72]/30 px-2.5 py-0.5 text-xs font-medium text-[#a3c9a8]"
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        <h3 className="text-lg font-semibold text-white">
+                          {project.title}
+                        </h3>
+                        {project.description && (
+                          <p className="mt-1 line-clamp-2 text-sm text-white/60">
+                            {project.description}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </GlassCard>
-              </Link>
-            </Reveal>
-          ))}
-        </div>
+                  </GlassCard>
+                </Link>
+              </Reveal>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

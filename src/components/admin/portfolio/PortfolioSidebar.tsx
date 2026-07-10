@@ -13,6 +13,7 @@ const OVERVIEW_COLORS = ["#34d399", "#9ca3af", "#c9a962"];
 
 type PortfolioSidebarProps = {
   items: PortfolioRecord[];
+  homepageFeaturedCount: number;
   onAddProject: () => void;
   onImportDefaults?: () => void;
   showImport?: boolean;
@@ -21,6 +22,7 @@ type PortfolioSidebarProps = {
 
 export function PortfolioSidebar({
   items,
+  homepageFeaturedCount,
   onAddProject,
   onImportDefaults,
   showImport,
@@ -72,6 +74,19 @@ export function PortfolioSidebar({
               </li>
             ))}
           </ul>
+        </section>
+
+        <section className="admin-portfolio-sidebar-section">
+          <h3 className="admin-portfolio-sidebar-title">Homepage Rotation</h3>
+          <div className="rounded-xl border border-[var(--admin-border-subtle)] bg-[var(--admin-panel)] p-4">
+            <p className="text-2xl font-bold tabular-nums text-[var(--admin-gold-light)]">
+              {homepageFeaturedCount}
+              <span className="text-sm font-normal text-[var(--admin-text-muted)]"> / 3</span>
+            </p>
+            <p className="mt-2 text-xs leading-relaxed text-[var(--admin-text-muted)]">
+              Published + featured projects eligible for the main page. Lower sort order wins when more than 3 are featured.
+            </p>
+          </div>
         </section>
 
         {categories.length > 0 ? (

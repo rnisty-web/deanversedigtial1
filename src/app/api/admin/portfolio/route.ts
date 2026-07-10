@@ -7,14 +7,58 @@ function normalizePortfolioItem<T extends { tags?: string[] | null }>(item: T) {
   return { ...item, tags: item.tags ?? [] };
 }
 
+function formatPortfolioError(error: { code?: string; message: string }) {
+  if (error.code === "23505" && error.message.toLowerCase().includes("slug")) {
+    return "This slug is already in use. Choose a different one.";
+  }
+  if (error.message.includes("case_study") || error.message.includes("industry")) {
+    return "Portfolio table is missing CMS columns. Run supabase/cms-upgrade.sql in the Supabase SQL Editor.";
+  }
+  return error.message;
+}
+
+async function slugTaken(
+  supabase: NonNullable<Awaited<ReturnType<typeof verifyAdminApi>>["supabase"]>,
+  slug: string,
+  excludeId?: string,
+) {
+  let query = supabase.from("portfolio").select("id").eq("slug", slug);
+  if (excludeId) {
+    query = query.neq("id", excludeId);
+  }
+  const { data } = await query.maybeSingle();
+  return Boolean(data);
+}
+
 function revalidateAfterPortfolioChange(slugs: string[] = []) {
   revalidatePortfolioContent(slugs);
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   const auth = await verifyAdminApi();
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
+  }
+
+  const { searchParams } = new URL(request.url);
+  const slug = searchParams.get("slug");
+
+  if (slug) {
+    const { data: item, error } = await auth.supabase!
+      .from("portfolio")
+      .select("*")
+      .eq("slug", slug)
+      .maybeSingle();
+
+    if (error) {
+      return NextResponse.json({ error: formatPortfolioError(error) }, { status: 500 });
+    }
+
+    if (!item) {
+      return NextResponse.json({ error: "Project not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({ item: normalizePortfolioItem(item) });
   }
 
   const { data: items, error } = await auth.supabase!
@@ -23,10 +67,7 @@ export async function GET() {
     .order("sort_order", { ascending: true });
 
   if (error) {
-    const message = error.message.includes("case_study") || error.message.includes("industry")
-      ? "Portfolio table is missing CMS columns. Run supabase/cms-upgrade.sql in the Supabase SQL Editor."
-      : error.message;
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: formatPortfolioError(error) }, { status: 500 });
   }
 
   return NextResponse.json({ items: (items ?? []).map(normalizePortfolioItem) });
@@ -58,10 +99,7 @@ export async function POST(request: Request) {
       .select();
 
     if (error) {
-      const message = error.message.includes("case_study") || error.message.includes("industry")
-        ? "Portfolio table is missing CMS columns. Run supabase/cms-upgrade.sql in the Supabase SQL Editor."
-        : error.message;
-      return NextResponse.json({ error: message }, { status: 500 });
+      return NextResponse.json({ error: formatPortfolioError(error) }, { status: 500 });
     }
 
     revalidateAfterPortfolioChange((items ?? []).map((item) => item.slug));
@@ -90,6 +128,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Title and slug are required" }, { status: 400 });
   }
 
+  if (await slugTaken(auth.supabase!, slug)) {
+    return NextResponse.json({ error: "This slug is already in use. Choose a different one." }, { status: 400 });
+  }
+
   const { data: item, error } = await auth.supabase!
     .from("portfolio")
     .insert({
@@ -110,10 +152,7 @@ export async function POST(request: Request) {
     .single();
 
   if (error) {
-    const message = error.message.includes("case_study") || error.message.includes("industry")
-      ? "Portfolio table is missing CMS columns. Run supabase/cms-upgrade.sql in the Supabase SQL Editor."
-      : error.message;
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: formatPortfolioError(error) }, { status: 500 });
   }
 
   revalidateAfterPortfolioChange([item.slug]);
@@ -139,6 +178,12 @@ export async function PATCH(request: Request) {
     .eq("id", id)
     .maybeSingle();
 
+  if (typeof updates.slug === "string" && updates.slug !== previous?.slug) {
+    if (await slugTaken(auth.supabase!, updates.slug, id)) {
+      return NextResponse.json({ error: "This slug is already in use. Choose a different one." }, { status: 400 });
+    }
+  }
+
   const { data: item, error } = await auth.supabase!
     .from("portfolio")
     .update(updates)
@@ -147,7 +192,7 @@ export async function PATCH(request: Request) {
     .single();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: formatPortfolioError(error) }, { status: 500 });
   }
 
   revalidateAfterPortfolioChange(
@@ -178,7 +223,7 @@ export async function DELETE(request: Request) {
   const { error } = await auth.supabase!.from("portfolio").delete().eq("id", id);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: formatPortfolioError(error) }, { status: 500 });
   }
 
   revalidateAfterPortfolioChange(previous?.slug ? [previous.slug] : []);

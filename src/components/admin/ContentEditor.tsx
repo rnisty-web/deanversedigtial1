@@ -25,7 +25,7 @@ import {
 } from "@/components/admin/content/ContentSectionPreview";
 import { SectionIcon } from "@/components/admin/content/SectionIcon";
 import { Button } from "@/components/ui/Button";
-import { defaultCMSLayout, formatLayoutDate, getHomepageOrder, applyHomepageOrder, reorderFullOrder, type CMSLayout } from "@/lib/cms/layout";
+import { defaultCMSLayout, formatLayoutDate, getHomepageOrder, applyHomepageOrder, reorderFullOrder, setLayoutSectionStatus, type CMSLayout } from "@/lib/cms/layout";
 import { computeCMSStats } from "@/lib/cms/stats";
 import {
   FILTER_TABS,
@@ -205,7 +205,7 @@ export function ContentEditor() {
 
     setMessage({
       type: "success",
-      text: `${activeDef?.title ?? activeSection} saved — live site refreshed`,
+      text: `${activeDef?.title ?? activeSection} saved and published — live site refreshed`,
     });
   }
 
@@ -250,21 +250,20 @@ export function ContentEditor() {
   async function handleToggleStatus(sectionId: string) {
     const previousLayout = layout;
     const current = layout.meta[sectionId]?.status ?? "published";
-    const nextLayout: CMSLayout = {
-      ...layout,
-      meta: {
-        ...layout.meta,
-        [sectionId]: {
-          ...layout.meta[sectionId],
-          status: current === "published" ? "draft" : "published",
-        },
-      },
-    };
+    const nextStatus = current === "published" ? "draft" : "published";
+    const nextLayout = setLayoutSectionStatus(layout, sectionId, nextStatus);
     setLayout(nextLayout);
     try {
       const saved = await handleSaveLayout(nextLayout);
       setLayout(saved);
       setSavedLayout(saved);
+      setMessage({
+        type: "success",
+        text:
+          nextStatus === "published"
+            ? `${SECTION_BY_ID[sectionId as SectionId]?.title ?? sectionId} published — live on homepage and site pages.`
+            : `${SECTION_BY_ID[sectionId as SectionId]?.title ?? sectionId} unpublished — hidden from the live site.`,
+      });
     } catch {
       setLayout(previousLayout);
       setMessage({ type: "error", text: "Failed to update section status" });
@@ -272,21 +271,20 @@ export function ContentEditor() {
   }
 
   async function handlePublishDraft(sectionId: string) {
-    const nextLayout: CMSLayout = {
-      ...layout,
-      meta: {
-        ...layout.meta,
-        [sectionId]: { ...layout.meta[sectionId], status: "published" },
-      },
-    };
+    const previousLayout = layout;
+    const nextLayout = setLayoutSectionStatus(layout, sectionId, "published");
     setLayout(nextLayout);
     try {
       const saved = await handleSaveLayout(nextLayout);
       setLayout(saved);
       setSavedLayout(saved);
       setActiveSection(sectionId as SectionId);
-      setMessage({ type: "success", text: "Section published — live site refreshed" });
+      setMessage({
+        type: "success",
+        text: `${SECTION_BY_ID[sectionId as SectionId]?.title ?? sectionId} published — live on homepage and site pages.`,
+      });
     } catch {
+      setLayout(previousLayout);
       setMessage({ type: "error", text: "Failed to publish section" });
     }
   }

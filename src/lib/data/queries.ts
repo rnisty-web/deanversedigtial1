@@ -1,5 +1,5 @@
 import { unstable_cache } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
+import { createAnonServerClient, createServiceRoleClient } from "@/lib/supabase/server";
 import {
   fallbackCaseStudies,
   fallbackPortfolio,
@@ -14,18 +14,24 @@ function hasSupabaseConfig() {
   );
 }
 
+function createPublicReadClient() {
+  return createServiceRoleClient() ?? createAnonServerClient();
+}
+
 type FeaturedQueryOptions = {
   /** When false, return an empty list instead of demo fallback content. */
   useFallback?: boolean;
 };
 
-async function fetchFeaturedPortfolio(limit: number): Promise<PortfolioItem[]> {
-  const supabase = await createClient();
+async function fetchHomepagePortfolio(limit: number): Promise<PortfolioItem[]> {
+  const supabase = createPublicReadClient();
+  if (!supabase) throw new Error("Supabase not configured");
+
   const { data, error } = await supabase
     .from("portfolio")
     .select("*")
     .eq("published", true)
-    .eq("featured", true)
+    .order("featured", { ascending: false })
     .order("sort_order", { ascending: true })
     .limit(limit);
 
@@ -33,13 +39,15 @@ async function fetchFeaturedPortfolio(limit: number): Promise<PortfolioItem[]> {
   return (data ?? []) as PortfolioItem[];
 }
 
-async function fetchFeaturedTestimonials(limit: number): Promise<Testimonial[]> {
-  const supabase = await createClient();
+async function fetchHomepageTestimonials(limit: number): Promise<Testimonial[]> {
+  const supabase = createPublicReadClient();
+  if (!supabase) throw new Error("Supabase not configured");
+
   const { data, error } = await supabase
     .from("testimonials")
     .select("*")
     .eq("published", true)
-    .eq("featured", true)
+    .order("featured", { ascending: false })
     .order("created_at", { ascending: false })
     .limit(limit);
 
@@ -48,7 +56,9 @@ async function fetchFeaturedTestimonials(limit: number): Promise<Testimonial[]> 
 }
 
 async function fetchPortfolioItems(): Promise<PortfolioItem[]> {
-  const supabase = await createClient();
+  const supabase = createPublicReadClient();
+  if (!supabase) throw new Error("Supabase not configured");
+
   const { data, error } = await supabase
     .from("portfolio")
     .select("*")
@@ -60,7 +70,9 @@ async function fetchPortfolioItems(): Promise<PortfolioItem[]> {
 }
 
 async function fetchPortfolioBySlug(slug: string): Promise<PortfolioItem | null> {
-  const supabase = await createClient();
+  const supabase = createPublicReadClient();
+  if (!supabase) throw new Error("Supabase not configured");
+
   const { data, error } = await supabase
     .from("portfolio")
     .select("*")
@@ -73,7 +85,9 @@ async function fetchPortfolioBySlug(slug: string): Promise<PortfolioItem | null>
 }
 
 async function fetchTestimonials(): Promise<Testimonial[]> {
-  const supabase = await createClient();
+  const supabase = createPublicReadClient();
+  if (!supabase) throw new Error("Supabase not configured");
+
   const { data, error } = await supabase
     .from("testimonials")
     .select("*")
@@ -96,13 +110,38 @@ const getCachedTestimonials = unstable_cache(
   { tags: ["testimonials"], revalidate: 60 },
 );
 
+function getCachedHomepagePortfolio(limit: number) {
+  return unstable_cache(
+    async () => fetchHomepagePortfolio(limit),
+    ["homepage-portfolio", String(limit)],
+    { tags: ["portfolio"], revalidate: 60 },
+  )();
+}
+
+function getCachedHomepageTestimonials(limit: number) {
+  return unstable_cache(
+    async () => fetchHomepageTestimonials(limit),
+    ["homepage-testimonials", String(limit)],
+    { tags: ["testimonials"], revalidate: 60 },
+  )();
+}
+
+function getCachedPortfolioBySlug(slug: string) {
+  return unstable_cache(
+    async () => fetchPortfolioBySlug(slug),
+    ["portfolio-slug", slug],
+    { tags: ["portfolio"], revalidate: 60 },
+  )();
+}
+
 export async function getFeaturedPortfolio(
   limit = 3,
   options: FeaturedQueryOptions = {},
 ): Promise<PortfolioItem[]> {
   const useFallback = options.useFallback ?? !hasSupabaseConfig();
   const featuredFallback = fallbackPortfolio
-    .filter((item) => item.featured)
+    .filter((item) => item.published)
+    .sort((a, b) => Number(b.featured) - Number(a.featured))
     .slice(0, limit);
 
   if (!hasSupabaseConfig()) {
@@ -110,7 +149,7 @@ export async function getFeaturedPortfolio(
   }
 
   try {
-    const data = await fetchFeaturedPortfolio(limit);
+    const data = await getCachedHomepagePortfolio(limit);
     if (!data.length) {
       return useFallback ? featuredFallback : [];
     }
@@ -126,7 +165,8 @@ export async function getFeaturedTestimonials(
 ): Promise<Testimonial[]> {
   const useFallback = options.useFallback ?? !hasSupabaseConfig();
   const featuredFallback = fallbackTestimonials
-    .filter((item) => item.featured)
+    .filter((item) => item.published)
+    .sort((a, b) => Number(b.featured) - Number(a.featured))
     .slice(0, limit);
 
   if (!hasSupabaseConfig()) {
@@ -134,7 +174,7 @@ export async function getFeaturedTestimonials(
   }
 
   try {
-    const data = await fetchFeaturedTestimonials(limit);
+    const data = await getCachedHomepageTestimonials(limit);
     if (!data.length) {
       return useFallback ? featuredFallback : [];
     }
@@ -164,7 +204,7 @@ export async function getPortfolioBySlug(
   }
 
   try {
-    return await fetchPortfolioBySlug(slug);
+    return await getCachedPortfolioBySlug(slug);
   } catch {
     return null;
   }
@@ -195,7 +235,7 @@ export async function getAllPortfolioSlugs(): Promise<string[]> {
   }
 
   try {
-    const items = await fetchPortfolioItems();
+    const items = await getCachedPortfolioItems();
     return items.map((item) => item.slug);
   } catch {
     return [];

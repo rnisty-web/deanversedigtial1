@@ -9,6 +9,8 @@ import { createPageMetadata } from "@/lib/seo/metadata";
 import { cn } from "@/lib/utils";
 import type { Metadata } from "next";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata(): Promise<Metadata> {
   const config = await getPublicSiteConfig();
   return createPageMetadata({

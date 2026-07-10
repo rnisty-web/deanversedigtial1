@@ -231,21 +231,30 @@ export default function AdminTestimonialsPage() {
 
   async function togglePublish(item: TestimonialRecord) {
     const nextPublished = !item.published;
+    const nextFeatured = nextPublished ? true : item.featured;
     setItems((current) =>
       current.map((entry) =>
-        entry.id === item.id ? { ...entry, published: nextPublished } : entry,
+        entry.id === item.id
+          ? { ...entry, published: nextPublished, featured: nextFeatured }
+          : entry,
       ),
     );
     const res = await fetch("/api/admin/testimonials", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       credentials: "same-origin",
-      body: JSON.stringify({ id: item.id, published: nextPublished }),
+      body: JSON.stringify({
+        id: item.id,
+        published: nextPublished,
+        ...(nextPublished ? { featured: true } : {}),
+      }),
     });
     if (!res.ok) {
       setItems((current) =>
         current.map((entry) =>
-          entry.id === item.id ? { ...entry, published: item.published } : entry,
+          entry.id === item.id
+            ? { ...entry, published: item.published, featured: item.featured }
+            : entry,
         ),
       );
       const data = await res.json().catch(() => ({}));
@@ -256,7 +265,11 @@ export default function AdminTestimonialsPage() {
     setItems((current) =>
       current.map((entry) => (entry.id === item.id ? data.item : entry)),
     );
-    setMessage(nextPublished ? "Testimonial published — live site refreshed." : "Testimonial unpublished — live site refreshed.");
+    setMessage(
+      nextPublished
+        ? "Testimonial published — live on testimonials and homepage."
+        : "Testimonial unpublished — removed from the live site.",
+    );
   }
 
   return (

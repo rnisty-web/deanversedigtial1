@@ -2,9 +2,9 @@ import { NextResponse } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { verifyAdminApi } from "@/lib/auth";
 import { cmsDefaults, cmsKeys } from "@/lib/cms/defaults";
-import { defaultCMSLayout, mergeLayout, touchLayoutMeta, type CMSLayout } from "@/lib/cms/layout";
+import { defaultCMSLayout, mergeLayout, publishLayoutSection, type CMSLayout } from "@/lib/cms/layout";
 import { mergeCMSContent } from "@/lib/cms/merge";
-import { revalidateSite } from "@/lib/cms/revalidate";
+import { revalidateCMSContent } from "@/lib/cms/revalidate";
 import type { CMSKey } from "@/lib/cms/types";
 
 const CMS_LAYOUT_KEY = "cmsLayout";
@@ -64,7 +64,7 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    revalidateSite();
+    revalidateCMSContent();
     const state = await loadCMSState(auth.supabase!);
     return NextResponse.json({ success: true, ...state });
   }
@@ -90,13 +90,13 @@ export async function PUT(request: Request) {
     .maybeSingle();
 
   const currentLayout = parseLayout(layoutRows ? [layoutRows] : []);
-  const updatedLayout = touchLayoutMeta(currentLayout, key);
+  const updatedLayout = publishLayoutSection(currentLayout, key);
 
   await auth.supabase!
     .from("settings")
     .upsert({ key: CMS_LAYOUT_KEY, value: updatedLayout }, { onConflict: "key" });
 
-  revalidateSite();
+  revalidateCMSContent();
   const state = await loadCMSState(auth.supabase!);
   return NextResponse.json({ success: true, key, ...state });
 }
@@ -129,7 +129,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    revalidateSite();
+    revalidateCMSContent();
     const state = await loadCMSState(auth.supabase!);
     return NextResponse.json({
       success: true,

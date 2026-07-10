@@ -331,21 +331,30 @@ export default function AdminPortfolioPage() {
 
   async function togglePublish(item: PortfolioRecord) {
     const nextPublished = !item.published;
+    const nextFeatured = nextPublished ? true : item.featured;
     setItems((current) =>
       current.map((entry) =>
-        entry.id === item.id ? { ...entry, published: nextPublished } : entry,
+        entry.id === item.id
+          ? { ...entry, published: nextPublished, featured: nextFeatured }
+          : entry,
       ),
     );
     const res = await fetch("/api/admin/portfolio", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       credentials: "same-origin",
-      body: JSON.stringify({ id: item.id, published: nextPublished }),
+      body: JSON.stringify({
+        id: item.id,
+        published: nextPublished,
+        ...(nextPublished ? { featured: true } : {}),
+      }),
     });
     if (!res.ok) {
       setItems((current) =>
         current.map((entry) =>
-          entry.id === item.id ? { ...entry, published: item.published } : entry,
+          entry.id === item.id
+            ? { ...entry, published: item.published, featured: item.featured }
+            : entry,
         ),
       );
       const data = await res.json().catch(() => ({}));
@@ -356,7 +365,11 @@ export default function AdminPortfolioPage() {
     setItems((current) =>
       current.map((entry) => (entry.id === item.id ? normalizePortfolioItem(data.item) : entry)),
     );
-    setMessage(nextPublished ? "Project published — live site refreshed." : "Project unpublished — live site refreshed.");
+    setMessage(
+      nextPublished
+        ? "Project published — live on portfolio and homepage."
+        : "Project unpublished — removed from the live site.",
+    );
   }
 
   return (

@@ -6,6 +6,8 @@ import { getCMSContent } from "@/lib/cms/get-content";
 import { createPageMetadata } from "@/lib/seo/metadata";
 import type { Metadata } from "next";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata(): Promise<Metadata> {
   const cms = await getCMSContent();
   return createPageMetadata({

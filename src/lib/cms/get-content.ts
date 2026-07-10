@@ -55,7 +55,11 @@ async function fetchCMSFromDb(): Promise<CMSContent> {
   }
 }
 
-export const getCMSContent = unstable_cache(
+export async function getCMSContent(): Promise<CMSContent> {
+  return getCachedCMSContent();
+}
+
+const getCachedCMSContent = unstable_cache(
   fetchCMSFromDb,
   ["cms-content"],
   { tags: ["cms"], revalidate: 60 },
@@ -96,11 +100,15 @@ async function fetchCMSLayoutFromDb(): Promise<CMSLayout> {
   }
 }
 
-export const getCMSLayout = unstable_cache(
+const getCachedCMSLayout = unstable_cache(
   fetchCMSLayoutFromDb,
   ["cms-layout"],
   { tags: ["cms"], revalidate: 60 },
 );
+
+export async function getCMSLayout(): Promise<CMSLayout> {
+  return getCachedCMSLayout();
+}
 
 export { getPublishedHomepageSections, isHomepageSectionPublished } from "@/lib/cms/layout";
 

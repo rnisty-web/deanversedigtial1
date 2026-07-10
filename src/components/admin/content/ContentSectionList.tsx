@@ -156,7 +156,7 @@ export function ContentSectionList({
                           setMenuOpenId(null);
                         }}
                       >
-                        Mark as {status === "published" ? "Draft" : "Published"}
+                        Mark as {status === "published" ? "Draft" : "Publish"}
                       </button>
                       {!section.isLinked && (
                         <button

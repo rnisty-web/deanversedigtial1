@@ -135,6 +135,39 @@ export function touchLayoutMeta(layout: CMSLayout, key: string): CMSLayout {
   };
 }
 
+/** Mark a section published when content is saved (mirrors portfolio publish behavior). */
+export function publishLayoutSection(layout: CMSLayout, key: string): CMSLayout {
+  return {
+    ...layout,
+    meta: {
+      ...layout.meta,
+      [key]: {
+        ...layout.meta[key],
+        status: "published",
+        updatedAt: new Date().toISOString(),
+      },
+    },
+  };
+}
+
+export function setLayoutSectionStatus(
+  layout: CMSLayout,
+  key: string,
+  status: SectionStatus,
+): CMSLayout {
+  return {
+    ...layout,
+    meta: {
+      ...layout.meta,
+      [key]: {
+        ...layout.meta[key],
+        status,
+        updatedAt: new Date().toISOString(),
+      },
+    },
+  };
+}
+
 export function formatLayoutDate(iso?: string): string {
   if (!iso) return "Never";
   try {

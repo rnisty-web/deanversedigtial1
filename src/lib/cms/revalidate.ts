@@ -5,6 +5,11 @@ export function revalidateCMS() {
   revalidateTag("cms", { expire: 0 });
 }
 
+/** Revalidate public pages after Site Content (CMS) changes. */
+export function revalidateCMSContent() {
+  revalidateSite();
+}
+
 /** Revalidate public marketing pages after CMS or content changes. */
 export function revalidateSite() {
   revalidateCMS();

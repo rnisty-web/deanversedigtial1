@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { fetchAdminUserById, fetchAdminUsers } from "@/lib/supabase/profile-queries";
 import {
-  canManageUsers,
   getOwnerEmail,
   isFounder,
   verifyAdminApi,
@@ -11,11 +10,17 @@ import {
 import {
   canAssignRoles,
   getPrimaryRole,
+  parseUserRoles,
   persistRoles,
   type UserRole,
 } from "@/lib/roles";
 import { fetchRoleCatalog } from "@/lib/roles/catalog-server";
 import { getActiveRoleCatalog } from "@/lib/roles/catalog";
+import {
+  hasAdminPermission,
+  sanitizeAdminPermissions,
+  type AdminPermission,
+} from "@/lib/roles/permissions";
 
 function normalizeRolesInput(
   roles: UserRole[] | undefined,
@@ -45,14 +50,18 @@ export async function GET() {
     auth.user!.email,
   );
 
-  const canManage = canManageUsers(
-    currentProfile,
-    currentProfile?.email,
-    auth.user!.email,
-  );
+  const roleCatalog = getActiveRoleCatalog(await fetchRoleCatalog(auth.supabase!));
+  const fullProfile = currentProfile
+    ? ({ ...currentProfile, roles: parseUserRoles(currentProfile) } as typeof currentProfile & {
+        roles: UserRole[];
+      })
+    : null;
+
+  const canManage =
+    !!fullProfile &&
+    hasAdminPermission(fullProfile, "users", roleCatalog, { isFounder: assignerIsFounder });
 
   const { data: users, error } = await fetchAdminUsers(auth.supabase!);
-  const roleCatalog = getActiveRoleCatalog(await fetchRoleCatalog(auth.supabase!));
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -158,7 +167,7 @@ export async function PATCH(request: Request) {
   );
 
   const body = await request.json();
-  const { id, role, roles, full_name, email, phone, avatar_url, company } = body as {
+  const { id, role, roles, full_name, email, phone, avatar_url, company, admin_permissions, permissions_inherit } = body as {
     id?: string;
     role?: UserRole;
     roles?: UserRole[];
@@ -167,6 +176,8 @@ export async function PATCH(request: Request) {
     phone?: string;
     avatar_url?: string;
     company?: string;
+    admin_permissions?: AdminPermission[] | null;
+    permissions_inherit?: boolean;
   };
 
   if (!id) {
@@ -187,7 +198,7 @@ export async function PATCH(request: Request) {
 
   const targetIsFounder = isFounder(target, target.email);
 
-  const profileUpdates: Record<string, string | UserRole[] | null> = {};
+  const profileUpdates: Record<string, string | UserRole[] | AdminPermission[] | null> = {};
 
   if (full_name !== undefined) {
     profileUpdates.full_name = full_name.trim() || null;
@@ -225,6 +236,12 @@ export async function PATCH(request: Request) {
 
     profileUpdates.roles = nextRoles;
     profileUpdates.role = getPrimaryRole(nextRoles);
+  }
+
+  if (permissions_inherit === true) {
+    profileUpdates.admin_permissions = null;
+  } else if (admin_permissions !== undefined) {
+    profileUpdates.admin_permissions = sanitizeAdminPermissions(admin_permissions);
   }
 
   let emailUpdated = false;

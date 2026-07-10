@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { AdminAlert } from "@/components/admin/AdminAlert";
 import { AdminField } from "@/components/admin/AdminField";
 import { AdminModal } from "@/components/admin/AdminModal";
+import { PermissionsEditor } from "@/components/admin/users/PermissionsEditor";
 import { RoleBadge } from "@/components/ui/RoleBadge";
 import { Button } from "@/components/ui/Button";
 import {
@@ -11,6 +12,12 @@ import {
   normalizeHexColor,
   type RoleDefinition,
 } from "@/lib/roles/catalog";
+import {
+  ALL_ADMIN_PERMISSIONS,
+  formatPermissionsLabel,
+  getRolePermissions,
+  type AdminPermission,
+} from "@/lib/roles/permissions";
 import { cn } from "@/lib/utils";
 
 type RolesManagerProps = {
@@ -24,12 +31,14 @@ type RoleForm = {
   label: string;
   color: string;
   isStaff: boolean;
+  permissions: AdminPermission[];
 };
 
 const emptyForm: RoleForm = {
   label: "",
   color: "#c9a962",
   isStaff: false,
+  permissions: ["dashboard", "messages"],
 };
 
 function RoleColorPicker({
@@ -103,6 +112,7 @@ export function RolesManager({
   const [editForm, setEditForm] = useState<RoleForm | null>(null);
   const [saving, setSaving] = useState(false);
   const [deletingSlug, setDeletingSlug] = useState<string | null>(null);
+  const [reordering, setReordering] = useState(false);
 
   const sortedCatalog = useMemo(
     () => [...catalog].sort((a, b) => a.sortOrder - b.sortOrder),
@@ -114,6 +124,36 @@ export function RolesManager({
     setMessageTone(tone);
   }
 
+  async function persistOrder(nextOrder: RoleDefinition[]) {
+    setReordering(true);
+    const res = await fetch("/api/admin/roles", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify({ orderedSlugs: nextOrder.map((role) => role.slug) }),
+    });
+    setReordering(false);
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      showFeedback(data.error ?? "Failed to reorder roles", "error");
+      return;
+    }
+
+    const data = await res.json();
+    onCatalogChange(data.catalog ?? []);
+    showFeedback("Role order updated");
+  }
+
+  function moveRole(slug: string, direction: -1 | 1) {
+    const index = sortedCatalog.findIndex((role) => role.slug === slug);
+    const target = index + direction;
+    if (index === -1 || target < 0 || target >= sortedCatalog.length) return;
+    const next = [...sortedCatalog];
+    [next[index], next[target]] = [next[target], next[index]];
+    void persistOrder(next);
+  }
+
   async function handleCreate(event: React.FormEvent) {
     event.preventDefault();
     setCreating(true);
@@ -122,7 +162,11 @@ export function RolesManager({
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "same-origin",
-      body: JSON.stringify(createForm),
+      body: JSON.stringify({
+        label: createForm.label,
+        color: createForm.color,
+        isStaff: createForm.isStaff,
+      }),
     });
 
     setCreating(false);
@@ -134,7 +178,25 @@ export function RolesManager({
     }
 
     const data = await res.json();
-    onCatalogChange(data.catalog ?? []);
+    let nextCatalog = data.catalog ?? [];
+
+    if (createForm.isStaff && createForm.permissions.length > 0 && data.role?.slug) {
+      const patchRes = await fetch("/api/admin/roles", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({
+          slug: data.role.slug,
+          permissions: createForm.permissions,
+        }),
+      });
+      if (patchRes.ok) {
+        const patchData = await patchRes.json();
+        nextCatalog = patchData.catalog ?? nextCatalog;
+      }
+    }
+
+    onCatalogChange(nextCatalog);
     setCreateOpen(false);
     setCreateForm(emptyForm);
     showFeedback(`Role "${data.role?.label ?? createForm.label}" created`);
@@ -147,6 +209,7 @@ export function RolesManager({
       label: role.label,
       color: role.color,
       isStaff: role.isStaff,
+      permissions: role.isStaff ? getRolePermissions(role) : [],
     });
   }
 
@@ -159,7 +222,13 @@ export function RolesManager({
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       credentials: "same-origin",
-      body: JSON.stringify({ slug: editSlug, ...editForm }),
+      body: JSON.stringify({
+        slug: editSlug,
+        label: editForm.label,
+        color: editForm.color,
+        isStaff: editForm.isStaff,
+        permissions: editForm.isStaff ? editForm.permissions : [],
+      }),
     });
     setSaving(false);
 
@@ -201,7 +270,7 @@ export function RolesManager({
         <div>
           <h2 className="admin-heading-serif text-xl text-[var(--admin-text)]">Role definitions</h2>
           <p className="mt-1 text-sm text-[var(--admin-text-muted)]">
-            Create custom roles, choose badge colors, and control admin portal access.
+            Reorder how roles appear, set badge colors, and define what each role can access in the admin portal.
           </p>
         </div>
         {canManage ? (
@@ -217,43 +286,69 @@ export function RolesManager({
         </AdminAlert>
       ) : null}
 
-      <div className="admin-roles-grid mt-6">
-        {sortedCatalog.map((role) => {
+      <div className="admin-roles-list mt-6">
+        {sortedCatalog.map((role, index) => {
           const editable = canManage && (!role.founderOnly || viewerIsFounder);
+          const permissions = getRolePermissions(role);
           return (
-            <article key={role.slug} className="admin-roles-card">
-              <div className="flex items-start justify-between gap-3">
-                <RoleBadge role={role.slug} size="md" catalogOverride={catalog} />
-                <span
-                  className="admin-roles-card-dot"
-                  style={{ backgroundColor: role.color, boxShadow: `0 0 16px ${role.color}88` }}
-                  aria-hidden
-                />
+            <article key={role.slug} className="admin-roles-list-item">
+              <div className="admin-roles-list-order">
+                <button
+                  type="button"
+                  className="admin-roles-order-btn"
+                  disabled={!editable || reordering || index === 0}
+                  onClick={() => moveRole(role.slug, -1)}
+                  aria-label={`Move ${role.label} up`}
+                >
+                  ↑
+                </button>
+                <span className="admin-roles-order-index">{index + 1}</span>
+                <button
+                  type="button"
+                  className="admin-roles-order-btn"
+                  disabled={!editable || reordering || index === sortedCatalog.length - 1}
+                  onClick={() => moveRole(role.slug, 1)}
+                  aria-label={`Move ${role.label} down`}
+                >
+                  ↓
+                </button>
               </div>
 
-              <div className="mt-4 space-y-2 text-sm">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-[var(--admin-text-muted)]">Portal access</span>
-                  <span className="font-medium text-[var(--admin-text)]">
-                    {role.isStaff ? "Staff (admin)" : "Client only"}
-                  </span>
+              <div className="admin-roles-list-main min-w-0 flex-1">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <RoleBadge role={role.slug} size="md" catalogOverride={catalog} />
+                  <span
+                    className="admin-roles-card-dot"
+                    style={{ backgroundColor: role.color, boxShadow: `0 0 16px ${role.color}88` }}
+                    aria-hidden
+                  />
                 </div>
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-[var(--admin-text-muted)]">Type</span>
-                  <span className="font-medium text-[var(--admin-text)]">
-                    {role.isSystem ? "System" : "Custom"}
-                  </span>
+
+                <div className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
+                  <div className="flex items-center justify-between gap-2 sm:justify-start sm:gap-4">
+                    <span className="text-[var(--admin-text-muted)]">Portal access</span>
+                    <span className="font-medium text-[var(--admin-text)]">
+                      {role.isStaff ? "Staff (admin)" : "Client only"}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between gap-2 sm:justify-start sm:gap-4">
+                    <span className="text-[var(--admin-text-muted)]">Type</span>
+                    <span className="font-medium text-[var(--admin-text)]">
+                      {role.isSystem ? "System" : "Custom"}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-[var(--admin-text-muted)]">Key</span>
-                  <code className="rounded-md bg-white/5 px-2 py-0.5 text-xs text-[var(--admin-gold-light)]">
-                    {role.slug}
-                  </code>
-                </div>
+
+                {role.isStaff ? (
+                  <p className="mt-3 text-xs text-[var(--admin-text-muted)]">
+                    <span className="font-medium text-[var(--admin-gold-light)]">Permissions: </span>
+                    {formatPermissionsLabel(permissions)}
+                  </p>
+                ) : null}
               </div>
 
               {editable ? (
-                <div className="mt-4 flex flex-wrap gap-2">
+                <div className="admin-roles-list-actions">
                   <button type="button" className="admin-btn-ghost px-3 py-1.5 text-xs" onClick={() => openEdit(role)}>
                     Edit
                   </button>
@@ -278,6 +373,7 @@ export function RolesManager({
         open={createOpen}
         onClose={() => setCreateOpen(false)}
         title="Create Role"
+        size="lg"
         footer={
           <div className="flex justify-end gap-2">
             <Button type="button" variant="ghost" size="sm" className="admin-btn-ghost" onClick={() => setCreateOpen(false)}>
@@ -307,7 +403,13 @@ export function RolesManager({
             <input
               type="checkbox"
               checked={createForm.isStaff}
-              onChange={(event) => setCreateForm({ ...createForm, isStaff: event.target.checked })}
+              onChange={(event) =>
+                setCreateForm({
+                  ...createForm,
+                  isStaff: event.target.checked,
+                  permissions: event.target.checked ? ["dashboard", "messages"] : [],
+                })
+              }
             />
             <span>
               <strong className="block text-sm text-[var(--admin-text)]">Staff role</strong>
@@ -316,6 +418,18 @@ export function RolesManager({
               </span>
             </span>
           </label>
+          {createForm.isStaff ? (
+            <div>
+              <label className="mb-2 block text-sm font-medium text-[var(--admin-text-muted)]">
+                Admin portal permissions
+              </label>
+              <PermissionsEditor
+                value={createForm.permissions}
+                onChange={(permissions) => setCreateForm({ ...createForm, permissions })}
+                compact
+              />
+            </div>
+          ) : null}
         </form>
       </AdminModal>
 
@@ -326,6 +440,7 @@ export function RolesManager({
           setEditForm(null);
         }}
         title="Edit Role"
+        size="lg"
         footer={
           editForm ? (
             <div className="flex justify-end gap-2">
@@ -367,7 +482,13 @@ export function RolesManager({
                 <input
                   type="checkbox"
                   checked={editForm.isStaff}
-                  onChange={(event) => setEditForm({ ...editForm, isStaff: event.target.checked })}
+                  onChange={(event) =>
+                    setEditForm({
+                      ...editForm,
+                      isStaff: event.target.checked,
+                      permissions: event.target.checked ? editForm.permissions : [],
+                    })
+                  }
                 />
                 <span>
                   <strong className="block text-sm text-[var(--admin-text)]">Staff role</strong>
@@ -376,6 +497,28 @@ export function RolesManager({
                   </span>
                 </span>
               </label>
+            ) : null}
+            {editForm.isStaff ? (
+              <div>
+                <label className="mb-2 block text-sm font-medium text-[var(--admin-text-muted)]">
+                  Admin portal permissions
+                </label>
+                <PermissionsEditor
+                  value={
+                    editSlug === "admin" && editForm.permissions.length === 0
+                      ? ALL_ADMIN_PERMISSIONS
+                      : editForm.permissions
+                  }
+                  onChange={(permissions) => setEditForm({ ...editForm, permissions })}
+                  disabled={editSlug === "admin"}
+                  compact
+                />
+                {editSlug === "admin" ? (
+                  <p className="mt-2 text-xs text-[var(--admin-text-muted)]">
+                    The Founder role always has full admin access.
+                  </p>
+                ) : null}
+              </div>
             ) : null}
           </form>
         ) : null}

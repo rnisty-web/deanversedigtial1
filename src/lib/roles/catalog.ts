@@ -1,3 +1,5 @@
+import type { AdminPermission } from "@/lib/roles/permissions";
+
 export type RoleDefinition = {
   slug: string;
   label: string;
@@ -6,6 +8,7 @@ export type RoleDefinition = {
   isSystem: boolean;
   founderOnly?: boolean;
   sortOrder: number;
+  permissions?: AdminPermission[];
   archived?: boolean;
 };
 
@@ -20,6 +23,22 @@ export const DEFAULT_ROLE_CATALOG: RoleDefinition[] = [
     isSystem: true,
     founderOnly: true,
     sortOrder: 0,
+    permissions: [
+      "dashboard",
+      "site_content",
+      "portfolio",
+      "testimonials",
+      "media",
+      "leads",
+      "clients",
+      "projects",
+      "messages",
+      "invoices",
+      "calendar",
+      "analytics",
+      "users",
+      "settings",
+    ],
   },
   {
     slug: "lead_developer",
@@ -28,6 +47,21 @@ export const DEFAULT_ROLE_CATALOG: RoleDefinition[] = [
     isStaff: true,
     isSystem: true,
     sortOrder: 10,
+    permissions: [
+      "dashboard",
+      "site_content",
+      "portfolio",
+      "testimonials",
+      "media",
+      "leads",
+      "clients",
+      "projects",
+      "messages",
+      "invoices",
+      "calendar",
+      "analytics",
+      "settings",
+    ],
   },
   {
     slug: "lead_web_designer",
@@ -36,6 +70,17 @@ export const DEFAULT_ROLE_CATALOG: RoleDefinition[] = [
     isStaff: true,
     isSystem: true,
     sortOrder: 20,
+    permissions: [
+      "dashboard",
+      "site_content",
+      "portfolio",
+      "testimonials",
+      "media",
+      "projects",
+      "messages",
+      "clients",
+      "calendar",
+    ],
   },
   {
     slug: "customer",
@@ -44,6 +89,7 @@ export const DEFAULT_ROLE_CATALOG: RoleDefinition[] = [
     isStaff: false,
     isSystem: true,
     sortOrder: 30,
+    permissions: [],
   },
 ];
 
@@ -82,6 +128,9 @@ export function parseRoleCatalog(raw: unknown): RoleDefinition[] {
       isSystem: Boolean(item.isSystem),
       founderOnly: item.founderOnly ? true : undefined,
       sortOrder: typeof item.sortOrder === "number" ? item.sortOrder : index * 10,
+      permissions: item.permissions
+        ? (item.permissions as AdminPermission[]).filter((p) => typeof p === "string")
+        : undefined,
       archived: item.archived ? true : undefined,
     }))
     .filter((item) => item.slug && item.label);

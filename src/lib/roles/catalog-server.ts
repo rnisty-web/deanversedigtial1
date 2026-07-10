@@ -64,6 +64,7 @@ export async function createCustomRoleDefinition(input: {
     isStaff: input.isStaff,
     isSystem: false,
     sortOrder: Math.max(...input.catalog.map((role) => role.sortOrder), 0) + 10,
+    permissions: input.isStaff ? ["dashboard", "messages"] : [],
   };
 
   return { role: nextRole, catalog: [...input.catalog, nextRole] };
@@ -101,4 +102,36 @@ export async function getRoleCatalogSafe() {
 
 export function revalidateRoleCatalog() {
   revalidateTag("role-catalog", { expire: 0 });
+}
+
+export function reorderRoleCatalog(
+  catalog: RoleDefinition[],
+  orderedSlugs: string[],
+): { catalog?: RoleDefinition[]; error?: string } {
+  const active = catalog.filter((role) => !role.archived);
+  const activeSlugs = new Set(active.map((role) => role.slug));
+
+  if (orderedSlugs.length !== active.length) {
+    return { error: "Reorder list must include every active role exactly once." };
+  }
+
+  const orderedSet = new Set(orderedSlugs);
+  if (orderedSet.size !== orderedSlugs.length) {
+    return { error: "Duplicate roles in reorder list." };
+  }
+
+  for (const slug of orderedSlugs) {
+    if (!activeSlugs.has(slug)) {
+      return { error: `Unknown or archived role: ${slug}` };
+    }
+  }
+
+  const bySlug = new Map(catalog.map((role) => [role.slug, role]));
+  const reorderedActive = orderedSlugs.map((slug, index) => ({
+    ...bySlug.get(slug)!,
+    sortOrder: index * 10,
+  }));
+
+  const archived = catalog.filter((role) => role.archived);
+  return { catalog: [...reorderedActive, ...archived] };
 }

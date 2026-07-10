@@ -1,6 +1,8 @@
 import { Cormorant_Garamond } from "next/font/google";
-import { requireAdmin } from "@/lib/auth";
+import { requireAdmin, isFounder } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { getRoleCatalogSafe } from "@/lib/roles/catalog-server";
+import { getActiveRoleCatalog } from "@/lib/roles/catalog";
 import { AdminFooter } from "@/components/admin/AdminFooter";
 import { AdminMobileNav } from "@/components/admin/AdminMobileNav";
 import { AdminPageTransition } from "@/components/admin/AdminPageTransition";
@@ -29,6 +31,8 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }) {
   const profile = await requireAdmin();
+  const roleCatalog = getActiveRoleCatalog(await getRoleCatalogSafe());
+  const viewerIsFounder = isFounder(profile, profile.email);
   const supabase = await createClient();
   const dashboardTheme = await getDashboardThemeSafe();
   const { count: unreadMessagesCount } = await supabase
@@ -43,10 +47,20 @@ export default async function AdminLayout({
         className={`admin-theme ${adminSerif.variable} flex h-dvh min-h-dvh overflow-hidden`}
         data-dashboard-theme={dashboardTheme}
       >
-        <AdminSidebar profile={profile} unreadMessagesCount={unreadMessagesCount ?? 0} />
+        <AdminSidebar
+          profile={profile}
+          roleCatalog={roleCatalog}
+          isFounder={viewerIsFounder}
+          unreadMessagesCount={unreadMessagesCount ?? 0}
+        />
         <div className="flex min-h-0 min-w-0 flex-1 flex-col">
           <PresenceHeartbeat />
-          <AdminMobileNav profile={profile} unreadMessagesCount={unreadMessagesCount ?? 0} />
+          <AdminMobileNav
+            profile={profile}
+            roleCatalog={roleCatalog}
+            isFounder={viewerIsFounder}
+            unreadMessagesCount={unreadMessagesCount ?? 0}
+          />
           <div className="flex min-h-0 flex-1 flex-col">
             <main className="admin-main-scroll min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
               <AdminPageTransition>{children}</AdminPageTransition>

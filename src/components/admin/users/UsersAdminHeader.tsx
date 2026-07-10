@@ -43,7 +43,7 @@ export function UsersAdminHeader({
     { id: "staff", label: "Staff", count: counts.staff },
     { id: "clients", label: "Clients", count: counts.clients },
     { id: "online", label: "Live", count: counts.online },
-    { id: "roles", label: "Roles" },
+    ...(canManage ? [{ id: "roles" as const, label: "Roles" }] : []),
   ];
 
   return (

@@ -20,8 +20,9 @@ import { RoleBadges } from "@/components/ui/RoleBadges";
 import { RoleMultiSelect } from "@/components/ui/RoleMultiSelect";
 import { RoleCatalogProvider } from "@/components/providers/RoleCatalogProvider";
 import { RolesManager } from "@/components/admin/users/RolesManager";
-import { formatRolesLabel, toAssignableRoles, type UserRole } from "@/lib/roles";
+import { toAssignableRoles, type UserRole } from "@/lib/roles";
 import type { RoleDefinition } from "@/lib/roles/catalog";
+import type { AdminPermission } from "@/lib/roles/permissions";
 import {
   canEditUserRole,
   computeUserStats,
@@ -104,6 +105,7 @@ export default function AdminUsersPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
   const [roleCatalog, setRoleCatalog] = useState<RoleDefinition[]>([]);
+  const [savingAccess, setSavingAccess] = useState(false);
 
   const displayFounderEmail = defaultFounderEmail(ownerEmail);
 
@@ -231,22 +233,42 @@ export default function AdminUsersPage() {
     fetchUsers();
   }
 
-  async function updateUserRoles(user: UserRecord, roles: UserRole[]) {
+  async function saveUserAccess(
+    user: UserRecord,
+    draft: {
+      roles: UserRole[];
+      permissionsInherit: boolean;
+      customPermissions: AdminPermission[];
+    },
+  ) {
+    setSavingAccess(true);
+
+    const payload: Record<string, unknown> = {
+      id: user.id,
+      roles: draft.roles,
+      permissions_inherit: draft.permissionsInherit,
+    };
+
+    if (!draft.permissionsInherit) {
+      payload.admin_permissions = draft.customPermissions;
+    }
+
     const res = await fetch("/api/admin/users", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       credentials: "same-origin",
-      body: JSON.stringify({ id: user.id, roles }),
+      body: JSON.stringify(payload),
     });
+
+    setSavingAccess(false);
 
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      showFeedback(data.error ?? "Failed to update roles", "error");
-      fetchUsers();
+      showFeedback(data.error ?? "Failed to update access", "error");
       return;
     }
 
-    showFeedback(`${user.full_name ?? user.email} roles updated to ${formatRolesLabel(roles, roleCatalog)}`);
+    showFeedback(`${user.full_name ?? user.email} roles and permissions updated`);
     fetchUsers();
   }
 
@@ -362,12 +384,14 @@ export default function AdminUsersPage() {
         {loading ? (
           <AdminTableSkeleton />
         ) : tab === "roles" ? (
-          <RolesManager
-            catalog={roleCatalog}
-            canManage={canManageUsers}
-            viewerIsFounder={viewerIsFounder}
-            onCatalogChange={setRoleCatalog}
-          />
+          <div className="admin-users-roles-tab">
+            <RolesManager
+              catalog={roleCatalog}
+              canManage={canManageUsers}
+              viewerIsFounder={viewerIsFounder}
+              onCatalogChange={setRoleCatalog}
+            />
+          </div>
         ) : users.length === 0 ? (
           <AdminEmptyState
             title="No users yet"
@@ -394,9 +418,11 @@ export default function AdminUsersPage() {
               founderEmail={displayFounderEmail}
               canManageUsers={canManageUsers}
               viewerIsFounder={viewerIsFounder}
+              roleCatalog={roleCatalog}
               onEdit={openEdit}
               onDelete={setDeleteTarget}
-              onRoleChange={updateUserRoles}
+              onSaveAccess={saveUserAccess}
+              savingAccess={savingAccess}
               onBack={() => setMobileDetailOpen(false)}
               hidden={!mobileDetailOpen}
             />

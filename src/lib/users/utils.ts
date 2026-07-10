@@ -6,6 +6,13 @@ import {
   isStaffRole,
   type UserRole,
 } from "@/lib/roles";
+import type { RoleDefinition } from "@/lib/roles/catalog";
+import {
+  formatPermissionsLabel,
+  getEffectiveAdminPermissions,
+  mergePermissionsFromRoles,
+  type AdminPermission,
+} from "@/lib/roles/permissions";
 
 export type UserRecord = {
   id: string;
@@ -13,6 +20,7 @@ export type UserRecord = {
   full_name: string | null;
   role: UserRole;
   roles: UserRole[];
+  admin_permissions: AdminPermission[] | null;
   company: string | null;
   phone: string | null;
   avatar_url: string | null;
@@ -96,7 +104,7 @@ export function computeUserStats(users: UserRecord[]) {
   };
 }
 
-export function countUsersByRole(users: UserRecord[]) {
+export function countUsersByRole(users: UserRecord[], roleCatalog: RoleDefinition[] = []) {
   const counts = new Map<string, number>();
   for (const user of users) {
     const roles = user.roles?.length ? user.roles : [user.role];
@@ -104,9 +112,32 @@ export function countUsersByRole(users: UserRecord[]) {
       counts.set(role, (counts.get(role) ?? 0) + 1);
     }
   }
+
+  const catalogOrder = new Map(
+    roleCatalog.map((role, index) => [role.slug, role.sortOrder ?? index * 10]),
+  );
+
   return [...counts.entries()]
-    .sort((a, b) => b[1] - a[1])
+    .sort((a, b) => {
+      const orderA = catalogOrder.get(a[0]) ?? 999;
+      const orderB = catalogOrder.get(b[0]) ?? 999;
+      if (orderA !== orderB) return orderA - orderB;
+      return b[1] - a[1];
+    })
     .map(([role, count]) => ({ role, count }));
+}
+
+export function getUserEffectivePermissions(user: UserRecord, roleCatalog: RoleDefinition[]) {
+  return getEffectiveAdminPermissions(user, roleCatalog, { isFounder: isFounderRole(user) });
+}
+
+export function getInheritedPermissions(user: UserRecord, roleCatalog: RoleDefinition[]) {
+  return mergePermissionsFromRoles(user.roles ?? [user.role], roleCatalog);
+}
+
+export function permissionsSummary(user: UserRecord, roleCatalog: RoleDefinition[]) {
+  const effective = getUserEffectivePermissions(user, roleCatalog);
+  return formatPermissionsLabel(effective);
 }
 
 export function formatJoinedDate(dateStr: string) {

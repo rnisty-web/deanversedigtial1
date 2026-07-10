@@ -1,8 +1,9 @@
 import type { PostgrestError, SupabaseClient } from "@supabase/supabase-js";
 import { parseUserRoles, type UserRole } from "@/lib/roles";
+import { parseAdminPermissions, type AdminPermission } from "@/lib/roles/permissions";
 
 export const ADMIN_USER_SELECT_WITH_PRESENCE =
-  "id, email, full_name, role, roles, company, phone, avatar_url, created_at, last_seen_at, activity_status";
+  "id, email, full_name, role, roles, admin_permissions, company, phone, avatar_url, created_at, last_seen_at, activity_status";
 
 export const ADMIN_USER_SELECT_BASE =
   "id, email, full_name, role, company, phone, avatar_url, created_at";
@@ -38,7 +39,42 @@ export function isMissingRolesColumnError(error: PostgrestError | null): boolean
   return isMissingColumnError(error, "roles");
 }
 
+export function isMissingAdminPermissionsColumnError(error: PostgrestError | null): boolean {
+  return isMissingColumnError(error, "admin_permissions");
+}
+
+function withAdminPermissionsDefault<T extends Record<string, unknown>>(
+  rows: T[],
+): (T & { admin_permissions: AdminPermission[] | null })[] {
+  return rows.map((row) => ({
+    ...row,
+    admin_permissions:
+      row.admin_permissions === undefined || row.admin_permissions === null
+        ? null
+        : parseAdminPermissions(row.admin_permissions),
+  }));
+}
+
+function withAdminPermissionsDefaultSingle<T extends Record<string, unknown>>(
+  row: T | null,
+): (T & { admin_permissions: AdminPermission[] | null }) | null {
+  if (!row) return null;
+  return {
+    ...row,
+    admin_permissions:
+      row.admin_permissions === undefined || row.admin_permissions === null
+        ? null
+        : parseAdminPermissions(row.admin_permissions),
+  };
+}
+
 function withRolesDefaults<T extends ProfileRow>(
+  rows: T[],
+): (T & { roles: UserRole[]; admin_permissions: AdminPermission[] | null })[] {
+  return withAdminPermissionsDefault(withRolesDefaultsOnly(rows));
+}
+
+function withRolesDefaultsOnly<T extends ProfileRow>(
   rows: T[],
 ): (T & { roles: UserRole[] })[] {
   return rows.map((row) => ({
@@ -48,6 +84,13 @@ function withRolesDefaults<T extends ProfileRow>(
 }
 
 function withRolesDefault<T extends ProfileRow>(
+  row: T | null,
+): (T & { roles: UserRole[]; admin_permissions: AdminPermission[] | null }) | null {
+  if (!row) return null;
+  return withAdminPermissionsDefaultSingle(withRolesDefaultOnly(row));
+}
+
+function withRolesDefaultOnly<T extends ProfileRow>(
   row: T | null,
 ): (T & { roles: UserRole[] }) | null {
   if (!row) return null;
@@ -85,9 +128,24 @@ export async function fetchAdminUsers(supabase: ProfilesClient) {
   if (
     !isMissingLastSeenColumnError(withPresence.error) &&
     !isMissingActivityStatusColumnError(withPresence.error) &&
-    !isMissingRolesColumnError(withPresence.error)
+    !isMissingRolesColumnError(withPresence.error) &&
+    !isMissingAdminPermissionsColumnError(withPresence.error)
   ) {
     return { data: null, error: withPresence.error };
+  }
+
+  if (isMissingAdminPermissionsColumnError(withPresence.error)) {
+    const withoutPermissions = await supabase
+      .from("profiles")
+      .select(ADMIN_USER_SELECT_WITH_PRESENCE.replace(", admin_permissions", ""))
+      .order("created_at", { ascending: false });
+
+    if (!withoutPermissions.error) {
+      return {
+        data: withRolesDefaults((withoutPermissions.data ?? []) as unknown as ProfileRow[]),
+        error: null as PostgrestError | null,
+      };
+    }
   }
 
   const fallback = await supabase
@@ -122,9 +180,25 @@ export async function fetchAdminUserById(supabase: ProfilesClient, id: string) {
   if (
     !isMissingLastSeenColumnError(withPresence.error) &&
     !isMissingActivityStatusColumnError(withPresence.error) &&
-    !isMissingRolesColumnError(withPresence.error)
+    !isMissingRolesColumnError(withPresence.error) &&
+    !isMissingAdminPermissionsColumnError(withPresence.error)
   ) {
     return { data: null, error: withPresence.error };
+  }
+
+  if (isMissingAdminPermissionsColumnError(withPresence.error)) {
+    const withoutPermissions = await supabase
+      .from("profiles")
+      .select(ADMIN_USER_SELECT_WITH_PRESENCE.replace(", admin_permissions", ""))
+      .eq("id", id)
+      .single();
+
+    if (!withoutPermissions.error) {
+      return {
+        data: withRolesDefault(withoutPermissions.data as unknown as ProfileRow | null),
+        error: null as PostgrestError | null,
+      };
+    }
   }
 
   const fallback = await supabase

@@ -4,6 +4,11 @@ import { ensureUserProfile } from "@/lib/supabase/service";
 import { siteConfig } from "@/lib/constants";
 import { isFounderRole, isStaffRole, isCustomerRole, parseUserRoles, type UserRole } from "@/lib/roles";
 import { getRoleCatalogSafe } from "@/lib/roles/catalog-server";
+import {
+  getEffectiveAdminPermissions,
+  hasAdminPermission,
+  type AdminPermission,
+} from "@/lib/roles/permissions";
 
 export type Profile = {
   id: string;
@@ -12,6 +17,7 @@ export type Profile = {
   avatar_url: string | null;
   role: UserRole;
   roles?: UserRole[] | null;
+  admin_permissions?: AdminPermission[] | null;
   company: string | null;
   phone: string | null;
   last_seen_at: string | null;
@@ -123,7 +129,7 @@ export function canManageUsers(
     | UserRole
     | UserRole[]
     | string
-    | { role?: UserRole | string | null; roles?: UserRole[] | string[] | null }
+    | { role?: UserRole | string | null; roles?: UserRole[] | string[] | null; admin_permissions?: AdminPermission[] | null }
     | null
     | undefined,
   profileEmail?: string | null,
@@ -131,6 +137,23 @@ export function canManageUsers(
 ): boolean {
   if (isFounder(role, profileEmail, authEmail)) return true;
   return isStaffRole(role);
+}
+
+export async function getViewerAdminPermissions(profile: Profile): Promise<AdminPermission[]> {
+  const catalog = await getRoleCatalogSafe();
+  return getEffectiveAdminPermissions(profile, catalog, {
+    isFounder: isFounder(profile, profile.email),
+  });
+}
+
+export async function viewerHasAdminPermission(
+  profile: Profile,
+  permission: AdminPermission,
+): Promise<boolean> {
+  const catalog = await getRoleCatalogSafe();
+  return hasAdminPermission(profile, permission, catalog, {
+    isFounder: isFounder(profile, profile.email),
+  });
 }
 
 export async function verifyOwnerApi() {
@@ -191,7 +214,15 @@ export async function verifyUserManagementApi() {
     .eq("id", auth.user!.id)
     .single();
 
-  if (!profile || !canManageUsers(profile, profile.email, auth.user!.email)) {
+  const fullProfile = profile ? ({ ...profile, roles: parseUserRoles(profile) } as Profile) : null;
+  const catalog = await getRoleCatalogSafe();
+
+  if (
+    !fullProfile ||
+    !hasAdminPermission(fullProfile, "users", catalog, {
+      isFounder: isFounder(fullProfile, fullProfile.email, auth.user!.email),
+    })
+  ) {
     return {
       error: "You do not have permission to manage users",
       status: 403 as const,
@@ -204,7 +235,7 @@ export async function verifyUserManagementApi() {
   return {
     supabase: auth.supabase,
     user: auth.user,
-    profile: profile as Profile,
+    profile: fullProfile,
     error: null,
     status: 200 as const,
   };

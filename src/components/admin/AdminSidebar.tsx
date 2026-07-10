@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import type { Profile } from "@/lib/auth";
+import type { RoleDefinition } from "@/lib/roles/catalog";
 import { AdminNavGroups } from "@/components/admin/AdminNavGroups";
 import { AdminProfileCard } from "@/components/admin/AdminProfileCard";
 import { useAdminShell } from "@/components/admin/AdminShellProvider";
@@ -11,10 +12,17 @@ import { cn } from "@/lib/utils";
 
 type AdminSidebarProps = {
   profile: Profile;
+  roleCatalog: RoleDefinition[];
+  isFounder: boolean;
   unreadMessagesCount?: number;
 };
 
-export function AdminSidebar({ profile, unreadMessagesCount = 0 }: AdminSidebarProps) {
+export function AdminSidebar({
+  profile,
+  roleCatalog,
+  isFounder,
+  unreadMessagesCount = 0,
+}: AdminSidebarProps) {
   const { sidebarCollapsed, toggleSidebar } = useAdminShell();
 
   return (
@@ -49,7 +57,13 @@ export function AdminSidebar({ profile, unreadMessagesCount = 0 }: AdminSidebarP
       </div>
 
       <div className="flex-1 overflow-y-auto overscroll-contain px-3 pb-4">
-        <AdminNavGroups unreadMessagesCount={unreadMessagesCount} collapsed={sidebarCollapsed} />
+        <AdminNavGroups
+          unreadMessagesCount={unreadMessagesCount}
+          collapsed={sidebarCollapsed}
+          profile={profile}
+          roleCatalog={roleCatalog}
+          isFounder={isFounder}
+        />
       </div>
 
       <div className="shrink-0 space-y-2 px-3 pb-4 pt-2">

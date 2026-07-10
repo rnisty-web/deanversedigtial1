@@ -3,6 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { adminNavGroups } from "@/components/admin/admin-nav-config";
+import { canAccessAdminHref } from "@/lib/roles/permissions";
+import type { RoleDefinition } from "@/lib/roles/catalog";
+import type { Profile } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 
 function isNavActive(pathname: string, href: string) {
@@ -14,6 +17,9 @@ type AdminNavGroupsProps = {
   className?: string;
   unreadMessagesCount?: number;
   collapsed?: boolean;
+  profile: Profile;
+  roleCatalog: RoleDefinition[];
+  isFounder?: boolean;
 };
 
 export function AdminNavGroups({
@@ -21,12 +27,24 @@ export function AdminNavGroups({
   className,
   unreadMessagesCount = 0,
   collapsed = false,
+  profile,
+  roleCatalog,
+  isFounder = false,
 }: AdminNavGroupsProps) {
   const pathname = usePathname();
 
+  const visibleGroups = adminNavGroups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((link) =>
+        canAccessAdminHref(profile, link.href, roleCatalog, { isFounder }),
+      ),
+    }))
+    .filter((group) => group.items.length > 0);
+
   return (
     <nav className={cn("space-y-4", className)} aria-label="Admin navigation">
-      {adminNavGroups.map((group, groupIndex) => (
+      {visibleGroups.map((group, groupIndex) => (
         <div
           key={group.label || "dashboard"}
           className={cn(groupIndex > 0 && "border-t border-[rgba(201,169,98,0.1)] pt-4")}

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import type { Profile } from "@/lib/auth";
+import type { RoleDefinition } from "@/lib/roles/catalog";
 import { AdminNavGroups } from "@/components/admin/AdminNavGroups";
 import { AdminProfileCard } from "@/components/admin/AdminProfileCard";
 import { AdminSidebarBrand } from "@/components/admin/AdminSidebarBrand";
@@ -13,10 +14,17 @@ import { cn } from "@/lib/utils";
 
 type AdminMobileNavProps = {
   profile: Profile;
+  roleCatalog: RoleDefinition[];
+  isFounder: boolean;
   unreadMessagesCount?: number;
 };
 
-export function AdminMobileNav({ profile, unreadMessagesCount = 0 }: AdminMobileNavProps) {
+export function AdminMobileNav({
+  profile,
+  roleCatalog,
+  isFounder,
+  unreadMessagesCount = 0,
+}: AdminMobileNavProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
@@ -85,6 +93,9 @@ export function AdminMobileNav({ profile, unreadMessagesCount = 0 }: AdminMobile
             <AdminNavGroups
               unreadMessagesCount={unreadMessagesCount}
               onNavigate={() => setOpen(false)}
+              profile={profile}
+              roleCatalog={roleCatalog}
+              isFounder={isFounder}
             />
           </div>
           <div className="shrink-0 space-y-2 px-3 pb-4 pt-2">

@@ -4,6 +4,7 @@ import {
   countUsersWithRole,
   createCustomRoleDefinition,
   fetchRoleCatalog,
+  reorderRoleCatalog,
   revalidateRoleCatalog,
   saveRoleCatalog,
 } from "@/lib/roles/catalog-server";
@@ -13,6 +14,7 @@ import {
   validateNewRoleInput,
   type RoleDefinition,
 } from "@/lib/roles/catalog";
+import { sanitizeAdminPermissions } from "@/lib/roles/permissions";
 
 export async function GET() {
   const auth = await verifyUserManagementApi();
@@ -70,6 +72,8 @@ export async function PATCH(request: Request) {
   const label = body.label !== undefined ? String(body.label).trim() : undefined;
   const color = body.color !== undefined ? normalizeHexColor(String(body.color)) : undefined;
   const isStaff = body.isStaff !== undefined ? Boolean(body.isStaff) : undefined;
+  const permissions =
+    body.permissions !== undefined ? sanitizeAdminPermissions(body.permissions) : undefined;
 
   if (!slug) {
     return NextResponse.json({ error: "Role slug is required" }, { status: 400 });
@@ -91,7 +95,14 @@ export async function PATCH(request: Request) {
     label: label && label.length >= 2 ? label : current.label,
     color: color ?? current.color,
     isStaff: isStaff ?? current.isStaff,
+    permissions: permissions ?? current.permissions,
   };
+
+  if (!next.isStaff) {
+    next.permissions = [];
+  } else if (!next.permissions?.length && isStaff === true) {
+    next.permissions = ["dashboard", "messages"];
+  }
 
   if (next.isSystem && next.slug === "admin" && isStaff === false) {
     return NextResponse.json({ error: "The Founder role must remain a staff role" }, { status: 400 });
@@ -107,6 +118,36 @@ export async function PATCH(request: Request) {
 
   revalidateRoleCatalog();
   return NextResponse.json({ role: next, catalog: getActiveRoleCatalog(updated) });
+}
+
+export async function PUT(request: Request) {
+  const auth = await verifyUserManagementApi();
+  if (auth.error) {
+    return NextResponse.json({ error: auth.error }, { status: auth.status });
+  }
+
+  const body = await request.json();
+  const orderedSlugs = Array.isArray(body.orderedSlugs)
+    ? body.orderedSlugs.map((slug: unknown) => String(slug).trim()).filter(Boolean)
+    : [];
+
+  if (orderedSlugs.length === 0) {
+    return NextResponse.json({ error: "orderedSlugs array is required" }, { status: 400 });
+  }
+
+  const catalog = await fetchRoleCatalog(auth.supabase!);
+  const result = reorderRoleCatalog(catalog, orderedSlugs);
+  if (result.error || !result.catalog) {
+    return NextResponse.json({ error: result.error ?? "Failed to reorder roles" }, { status: 400 });
+  }
+
+  const saveResult = await saveRoleCatalog(auth.supabase!, result.catalog);
+  if (saveResult.error) {
+    return NextResponse.json({ error: saveResult.error }, { status: 500 });
+  }
+
+  revalidateRoleCatalog();
+  return NextResponse.json({ catalog: getActiveRoleCatalog(result.catalog) });
 }
 
 export async function DELETE(request: Request) {

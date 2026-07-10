@@ -22,7 +22,7 @@ export function UsersSidebar({
   roleCatalog,
 }: UsersSidebarProps) {
   const stats = computeUserStats(users);
-  const roleCounts = countUsersByRole(users);
+  const roleCounts = countUsersByRole(users, roleCatalog);
 
   return (
     <aside className="admin-users-sidebar">

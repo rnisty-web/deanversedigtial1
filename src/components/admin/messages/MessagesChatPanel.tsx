@@ -24,6 +24,9 @@ type MessagesChatPanelProps = {
   onOpenDetails?: () => void;
   hidden?: boolean;
   variant?: "admin" | "portal";
+  typingLabel?: string | null;
+  onTyping?: () => void;
+  onStopTyping?: () => void;
 };
 
 export function MessagesChatPanel({
@@ -38,6 +41,9 @@ export function MessagesChatPanel({
   onOpenDetails,
   hidden,
   variant = "admin",
+  typingLabel,
+  onTyping,
+  onStopTyping,
 }: MessagesChatPanelProps) {
   const thread = useMemo(() => {
     if (!conversation) return [];
@@ -109,10 +115,23 @@ export function MessagesChatPanel({
         className="dm-chat-thread"
       />
 
+      {typingLabel ? (
+        <div className="dm-typing-indicator" role="status" aria-live="polite">
+          <span className="dm-typing-dots" aria-hidden>
+            <span />
+            <span />
+            <span />
+          </span>
+          <span>{typingLabel}</span>
+        </div>
+      ) : null}
+
       <MessageComposer
         value={replyContent}
         onChange={onReplyContentChange}
         onSubmit={onSubmit}
+        onTyping={onTyping}
+        onStopTyping={onStopTyping}
         sending={sending}
         error={sendError}
         placeholder={`Message ${counterpartName.split(" ")[0] ?? "team"}…`}

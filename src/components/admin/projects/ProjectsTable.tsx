@@ -57,8 +57,9 @@ function ProjectProgress({ status }: { status: string }) {
 function TeamAvatars({ project }: { project: ProjectRecord }) {
   return (
     <div className="admin-projects-team">
-      <span className="admin-projects-team-avatar">{initials(clientDisplayName(project)).slice(0, 1)}</span>
-      <span className="admin-projects-team-avatar admin-projects-team-avatar-alt">AD</span>
+      <span className="admin-projects-team-avatar" title={clientDisplayName(project)}>
+        {initials(clientDisplayName(project)).slice(0, 2) || "—"}
+      </span>
     </div>
   );
 }
@@ -267,9 +268,13 @@ type ProjectsKanbanProps = {
 
 const KANBAN_COLUMNS = [
   { key: "draft", label: "Draft", match: (p: ProjectRecord) => p.status === "draft" },
-  { key: "in_progress", label: "In Progress", match: (p: ProjectRecord) => isInProgressStatus(p.status) },
-  { key: "on_hold", label: "On Hold", match: (p: ProjectRecord) => p.status === "on_hold" },
   { key: "overdue", label: "Overdue", match: (p: ProjectRecord) => isOverdue(p) },
+  {
+    key: "in_progress",
+    label: "In Progress",
+    match: (p: ProjectRecord) => isInProgressStatus(p.status) && !isOverdue(p),
+  },
+  { key: "on_hold", label: "On Hold", match: (p: ProjectRecord) => p.status === "on_hold" },
   { key: "completed", label: "Completed", match: (p: ProjectRecord) => p.status === "completed" },
   { key: "cancelled", label: "Cancelled", match: (p: ProjectRecord) => p.status === "cancelled" },
 ] as const;

@@ -7,6 +7,8 @@ type MessageComposerProps = {
   value: string;
   onChange: (value: string) => void;
   onSubmit: (e: React.FormEvent) => void;
+  onTyping?: () => void;
+  onStopTyping?: () => void;
   sending?: boolean;
   error?: string | null;
   placeholder?: string;
@@ -18,6 +20,8 @@ export function MessageComposer({
   value,
   onChange,
   onSubmit,
+  onTyping,
+  onStopTyping,
   sending = false,
   error,
   placeholder = "Message",
@@ -37,13 +41,17 @@ export function MessageComposer({
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       if (!value.trim() || sending || disabled) return;
+      onStopTyping?.();
       onSubmit(e as unknown as React.FormEvent);
     }
   }
 
   return (
     <form
-      onSubmit={onSubmit}
+      onSubmit={(e) => {
+        onStopTyping?.();
+        onSubmit(e);
+      }}
       className={cn("dm-composer", variant === "portal" && "dm-composer-portal")}
     >
       <div className="dm-composer-shell">
@@ -53,7 +61,10 @@ export function MessageComposer({
           onChange={(e) => {
             onChange(e.target.value);
             resizeField();
+            if (e.target.value.trim()) onTyping?.();
+            else onStopTyping?.();
           }}
+          onBlur={() => onStopTyping?.()}
           onKeyDown={handleKeyDown}
           rows={1}
           placeholder={placeholder}

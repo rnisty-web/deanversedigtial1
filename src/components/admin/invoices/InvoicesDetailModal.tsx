@@ -10,6 +10,7 @@ import {
   invoiceStatuses,
   joinClientName,
   joinProjectTitle,
+  statusStyle,
 } from "@/lib/invoices/utils";
 
 type InvoicesDetailModalProps = {
@@ -36,6 +37,15 @@ export function InvoicesDetailModal({
       footer={
         invoice ? (
           <div className="flex flex-wrap gap-2">
+            <Button
+              size="sm"
+              variant="secondary"
+              className="admin-btn-ghost"
+              href={`/admin/invoices/${invoice.id}/print`}
+              external
+            >
+              Print / PDF
+            </Button>
             <Button size="sm" variant="secondary" className="admin-btn-ghost" onClick={() => onEdit(invoice)}>
               Edit
             </Button>
@@ -101,7 +111,7 @@ export function InvoicesDetailModal({
             >
               {invoiceStatuses.map((s) => (
                 <option key={s} value={s} className="bg-[var(--admin-bg)]">
-                  {s}
+                  {statusStyle(s).label}
                 </option>
               ))}
             </select>

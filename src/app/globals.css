@@ -234,7 +234,8 @@ body {
 }
 
 /* Content editor uses full main height — hide footer to avoid clipping */
-.admin-theme > .flex.min-h-0.flex-1.flex-col:has(.admin-content-page) > footer {
+.admin-theme > .flex.min-h-0.flex-1.flex-col:has(.admin-content-page) > footer,
+.portal-theme > .flex.min-h-0.flex-1.flex-col:has(.admin-content-page) > footer {
   display: none;
 }
 
@@ -6434,6 +6435,38 @@ body {
 
 .dm-composer-error { margin-top: 0.45rem; font-size: 0.8125rem; color: #f87171; }
 
+.dm-typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 1rem 0.15rem;
+  font-size: 0.75rem;
+  color: var(--admin-text-muted);
+}
+
+.dm-typing-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.dm-typing-dots span {
+  display: block;
+  height: 0.35rem;
+  width: 0.35rem;
+  border-radius: 9999px;
+  background: var(--admin-gold-light);
+  animation: dm-typing-bounce 1.2s ease-in-out infinite;
+}
+
+.dm-typing-dots span:nth-child(2) { animation-delay: 0.15s; }
+.dm-typing-dots span:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes dm-typing-bounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.45; }
+  30% { transform: translateY(-3px); opacity: 1; }
+}
+
 .dm-chat-empty {
   display: flex;
   flex: 1;
@@ -8293,8 +8326,26 @@ body {
 }
 
 @media (min-width: 1024px) {
+  .portal-page-content.portal-messages-page {
+    display: flex;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+    padding-bottom: 1.5rem;
+  }
+
+  .portal-page-content.portal-messages-page > div {
+    display: flex;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+    max-width: none;
+  }
+
   .portal-messages-layout {
     height: min(calc(100dvh - 280px), 720px);
+    flex: 1;
+    min-height: 0;
   }
 }
 

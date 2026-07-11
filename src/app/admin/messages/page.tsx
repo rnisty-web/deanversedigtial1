@@ -15,6 +15,9 @@ import { MessagesChatPanel } from "@/components/admin/messages/MessagesChatPanel
 import { MessagesComposeModal } from "@/components/admin/messages/MessagesComposeModal";
 import { MessagesContactPanel } from "@/components/admin/messages/MessagesContactPanel";
 import { MessagesConversationList } from "@/components/admin/messages/MessagesConversationList";
+import { useMessageRealtime } from "@/hooks/useMessageRealtime";
+import { useTypingIndicator } from "@/hooks/useTypingIndicator";
+import { mergeIncomingMessage } from "@/lib/messages/realtime";
 import type { MessageRecord } from "@/lib/messages/utils";
 import {
   computeMessageStats,
@@ -22,6 +25,7 @@ import {
   getStarredKeys,
   groupConversations,
   profileId,
+  profileName,
   replySubjectForConversation,
   saveStarredKeys,
 } from "@/lib/messages/utils";
@@ -114,6 +118,13 @@ export default function AdminMessagesPage() {
     fetchMessages();
   }, [fetchMessages]);
 
+  useMessageRealtime({
+    userId: adminId,
+    variant: "admin",
+    enabled: !loading,
+    setMessages,
+  });
+
   useEffect(() => {
     async function loadMeta() {
       const [accountRes, clientsRes, projectsRes] = await Promise.all([
@@ -168,6 +179,12 @@ export default function AdminMessagesPage() {
   const selected =
     filtered.find((c) => c.key === selectedKey) ?? filtered[0] ?? null;
 
+  const { typingLabel, notifyTyping, stopTyping } = useTypingIndicator(
+    selected?.key ?? null,
+    adminId,
+    selected ? profileName(selected.counterpart) : undefined,
+  );
+
   useEffect(() => {
     if (filtered.length === 0) {
       setSelectedKey(null);
@@ -186,37 +203,46 @@ export default function AdminMessagesPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps -- reset reply form when conversation changes
   }, [selected?.key]);
 
-  async function markConversationRead(conversationKey: string) {
-    const conversation = conversations.find((c) => c.key === conversationKey);
-    if (!conversation || !adminId) return;
+  const markConversationRead = useCallback(
+    async (conversationKey: string) => {
+      const conversation = conversations.find((c) => c.key === conversationKey);
+      if (!conversation || !adminId) return;
 
-    const unread = conversation.messages.filter((m) => !m.read && m.recipient_id === adminId);
-    if (unread.length === 0) return;
+      const unread = conversation.messages.filter(
+        (m) => !m.read && m.recipient_id === adminId,
+      );
+      if (unread.length === 0) return;
 
-    await Promise.all(
-      unread.map(async (msg) => {
-        const res = await fetch("/api/admin/messages", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          credentials: "same-origin",
-          body: JSON.stringify({ id: msg.id, read: true }),
-        });
-        if (res.ok) {
-          setMessages((prev) =>
-            prev.map((m) => (m.id === msg.id ? { ...m, read: true } : m)),
-          );
-        }
-      }),
-    );
+      await Promise.all(
+        unread.map(async (msg) => {
+          const res = await fetch("/api/admin/messages", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            credentials: "same-origin",
+            body: JSON.stringify({ id: msg.id, read: true }),
+          });
+          if (res.ok) {
+            setMessages((prev) =>
+              prev.map((m) => (m.id === msg.id ? { ...m, read: true } : m)),
+            );
+          }
+        }),
+      );
 
-    router.refresh();
-  }
+      router.refresh();
+    },
+    [adminId, conversations, router],
+  );
 
-  async function handleSelect(key: string) {
+  useEffect(() => {
+    if (!selectedKey) return;
+    void markConversationRead(selectedKey);
+  }, [selectedKey, markConversationRead]);
+
+  function handleSelect(key: string) {
     setSelectedKey(key);
     setMobileChatOpen(true);
     setMobileContactOpen(false);
-    await markConversationRead(key);
   }
 
   function handleToggleStar(key: string) {
@@ -257,8 +283,12 @@ export default function AdminMessagesPage() {
     setSending(false);
 
     if (res.ok) {
+      const data = await res.json().catch(() => ({}));
+      if (data.message) {
+        setMessages((prev) => mergeIncomingMessage(prev, data.message as MessageRecord));
+      }
       setReplyContent("");
-      await fetchMessages();
+      stopTyping();
       setSelectedKey(selected.key);
       return;
     }
@@ -289,12 +319,15 @@ export default function AdminMessagesPage() {
     setComposeSending(false);
 
     if (res.ok) {
+      const data = await res.json().catch(() => ({}));
+      if (data.message) {
+        setMessages((prev) => mergeIncomingMessage(prev, data.message as MessageRecord));
+      }
       setComposeOpen(false);
       setComposeClientId("");
       setComposeProjectId("");
       setComposeSubject("");
       setComposeContent("");
-      await fetchMessages();
       return;
     }
 
@@ -376,6 +409,9 @@ export default function AdminMessagesPage() {
               sendError={sendError}
               onReplyContentChange={setReplyContent}
               onSubmit={handleReply}
+              onTyping={notifyTyping}
+              onStopTyping={stopTyping}
+              typingLabel={typingLabel}
               onBack={() => {
                 setMobileChatOpen(false);
                 setMobileContactOpen(false);

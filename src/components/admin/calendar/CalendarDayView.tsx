@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 import type { CalendarEvent } from "@/lib/calendar/types";
 import {
@@ -15,7 +16,22 @@ type CalendarDayViewProps = {
   onEventClick: (event: CalendarEvent) => void;
 };
 
-const HOURS = Array.from({ length: 13 }, (_, i) => i + 7);
+function buildTimelineHours(dayEvents: CalendarEvent[]) {
+  const timedHours = dayEvents
+    .filter((event) => !event.all_day)
+    .map((event) => new Date(event.starts_at).getHours());
+
+  if (timedHours.length === 0) {
+    return Array.from({ length: 13 }, (_, index) => index + 7);
+  }
+
+  const minHour = Math.min(...timedHours);
+  const maxHour = Math.max(...timedHours);
+  const start = Math.max(0, Math.min(minHour - 1, 7));
+  const end = Math.min(23, Math.max(maxHour + 1, 19));
+
+  return Array.from({ length: end - start + 1 }, (_, index) => start + index);
+}
 
 export function CalendarDayView({
   selectedDate,
@@ -23,6 +39,8 @@ export function CalendarDayView({
   onEventClick,
 }: CalendarDayViewProps) {
   const dayEvents = eventsForDay(events, selectedDate);
+  const hours = useMemo(() => buildTimelineHours(dayEvents), [dayEvents]);
+  const allDayEvents = dayEvents.filter((event) => event.all_day);
 
   return (
     <div className="admin-calendar-day">
@@ -34,11 +52,39 @@ export function CalendarDayView({
           {dayEvents.length} event{dayEvents.length === 1 ? "" : "s"}
         </p>
       </div>
+
+      {allDayEvents.length > 0 ? (
+        <div className="admin-calendar-day-allday mb-4 space-y-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--admin-text-muted)]">
+            All day
+          </p>
+          {allDayEvents.map((event) => {
+            const styles = EVENT_TYPE_STYLES[event.event_type];
+            return (
+              <button
+                key={event.id}
+                type="button"
+                onClick={() => onEventClick(event)}
+                className={cn("admin-calendar-day-event w-full", styles.bg, styles.border)}
+              >
+                <span className={cn("admin-calendar-event-dot", styles.dot)} />
+                <div className="min-w-0 text-left">
+                  <p className={cn("font-medium", styles.text)}>{event.title}</p>
+                  {event.client_name ? (
+                    <p className="text-xs text-[var(--admin-text-muted)]">{event.client_name}</p>
+                  ) : null}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+
       <div className="admin-calendar-day-timeline">
-        {HOURS.map((hour) => {
-          const slotEvents = dayEvents.filter((e) => {
-            if (e.all_day) return hour === 7;
-            return new Date(e.starts_at).getHours() === hour;
+        {hours.map((hour) => {
+          const slotEvents = dayEvents.filter((event) => {
+            if (event.all_day) return false;
+            return new Date(event.starts_at).getHours() === hour;
           });
 
           return (

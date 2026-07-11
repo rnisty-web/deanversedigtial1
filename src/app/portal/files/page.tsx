@@ -6,7 +6,6 @@ import { AdminAlert } from "@/components/admin/AdminAlert";
 import { Button } from "@/components/ui/Button";
 import { PortalPageShell } from "@/components/portal/PortalPageShell";
 import { PortalPageHeader } from "@/components/portal/PortalPageHeader";
-import { PortalPageContent } from "@/components/portal/PortalPageContent";
 import { PortalCard } from "@/components/portal/PortalCard";
 import { cn } from "@/lib/utils";
 
@@ -115,6 +114,7 @@ function PortalFilesInner() {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const autoProjectApplied = useRef(false);
 
   const fetchFiles = useCallback(async () => {
     setLoading(true);
@@ -125,7 +125,8 @@ function PortalFilesInner() {
       const data = await res.json();
       setFiles(data.files ?? []);
       setProjects(data.projects ?? []);
-      if (!projectFilter && data.projects?.length === 1) {
+      if (!projectFilter && data.projects?.length === 1 && !autoProjectApplied.current) {
+        autoProjectApplied.current = true;
         setProjectFilter(data.projects[0].id);
       }
     } else {
@@ -234,8 +235,8 @@ function PortalFilesInner() {
 
       <PortalCard padding="md" className="mb-6">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex flex-1 flex-col gap-3 sm:flex-row">
-            {projects.length > 1 && (
+          <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center">
+            {projects.length > 1 ? (
               <select
                 value={projectFilter}
                 onChange={(e) => setProjectFilter(e.target.value)}
@@ -248,7 +249,12 @@ function PortalFilesInner() {
                   </option>
                 ))}
               </select>
-            )}
+            ) : projects.length === 1 ? (
+              <p className="flex min-h-[44px] items-center text-sm text-[var(--admin-text-muted)]">
+                Project:{" "}
+                <span className="ml-1 font-medium text-[var(--admin-text)]">{projects[0].title}</span>
+              </p>
+            ) : null}
             <input
               type="search"
               placeholder="Search files…"
@@ -379,13 +385,24 @@ export default function PortalFilesPage() {
   return (
     <Suspense
       fallback={
-        <PortalPageContent>
+        <PortalPageShell
+          header={
+            <PortalPageHeader
+              title="Project files"
+              subtitle="Secure deliverables hub — upload assets, download proofs, and share project materials."
+              breadcrumb={[
+                { label: "Dashboard", href: "/portal" },
+                { label: "Files" },
+              ]}
+            />
+          }
+        >
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {Array.from({ length: 3 }).map((_, i) => (
               <div key={i} className="admin-luxury-card h-32 animate-pulse" />
             ))}
           </div>
-        </PortalPageContent>
+        </PortalPageShell>
       }
     >
       <PortalFilesInner />

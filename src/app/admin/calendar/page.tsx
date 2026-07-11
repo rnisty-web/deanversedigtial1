@@ -125,7 +125,7 @@ export default function AdminCalendarPage() {
     [events, typeFilter],
   );
 
-  const stats = useMemo(() => computeCalendarStats(events), [events]);
+  const stats = useMemo(() => computeCalendarStats(filteredEvents), [filteredEvents]);
 
   function goToday() {
     const now = new Date();
@@ -197,6 +197,12 @@ export default function AdminCalendarPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setFormError("");
+
+    if (!form.title.trim()) {
+      setFormError("Enter an event title.");
+      return;
+    }
+
     setSaving(true);
 
     const starts_at = form.all_day
@@ -432,8 +438,10 @@ export default function AdminCalendarPage() {
             onAddEvent={() => openCreate()}
             onEventClick={openEdit}
             onViewAgenda={() => {
-              setViewMode("day");
-              setSelectedDate(new Date());
+              const today = new Date();
+              setViewMode("agenda");
+              setCursorDate(today);
+              setSelectedDate(today);
             }}
             onViewUpcoming={() => setViewMode("agenda")}
           />
@@ -463,7 +471,7 @@ export default function AdminCalendarPage() {
                 <Button type="button" variant="ghost" size="sm" className="admin-btn-ghost" onClick={closeForm}>
                   Cancel
                 </Button>
-                <Button type="submit" form="calendar-event-form" size="sm" className="admin-btn-gold" disabled={saving}>
+                <Button type="submit" form="calendar-event-form" size="sm" className="admin-btn-gold" disabled={saving || !form.title.trim()}>
                   {saving ? "Saving…" : editEvent ? "Update Event" : "Create Event"}
                 </Button>
               </div>

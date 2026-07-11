@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
 type PortalAccountSidebarProps = {
@@ -27,13 +28,25 @@ export function PortalAccountSidebar({
 }: PortalAccountSidebarProps) {
   const displayName = profile.full_name?.trim() || profile.email.split("@")[0] || "Account";
   const initial = displayName[0]?.toUpperCase() ?? "A";
+  const [avatarError, setAvatarError] = useState(false);
+
+  useEffect(() => {
+    setAvatarError(false);
+  }, [profile.avatar_url]);
 
   return (
     <aside className={cn("portal-account-sidebar", className)}>
       <div className="portal-account-sidebar-panel admin-luxury-card p-5">
         <div className="relative mx-auto h-20 w-20 overflow-hidden rounded-2xl border border-[var(--admin-border-subtle)] bg-[var(--admin-panel)]">
-          {profile.avatar_url ? (
-            <Image src={profile.avatar_url} alt={displayName} fill className="object-cover" unoptimized />
+          {profile.avatar_url && !avatarError ? (
+            <Image
+              src={profile.avatar_url}
+              alt={displayName}
+              fill
+              className="object-cover"
+              unoptimized
+              onError={() => setAvatarError(true)}
+            />
           ) : (
             <div className="flex h-full items-center justify-center text-2xl font-semibold text-[var(--admin-gold-light)]">
               {initial}

@@ -30,7 +30,9 @@ import {
   isInDateRange,
   joinClientName,
   joinProjectTitle,
+  monthGrowthHint,
   nextInvoiceNumber,
+  statusStyle,
   allTimeRangeLocal,
 } from "@/lib/invoices/utils";
 import { cn } from "@/lib/utils";
@@ -101,7 +103,6 @@ function AdminInvoicesInner() {
   const [dateTo, setDateTo] = useState(defaultRange.to);
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(8);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const [detailInvoice, setDetailInvoice] = useState<InvoiceRecord | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -196,6 +197,11 @@ function AdminInvoicesInner() {
     return filtered.slice(start, start + perPage);
   }, [filtered, page, perPage]);
 
+  useEffect(() => {
+    const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
+    if (page > totalPages) setPage(totalPages);
+  }, [filtered.length, perPage, page]);
+
   const clientProjects = useMemo(
     () => (form.client_id ? projects.filter((p) => p.client_id === form.client_id) : projects),
     [projects, form.client_id],
@@ -211,6 +217,24 @@ function AdminInvoicesInner() {
       line_items: [emptyLineItem()],
     });
     setShowForm(true);
+  }
+
+  function openQuote() {
+    setEditId(null);
+    const nextNum = nextInvoiceNumber(invoices);
+    setForm({
+      ...emptyInvoiceForm,
+      invoice_number: nextNum.replace(/^INV-/, "QUOTE-"),
+      status: "draft",
+      notes: "Quote — pricing subject to approval.",
+      line_items: [emptyLineItem()],
+    });
+    setShowForm(true);
+  }
+
+  function handleTabChange(tab: string) {
+    setActiveTab(tab);
+    if (tab !== "all") setStatusFilter("all");
   }
 
   function startEdit(invoice: InvoiceRecord) {
@@ -315,23 +339,6 @@ function AdminInvoicesInner() {
     setActionNotice({ tone: "success", text: "Invoice deleted." });
   }
 
-  function toggleSelect(id: string) {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }
-
-  function toggleSelectAll(checked: boolean) {
-    if (!checked) {
-      setSelectedIds(new Set());
-      return;
-    }
-    setSelectedIds(new Set(paginated.map((inv) => inv.id)));
-  }
-
   const formTotal = computeTotal(form.line_items);
 
   return (
@@ -376,11 +383,11 @@ function AdminInvoicesInner() {
           </AdminAlert>
         ) : null}
 
-        <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        <div className="admin-portal-stats-grid mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
           <InvoicesStatCard
             label="Total Invoices"
             value={stats.totalCount}
-            hint={`↑ ${stats.monthGrowth}% this month`}
+            hint={monthGrowthHint(stats.monthGrowth)}
             icon={statIcons.total}
           />
           <InvoicesStatCard
@@ -419,7 +426,7 @@ function AdminInvoicesInner() {
                 <button
                   key={tab.id}
                   type="button"
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => handleTabChange(tab.id)}
                   className={cn(
                     "shrink-0 rounded-full border px-4 py-2 text-sm transition-all",
                     activeTab === tab.id
@@ -437,18 +444,20 @@ function AdminInvoicesInner() {
                 <div className="flex flex-wrap items-center gap-2">
                   <InvoicesSelect value={clientFilter} onChange={setClientFilter} options={clientOptions} />
                   <InvoicesSelect value={projectFilter} onChange={setProjectFilter} options={projectOptions} />
-                  <InvoicesSelect
-                    value={statusFilter}
-                    onChange={setStatusFilter}
-                    options={[
-                      { value: "all", label: "All Status" },
-                      { value: "draft", label: "Draft" },
-                      { value: "sent", label: "Pending" },
-                      { value: "paid", label: "Paid" },
-                      { value: "overdue", label: "Overdue" },
-                      { value: "cancelled", label: "Cancelled" },
-                    ]}
-                  />
+                  {activeTab === "all" ? (
+                    <InvoicesSelect
+                      value={statusFilter}
+                      onChange={setStatusFilter}
+                      options={[
+                        { value: "all", label: "All Status" },
+                        { value: "draft", label: "Draft" },
+                        { value: "sent", label: "Pending" },
+                        { value: "paid", label: "Paid" },
+                        { value: "overdue", label: "Overdue" },
+                        { value: "cancelled", label: "Cancelled" },
+                      ]}
+                    />
+                  ) : null}
                   <div className="admin-invoices-date-range">
                     <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="admin-invoices-date-input" />
                     <span className="text-xs text-[var(--admin-text-muted)]">–</span>
@@ -472,9 +481,6 @@ function AdminInvoicesInner() {
             <InvoicesTable
               invoices={paginated}
               loading={loading}
-              selectedIds={selectedIds}
-              onToggleSelect={toggleSelect}
-              onToggleSelectAll={toggleSelectAll}
               onView={setDetailInvoice}
               onEdit={startEdit}
               onDelete={deleteInvoice}
@@ -492,7 +498,12 @@ function AdminInvoicesInner() {
             )}
           </div>
 
-          <InvoicesSidebar invoices={invoices} onNewInvoice={() => openCreate()} onExport={() => exportInvoicesCsv(filtered)} />
+          <InvoicesSidebar
+            invoices={invoices}
+            onNewInvoice={() => openCreate()}
+            onCreateQuote={openQuote}
+            onExport={() => exportInvoicesCsv(filtered)}
+          />
         </div>
       </AdminPageContent>
 
@@ -560,11 +571,11 @@ function AdminInvoicesInner() {
             <div>
               <label className="mb-1.5 block text-sm font-medium text-[var(--admin-text-muted)]">Status</label>
               <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className="admin-input w-full text-sm">
-                <option value="draft" className="bg-[var(--admin-bg)]">draft</option>
-                <option value="sent" className="bg-[var(--admin-bg)]">sent</option>
-                <option value="paid" className="bg-[var(--admin-bg)]">paid</option>
-                <option value="overdue" className="bg-[var(--admin-bg)]">overdue</option>
-                <option value="cancelled" className="bg-[var(--admin-bg)]">cancelled</option>
+                {["draft", "sent", "paid", "overdue", "cancelled"].map((s) => (
+                  <option key={s} value={s} className="bg-[var(--admin-bg)]">
+                    {statusStyle(s).label}
+                  </option>
+                ))}
               </select>
             </div>
           </div>

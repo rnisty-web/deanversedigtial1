@@ -10,23 +10,23 @@ import { PortalModal } from "@/components/portal/PortalModal";
 import { PortalPageShell } from "@/components/portal/PortalPageShell";
 import { PortalPageHeader } from "@/components/portal/PortalPageHeader";
 import { PortalCard } from "@/components/portal/PortalCard";
+import { useMessageRealtime } from "@/hooks/useMessageRealtime";
+import { useTypingIndicator } from "@/hooks/useTypingIndicator";
+import { mergeIncomingMessage } from "@/lib/messages/realtime";
 import type { MessageRecord } from "@/lib/messages/utils";
 import {
   groupConversations,
+  profileName,
   replySubjectForConversation,
 } from "@/lib/messages/utils";
 import type { PortalMessageRecipient } from "@/lib/portal/message-recipients";
 
 import { cn } from "@/lib/utils";
 
-type PortalMessage = MessageRecord & {
-  recipient?: { full_name: string | null; email?: string };
-};
-
 type Project = { id: string; title: string };
 
 export default function PortalMessagesPage() {
-  const [messages, setMessages] = useState<PortalMessage[]>([]);
+  const [messages, setMessages] = useState<MessageRecord[]>([]);
   const [recipients, setRecipients] = useState<PortalMessageRecipient[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
@@ -83,6 +83,13 @@ export default function PortalMessagesPage() {
     fetchMessages();
   }, [fetchMessages]);
 
+  useMessageRealtime({
+    userId,
+    variant: "portal",
+    enabled: !loading,
+    setMessages,
+  });
+
   const conversations = useMemo(
     () => groupConversations(messages, userId),
     [messages, userId],
@@ -101,6 +108,12 @@ export default function PortalMessagesPage() {
     filtered[0] ??
     null;
 
+  const { typingLabel, notifyTyping, stopTyping } = useTypingIndicator(
+    selected?.key ?? null,
+    userId,
+    selected ? profileName(selected.counterpart) : undefined,
+  );
+
   useEffect(() => {
     if (filtered.length === 0) {
       setSelectedKey(null);
@@ -117,34 +130,41 @@ export default function PortalMessagesPage() {
     setSendError(null);
   }, [selected]);
 
-  async function markConversationRead(conversationKey: string) {
-    const conversation = conversations.find((item) => item.key === conversationKey);
-    if (!conversation || !userId) return;
+  const markConversationRead = useCallback(
+    async (conversationKey: string) => {
+      const conversation = conversations.find((item) => item.key === conversationKey);
+      if (!conversation || !userId) return;
 
-    const unread = conversation.messages.filter(
-      (message) => !message.read && message.recipient_id === userId,
-    );
-    if (unread.length === 0) return;
-
-    const unreadIds = unread.map((message) => message.id);
-    const res = await fetch("/api/portal/messages", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      credentials: "same-origin",
-      body: JSON.stringify({ ids: unreadIds, read: true }),
-    });
-
-    if (res.ok) {
-      setMessages((prev) =>
-        prev.map((item) => (unreadIds.includes(item.id) ? { ...item, read: true } : item)),
+      const unread = conversation.messages.filter(
+        (message) => !message.read && message.recipient_id === userId,
       );
-    }
-  }
+      if (unread.length === 0) return;
 
-  async function handleSelect(key: string) {
+      const unreadIds = unread.map((message) => message.id);
+      const res = await fetch("/api/portal/messages", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({ ids: unreadIds, read: true }),
+      });
+
+      if (res.ok) {
+        setMessages((prev) =>
+          prev.map((item) => (unreadIds.includes(item.id) ? { ...item, read: true } : item)),
+        );
+      }
+    },
+    [conversations, userId],
+  );
+
+  useEffect(() => {
+    if (!selectedKey) return;
+    void markConversationRead(selectedKey);
+  }, [selectedKey, markConversationRead]);
+
+  function handleSelect(key: string) {
     setSelectedKey(key);
     setMobileChatOpen(true);
-    await markConversationRead(key);
   }
 
   async function handleReply(e: React.FormEvent) {
@@ -169,8 +189,12 @@ export default function PortalMessagesPage() {
     setSending(false);
 
     if (res.ok) {
+      const data = await res.json().catch(() => ({}));
+      if (data.message) {
+        setMessages((prev) => mergeIncomingMessage(prev, data.message as MessageRecord));
+      }
       setReplyContent("");
-      await fetchMessages();
+      stopTyping();
       setSelectedKey(selected.key);
       return;
     }
@@ -201,13 +225,16 @@ export default function PortalMessagesPage() {
     setComposeSending(false);
 
     if (res.ok) {
+      const data = await res.json().catch(() => ({}));
+      if (data.message) {
+        setMessages((prev) => mergeIncomingMessage(prev, data.message as MessageRecord));
+      }
       setShowCompose(false);
       setSubject("");
       setContent("");
       setProjectId("");
       const defaultRecipient = recipients.find((item) => item.is_default) ?? recipients[0];
       setRecipientId(defaultRecipient?.id ?? "");
-      await fetchMessages();
       return;
     }
 
@@ -228,7 +255,7 @@ export default function PortalMessagesPage() {
   return (
     <PortalPageShell
       className="flex min-h-0 flex-1 flex-col"
-      contentClassName="portal-messages-page flex min-h-0 flex-1 flex-col"
+      contentClassName="portal-messages-page admin-messages-content flex min-h-0 flex-1 flex-col"
       header={
         <PortalPageHeader
           title="Messages"
@@ -305,6 +332,9 @@ export default function PortalMessagesPage() {
             sendError={sendError}
             onReplyContentChange={setReplyContent}
             onSubmit={handleReply}
+            onTyping={notifyTyping}
+            onStopTyping={stopTyping}
+            typingLabel={typingLabel}
             onBack={() => setMobileChatOpen(false)}
             hidden={!mobileChatOpen}
             variant="portal"

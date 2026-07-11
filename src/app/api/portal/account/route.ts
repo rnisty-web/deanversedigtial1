@@ -123,5 +123,12 @@ export async function PATCH(request: Request) {
     }
   }
 
-  return NextResponse.json({ profile, emailConfirmationRequired });
+  let client: { id: string; name: string; company: string | null } | null = null;
+  const userEmail = auth.user!.email ?? auth.profile!.email;
+  const resolved = await resolvePortalClient(auth.supabase!, auth.user!.id, userEmail);
+  if (resolved) {
+    client = { id: resolved.id, name: resolved.name, company: resolved.company };
+  }
+
+  return NextResponse.json({ profile, client, emailConfirmationRequired });
 }

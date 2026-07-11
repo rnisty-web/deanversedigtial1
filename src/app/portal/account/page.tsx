@@ -20,6 +20,7 @@ type Client = {
 type Profile = {
   full_name: string | null;
   email: string;
+  phone: string | null;
   avatar_url: string | null;
 };
 
@@ -38,6 +39,7 @@ export default function PortalAccountPage() {
   const [phone, setPhone] = useState("");
   const [company, setCompany] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
+  const [avatarError, setAvatarError] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
 
@@ -60,13 +62,19 @@ export default function PortalAccountPage() {
     const res = await fetch("/api/portal/account", { credentials: "same-origin" });
     if (res.ok) {
       const data = await res.json();
-      setClient(data.client);
-      setProfile(data.profile);
-      setFullName(data.profile.full_name ?? "");
-      setEmail(data.profile.email ?? "");
-      setPhone(data.profile.phone ?? "");
-      setCompany(data.client?.company ?? "");
-      setAvatarUrl(data.profile.avatar_url ?? "");
+      const profileData = data.profile ?? null;
+      const clientData = data.client ?? null;
+      setClient(clientData);
+      setProfile(profileData);
+      if (profileData) {
+        setFullName(profileData.full_name ?? "");
+        setEmail(profileData.email ?? "");
+        setPhone(profileData.phone ?? "");
+        setAvatarUrl(profileData.avatar_url ?? "");
+      }
+      if (clientData) {
+        setCompany(clientData.company ?? "");
+      }
     } else {
       const data = await res.json().catch(() => ({}));
       setLoadError(data.error ?? "Failed to load account settings");
@@ -77,6 +85,10 @@ export default function PortalAccountPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    setAvatarError(false);
+  }, [avatarUrl]);
 
   async function saveProfile(e: React.FormEvent) {
     e.preventDefault();
@@ -100,7 +112,17 @@ export default function PortalAccountPage() {
     const data = await res.json().catch(() => ({}));
 
     if (res.ok) {
-      setProfile(data.profile);
+      if (data.profile) {
+        setProfile(data.profile);
+        setFullName(data.profile.full_name ?? "");
+        setEmail(data.profile.email ?? "");
+        setPhone(data.profile.phone ?? "");
+        setAvatarUrl(data.profile.avatar_url ?? "");
+      }
+      if (data.client) {
+        setClient(data.client);
+        setCompany(data.client.company ?? "");
+      }
       setMessage({
         tone: data.emailConfirmationRequired ? "info" : "success",
         text: data.emailConfirmationRequired
@@ -185,8 +207,15 @@ export default function PortalAccountPage() {
               <form onSubmit={saveProfile} className="mt-6 space-y-4">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
                   <div className="relative h-16 w-16 overflow-hidden rounded-2xl border border-[var(--admin-border-subtle)] bg-[var(--admin-panel)]">
-                    {avatarUrl ? (
-                      <Image src={avatarUrl} alt="" fill className="object-cover" unoptimized />
+                    {avatarUrl && !avatarError ? (
+                      <Image
+                        src={avatarUrl}
+                        alt=""
+                        fill
+                        className="object-cover"
+                        unoptimized
+                        onError={() => setAvatarError(true)}
+                      />
                     ) : (
                       <div className="flex h-full items-center justify-center text-xl text-[var(--admin-gold-light)]">
                         {(fullName || email || "?")[0]?.toUpperCase()}
@@ -266,7 +295,14 @@ export default function PortalAccountPage() {
             className="hidden lg:block"
           />
         </div>
-      ) : null}
+      ) : (
+        <AdminAlert tone="warning">
+          Account profile is not available yet.{" "}
+          <button type="button" className="underline" onClick={() => void load()}>
+            Try again
+          </button>
+        </AdminAlert>
+      )}
     </PortalPageShell>
   );
 }

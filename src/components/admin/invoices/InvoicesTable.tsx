@@ -44,9 +44,6 @@ function getMenuPosition(button: HTMLElement) {
 type InvoicesTableProps = {
   invoices: InvoiceRecord[];
   loading: boolean;
-  selectedIds: Set<string>;
-  onToggleSelect: (id: string) => void;
-  onToggleSelectAll: (checked: boolean) => void;
   onView: (invoice: InvoiceRecord) => void;
   onEdit: (invoice: InvoiceRecord) => void;
   onDelete: (id: string) => void;
@@ -56,9 +53,6 @@ type InvoicesTableProps = {
 export function InvoicesTable({
   invoices,
   loading,
-  selectedIds,
-  onToggleSelect,
-  onToggleSelectAll,
   onView,
   onEdit,
   onDelete,
@@ -66,7 +60,6 @@ export function InvoicesTable({
 }: InvoicesTableProps) {
   const [menuState, setMenuState] = useState<MenuState | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
-  const allSelected = invoices.length > 0 && invoices.every((inv) => selectedIds.has(inv.id));
 
   useFloatingMenuDismiss(Boolean(menuState), menuRef, () => setMenuState(null));
 
@@ -87,15 +80,6 @@ export function InvoicesTable({
         <table className="admin-invoices-table w-full min-w-[960px] text-sm">
           <thead>
             <tr className="text-left text-[10px] uppercase tracking-[0.14em] text-[var(--admin-text-muted)]">
-              <th className="w-10 px-4 py-3">
-                <input
-                  type="checkbox"
-                  checked={allSelected}
-                  onChange={(e) => onToggleSelectAll(e.target.checked)}
-                  aria-label="Select all invoices"
-                  className="rounded border-[var(--admin-border-subtle)]"
-                />
-              </th>
               <th className="px-4 py-3 font-semibold">Invoice</th>
               <th className="px-4 py-3 font-semibold">Client</th>
               <th className="px-4 py-3 font-semibold">Project</th>
@@ -111,15 +95,6 @@ export function InvoicesTable({
               const clientName = joinClientName(invoice.clients);
               return (
                 <tr key={invoice.id} className="admin-invoices-table-row">
-                  <td className="px-4 py-3">
-                    <input
-                      type="checkbox"
-                      checked={selectedIds.has(invoice.id)}
-                      onChange={() => onToggleSelect(invoice.id)}
-                      aria-label={`Select ${invoice.invoice_number}`}
-                      className="rounded border-[var(--admin-border-subtle)]"
-                    />
-                  </td>
                   <td className="px-4 py-3">
                     <button
                       type="button"
@@ -165,7 +140,7 @@ export function InvoicesTable({
                         type="button"
                         className="admin-invoices-action-btn"
                         aria-label={`Download ${invoice.invoice_number}`}
-                        onClick={() => window.open(`/portal/invoices/${invoice.id}/print`, "_blank", "noopener,noreferrer")}
+                        onClick={() => window.open(`/admin/invoices/${invoice.id}/print`, "_blank", "noopener,noreferrer")}
                       >
                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />

@@ -237,7 +237,7 @@ export default function AdminAnalyticsPage() {
               <AnalyticsInsights insights={data.insights} />
             </DashboardWidget>
 
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-8">
+            <div className="admin-portal-stats-grid grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
               <AnalyticsKpiCard
                 label="Total Visitors"
                 value={data.totalVisitors.toLocaleString()}

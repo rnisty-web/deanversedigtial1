@@ -49,7 +49,8 @@ export async function GET() {
     auth.supabase!
       .from("projects")
       .select("id, title, deadline, status, clients(name)")
-      .not("deadline", "is", null),
+      .not("deadline", "is", null)
+      .not("status", "in", '("completed","cancelled")'),
   ]);
 
   if (eventsError) {

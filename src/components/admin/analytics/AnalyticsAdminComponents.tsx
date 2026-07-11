@@ -81,7 +81,7 @@ export function AnalyticsAdminHeader({
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
               </svg>
-              {exporting ? "Exporting…" : "Export Report"}
+              {exporting ? "Exporting…" : "Export JSON"}
             </button>
           </div>
         </div>
@@ -105,7 +105,7 @@ export function AnalyticsAdminHeader({
             ))}
           </div>
           <div className="w-full max-w-md lg:w-auto lg:min-w-[280px]">
-            <AdminSearchField value={search} onChange={onSearchChange} placeholder="Search metrics & pages…" />
+            <AdminSearchField value={search} onChange={onSearchChange} placeholder="Search tables & pages…" />
           </div>
         </div>
       </div>
@@ -133,7 +133,7 @@ export function AnalyticsKpiCard({
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-[11px] font-medium uppercase tracking-wider text-[var(--admin-text-muted)]">{label}</p>
-          <p className="mt-1 text-2xl font-bold tabular-nums text-[var(--admin-text)]">{value}</p>
+          <p className="mt-1 text-2xl font-bold tabular-nums text-[var(--admin-gold-light)]">{value}</p>
           <p className={cn("mt-1.5 text-xs font-semibold", positive ? "admin-trend-up" : "text-[var(--admin-danger)]")}>
             {change >= 0 ? "↑" : "↓"} {Math.abs(change)}% vs previous period
           </p>

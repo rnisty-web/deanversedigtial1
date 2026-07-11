@@ -109,15 +109,29 @@ export function allTimeRangeLocal() {
   const now = new Date();
   const from = new Date(2000, 0, 1);
   const to = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-  return {
-    from: from.toISOString().slice(0, 10),
-    to: to.toISOString().slice(0, 10),
-  };
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const fmt = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  return { from: fmt(from), to: fmt(to) };
 }
 
 export function isInDateRange(dateStr: string, from: string, to: string) {
   const day = dateStr.slice(0, 10);
   return day >= from && day <= to;
+}
+
+export function isInvoiceOverdue(invoice: InvoiceRecord) {
+  if (invoice.status === "paid" || invoice.status === "cancelled" || invoice.status === "draft") {
+    return false;
+  }
+  if (invoice.status === "overdue") return true;
+  if (!invoice.due_date) return false;
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+  return invoice.due_date.slice(0, 10) < todayStr && invoice.status === "sent";
+}
+
+export function monthGrowthHint(growth: number) {
+  return `${growth >= 0 ? "↑" : "↓"} ${Math.abs(growth)}% this month`;
 }
 
 export function computeInvoiceStats(invoices: InvoiceRecord[]): InvoiceStats {
@@ -144,8 +158,8 @@ export function computeInvoiceStats(invoices: InvoiceRecord[]): InvoiceStats {
   invoices.forEach((inv) => {
     const amount = Number(inv.amount) || 0;
     if (inv.status === "paid") paidAmount += amount;
+    else if (isInvoiceOverdue(inv)) overdueAmount += amount;
     else if (inv.status === "sent") pendingAmount += amount;
-    else if (inv.status === "overdue") overdueAmount += amount;
     else if (inv.status === "draft") draftAmount += amount;
   });
 
@@ -211,7 +225,10 @@ export function tabForStatus(status: string) {
 
 export function filterByTab(invoice: InvoiceRecord, tab: string) {
   if (tab === "all") return true;
-  if (tab === "pending") return invoice.status === "sent";
+  if (tab === "pending") return invoice.status === "sent" && !isInvoiceOverdue(invoice);
+  if (tab === "overdue") return isInvoiceOverdue(invoice);
+  if (tab === "paid") return invoice.status === "paid";
+  if (tab === "draft") return invoice.status === "draft";
   return invoice.status === tab;
 }
 

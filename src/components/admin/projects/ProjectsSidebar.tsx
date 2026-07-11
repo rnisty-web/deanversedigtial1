@@ -153,8 +153,7 @@ export function ProjectsSidebar({ projects, onNewProject, onExport }: ProjectsSi
           <div className="admin-projects-quick-actions">
             <button type="button" onClick={onNewProject} className="admin-projects-quick-btn">+ New Project</button>
             <Link href="/admin/portfolio" className="admin-projects-quick-btn">Project Templates</Link>
-            <button type="button" onClick={onExport} className="admin-projects-quick-btn">Import Project</button>
-            <button type="button" onClick={onExport} className="admin-projects-quick-btn">Project Report</button>
+            <button type="button" onClick={onExport} className="admin-projects-quick-btn">Export CSV</button>
           </div>
         </section>
       </div>

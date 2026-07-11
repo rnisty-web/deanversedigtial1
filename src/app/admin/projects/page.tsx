@@ -297,7 +297,7 @@ function AdminProjectsInner() {
           </AdminAlert>
         )}
 
-        <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+        <div className="admin-portal-stats-grid mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           <ProjectsStatCard label="Total Projects" value={stats.total} hint={monthGrowthHint(scopedProjects)} icon={statIcons.total} />
           <ProjectsStatCard label="In Progress" value={stats.inProgress} hint={monthGrowthHint(scopedProjects, (p) => isInProgressStatus(p.status))} icon={statIcons.inProgress} />
           <ProjectsStatCard label="Completed" value={stats.completed} hint={monthGrowthHint(scopedProjects, (p) => p.status === "completed")} icon={statIcons.completed} />

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useMemo } from "react";
 import { StatsChart } from "@/components/admin/StatsChart";
 import type { InvoiceRecord } from "@/lib/invoices/utils";
-import { buildActivityFeed, formatRelativeTime, pct, statusStyle } from "@/lib/invoices/utils";
+import { buildActivityFeed, formatRelativeTime, isInvoiceOverdue, pct, statusStyle } from "@/lib/invoices/utils";
 
 const OVERVIEW_COLORS = ["#34d399", "#c9a962", "#ef4444", "#9ca3af"];
 const OVERVIEW_KEYS = ["paid", "sent", "overdue", "draft"] as const;
@@ -12,16 +12,17 @@ const OVERVIEW_KEYS = ["paid", "sent", "overdue", "draft"] as const;
 type InvoicesSidebarProps = {
   invoices: InvoiceRecord[];
   onNewInvoice: () => void;
+  onCreateQuote: () => void;
   onExport: () => void;
 };
 
-export function InvoicesSidebar({ invoices, onNewInvoice, onExport }: InvoicesSidebarProps) {
+export function InvoicesSidebar({ invoices, onNewInvoice, onCreateQuote, onExport }: InvoicesSidebarProps) {
   const overview = useMemo(() => {
     const labels = ["Paid", "Pending", "Overdue", "Draft"];
     const data = [
       invoices.filter((i) => i.status === "paid").length,
-      invoices.filter((i) => i.status === "sent").length,
-      invoices.filter((i) => i.status === "overdue").length,
+      invoices.filter((i) => i.status === "sent" && !isInvoiceOverdue(i)).length,
+      invoices.filter((i) => isInvoiceOverdue(i)).length,
       invoices.filter((i) => i.status === "draft").length,
     ];
     return { labels, data, total: invoices.length };
@@ -94,7 +95,7 @@ export function InvoicesSidebar({ invoices, onNewInvoice, onExport }: InvoicesSi
             <button type="button" className="admin-invoices-quick-btn" onClick={onNewInvoice}>
               + New Invoice
             </button>
-            <button type="button" className="admin-invoices-quick-btn" onClick={onNewInvoice}>
+            <button type="button" className="admin-invoices-quick-btn" onClick={onCreateQuote}>
               Create Quote
             </button>
             <button type="button" className="admin-invoices-quick-btn" onClick={onExport}>

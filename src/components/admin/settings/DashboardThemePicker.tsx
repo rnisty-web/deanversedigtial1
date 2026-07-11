@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { AdminAlert } from "@/components/admin/AdminAlert";
 import {
   applyDashboardThemeToDocument,
+  DASHBOARD_THEMES,
   type DashboardThemeDefinition,
   type DashboardThemeId,
 } from "@/lib/settings/dashboard-theme";
@@ -77,23 +78,35 @@ function ThemePreviewCard({
 }
 
 export function DashboardThemePicker({ initialTheme }: { initialTheme: DashboardThemeId }) {
-  const [themes, setThemes] = useState<DashboardThemeDefinition[]>([]);
+  // Seed from the local catalog so the grid always renders, even if the
+  // settings fetch fails; the API response can refresh it afterwards.
+  const [themes, setThemes] = useState<DashboardThemeDefinition[]>(DASHBOARD_THEMES);
   const [activeTheme, setActiveTheme] = useState<DashboardThemeId>(initialTheme);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/admin/settings/dashboard-theme", { credentials: "same-origin" })
-      .then((res) => res.json())
-      .then((data) => {
+    void (async () => {
+      try {
+        const res = await fetch("/api/admin/settings/dashboard-theme", {
+          credentials: "same-origin",
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          setError(data.error ?? "Could not load your saved theme — showing defaults.");
+          return;
+        }
+        const data = await res.json();
         if (data.themes) setThemes(data.themes);
         if (data.theme) {
           setActiveTheme(data.theme);
           applyDashboardThemeToDocument(data.theme);
         }
-      })
-      .catch(() => undefined);
+      } catch {
+        setError("Could not load your saved theme — showing defaults.");
+      }
+    })();
   }, []);
 
   async function handleSelect(theme: DashboardThemeId) {

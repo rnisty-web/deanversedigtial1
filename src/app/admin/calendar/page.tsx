@@ -90,6 +90,7 @@ export default function AdminCalendarPage() {
   const [form, setForm] = useState(emptyForm);
   const [formError, setFormError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [seeding, setSeeding] = useState(false);
 
   const fetchEvents = useCallback(async () => {
@@ -247,12 +248,14 @@ export default function AdminCalendarPage() {
   }
 
   async function deleteEvent() {
-    if (!editEvent) return;
+    if (!editEvent || deleting) return;
     if (!confirm("Delete this event?")) return;
+    setDeleting(true);
     const res = await fetch(`/api/admin/calendar?id=${editEvent.id}`, {
       method: "DELETE",
       credentials: "same-origin",
     });
+    setDeleting(false);
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
       setFormError(data.error ?? "Failed to delete event");
@@ -461,8 +464,9 @@ export default function AdminCalendarPage() {
                   size="sm"
                   className="text-red-300"
                   onClick={deleteEvent}
+                  disabled={deleting}
                 >
-                  Delete
+                  {deleting ? "Deleting…" : "Delete"}
                 </Button>
               ) : (
                 <span />

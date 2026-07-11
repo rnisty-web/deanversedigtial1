@@ -30,7 +30,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ messages: messages ?? [] });
+  return NextResponse.json({ userId: auth.user!.id, messages: messages ?? [] });
 }
 
 async function resolveRecipientProfileId(

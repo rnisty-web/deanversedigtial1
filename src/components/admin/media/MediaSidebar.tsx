@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { StatsChart } from "@/components/admin/StatsChart";
+import { getAdminChartPalette } from "@/lib/admin/theme-colors";
 import { cn } from "@/lib/utils";
 import type { MediaFile, MediaFolder } from "@/lib/media/utils";
 import {
@@ -14,7 +15,10 @@ import {
   timeAgo,
 } from "@/lib/media/utils";
 
-const TYPE_COLORS = ["#34d399", "#c9a962", "#60a5fa", "#9ca3af"];
+function typeColors() {
+  const palette = getAdminChartPalette();
+  return ["#34d399", palette.gold, "#60a5fa", "#9ca3af"];
+}
 
 type MediaSidebarProps = {
   files: MediaFile[];
@@ -33,6 +37,7 @@ export function MediaSidebar({
   onUploadClick,
   onDropFiles,
 }: MediaSidebarProps) {
+  const TYPE_COLORS = typeColors();
   const totalBytes = files.reduce((sum, f) => sum + (f.size || 0), 0);
   const usedPct = Math.min(100, Math.round((totalBytes / STORAGE_LIMIT_BYTES) * 100));
   const remaining = Math.max(0, STORAGE_LIMIT_BYTES - totalBytes);

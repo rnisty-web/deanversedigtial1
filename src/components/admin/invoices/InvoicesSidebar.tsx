@@ -3,10 +3,14 @@
 import Link from "next/link";
 import { useMemo } from "react";
 import { StatsChart } from "@/components/admin/StatsChart";
+import { getAdminChartPalette } from "@/lib/admin/theme-colors";
 import type { InvoiceRecord } from "@/lib/invoices/utils";
 import { buildActivityFeed, formatRelativeTime, isInvoiceOverdue, pct, statusStyle } from "@/lib/invoices/utils";
 
-const OVERVIEW_COLORS = ["#34d399", "#c9a962", "#ef4444", "#9ca3af"];
+function overviewColors() {
+  const palette = getAdminChartPalette();
+  return ["#34d399", palette.gold, "#ef4444", "#9ca3af"];
+}
 const OVERVIEW_KEYS = ["paid", "sent", "overdue", "draft"] as const;
 
 type InvoicesSidebarProps = {
@@ -17,6 +21,7 @@ type InvoicesSidebarProps = {
 };
 
 export function InvoicesSidebar({ invoices, onNewInvoice, onCreateQuote, onExport }: InvoicesSidebarProps) {
+  const OVERVIEW_COLORS = overviewColors();
   const overview = useMemo(() => {
     const labels = ["Paid", "Pending", "Overdue", "Draft"];
     const data = [

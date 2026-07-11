@@ -201,6 +201,11 @@ export default function AdminPortfolioPage() {
     return filtered.slice(start, start + perPage);
   }, [filtered, page, perPage]);
 
+  useEffect(() => {
+    const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
+    if (page > totalPages) setPage(totalPages);
+  }, [filtered.length, perPage, page]);
+
   function openCreate() {
     setEditId(null);
     setForm(emptyForm);
@@ -437,11 +442,11 @@ export default function AdminPortfolioPage() {
           </AdminAlert>
         )}
 
-        <div className="mb-6 rounded-xl border border-[#6f8f72]/20 bg-[#6f8f72]/5 px-4 py-3 text-sm text-[var(--admin-text-muted)]">
-          <strong className="text-[#a3c9a8]">Homepage:</strong> shows up to 3 projects that are both{" "}
-          <strong className="text-[#a3c9a8]">Published</strong> and{" "}
-          <strong className="text-[#a3c9a8]">Featured</strong>. You currently have{" "}
-          <strong className="text-[#a3c9a8]">{homepageFeaturedCount}</strong> homepage-ready project
+        <div className="mb-6 rounded-xl border border-[var(--admin-emerald)]/20 bg-[var(--admin-emerald)]/5 px-4 py-3 text-sm text-[var(--admin-text-muted)]">
+          <strong className="text-[color-mix(in_srgb,var(--admin-emerald)_55%,white)]">Homepage:</strong> shows up to 3 projects that are both{" "}
+          <strong className="text-[color-mix(in_srgb,var(--admin-emerald)_55%,white)]">Published</strong> and{" "}
+          <strong className="text-[color-mix(in_srgb,var(--admin-emerald)_55%,white)]">Featured</strong>. You currently have{" "}
+          <strong className="text-[color-mix(in_srgb,var(--admin-emerald)_55%,white)]">{homepageFeaturedCount}</strong> homepage-ready project
           {homepageFeaturedCount === 1 ? "" : "s"}. Lower sort order appears first.
         </div>
 

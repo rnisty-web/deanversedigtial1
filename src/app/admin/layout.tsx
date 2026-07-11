@@ -10,6 +10,7 @@ import { AdminPageTransition } from "@/components/admin/AdminPageTransition";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { PresenceHeartbeat } from "@/components/admin/PresenceHeartbeat";
+import { CursorGlow } from "@/components/ui/CursorGlow";
 import { getDashboardThemeSafe } from "@/lib/settings/dashboard-theme-server";
 import type { Metadata } from "next";
 
@@ -48,6 +49,7 @@ export default async function AdminLayout({
         className={`admin-theme ${adminSerif.variable} flex h-dvh min-h-dvh overflow-hidden`}
         data-dashboard-theme={dashboardTheme}
       >
+        <CursorGlow />
         <AdminSidebar
           profile={profile}
           roleCatalog={roleCatalog}

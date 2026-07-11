@@ -116,6 +116,11 @@ export default function AdminMediaPage() {
     return filtered.slice(start, start + perPage);
   }, [filtered, page, perPage]);
 
+  useEffect(() => {
+    const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
+    if (page > totalPages) setPage(totalPages);
+  }, [filtered.length, perPage, page]);
+
   async function uploadFiles(fileList: FileList | File[]) {
     const arr = Array.from(fileList);
     if (!arr.length) return;
@@ -210,15 +215,29 @@ export default function AdminMediaPage() {
   async function bulkDelete() {
     if (selected.size === 0) return;
     if (!confirm(`Delete ${selected.size} selected file(s)?`)) return;
+    setError(null);
+    setSuccess(null);
+
+    let deleted = 0;
+    const failed: string[] = [];
     for (const name of selected) {
-      await fetch(`/api/admin/media?name=${encodeURIComponent(name)}`, {
+      const res = await fetch(`/api/admin/media?name=${encodeURIComponent(name)}`, {
         method: "DELETE",
         credentials: "same-origin",
       });
+      if (res.ok) deleted++;
+      else failed.push(name);
     }
-    setSelected(new Set());
-    setBulkMode(false);
-    setSuccess("Selected files deleted.");
+
+    setSelected(new Set(failed));
+    if (failed.length === 0) {
+      setBulkMode(false);
+      setSuccess(`Deleted ${deleted} file${deleted === 1 ? "" : "s"}.`);
+    } else {
+      setError(
+        `Deleted ${deleted} file${deleted === 1 ? "" : "s"}, but ${failed.length} could not be deleted. The failed files are still selected.`,
+      );
+    }
     fetchFiles();
   }
 

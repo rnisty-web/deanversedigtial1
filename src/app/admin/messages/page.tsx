@@ -98,6 +98,7 @@ export default function AdminMessagesPage() {
   const [composeContent, setComposeContent] = useState("");
   const [composeSending, setComposeSending] = useState(false);
   const [composeError, setComposeError] = useState<string | null>(null);
+  const [metaError, setMetaError] = useState<string | null>(null);
 
   const fetchMessages = useCallback(async () => {
     setLoading(true);
@@ -110,6 +111,9 @@ export default function AdminMessagesPage() {
       return;
     }
     const data = await res.json();
+    // Set the viewer id together with messages so conversations never render
+    // with an unknown viewer (which would flip counterpart names).
+    if (data.userId) setAdminId(data.userId);
     setMessages(data.messages ?? []);
     setLoading(false);
   }, []);
@@ -121,22 +125,16 @@ export default function AdminMessagesPage() {
   useMessageRealtime({
     userId: adminId,
     variant: "admin",
-    enabled: !loading,
     setMessages,
   });
 
   useEffect(() => {
     async function loadMeta() {
-      const [accountRes, clientsRes, projectsRes] = await Promise.all([
-        fetch("/api/admin/account", { credentials: "same-origin" }),
+      const [clientsRes, projectsRes] = await Promise.all([
         fetch("/api/admin/clients", { credentials: "same-origin" }),
         fetch("/api/admin/projects", { credentials: "same-origin" }),
       ]);
 
-      if (accountRes.ok) {
-        const data = await accountRes.json();
-        setAdminId(data.profile?.id ?? null);
-      }
       if (clientsRes.ok) {
         const data = await clientsRes.json();
         setClients(
@@ -145,6 +143,10 @@ export default function AdminMessagesPage() {
             name: c.name,
             email: c.email,
           })),
+        );
+      } else {
+        setMetaError(
+          "Client list is unavailable — your role may not include client access, so composing a new message is limited.",
         );
       }
       if (projectsRes.ok) {
@@ -336,7 +338,7 @@ export default function AdminMessagesPage() {
   }
 
   function openCompose() {
-    setComposeError(null);
+    setComposeError(clients.length === 0 && metaError ? metaError : null);
     setComposeOpen(true);
   }
 
@@ -396,6 +398,7 @@ export default function AdminMessagesPage() {
             <MessagesConversationList
               conversations={filtered}
               selectedKey={selected?.key ?? null}
+              userId={adminId}
               starredKeys={starredKeys}
               onSelect={handleSelect}
               onToggleStar={handleToggleStar}

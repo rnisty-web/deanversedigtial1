@@ -235,14 +235,22 @@ export default function AdminLeadsPage() {
     setError(null);
     const ids = [...selectedIds];
     let deleted = 0;
+    const failed: string[] = [];
     for (const id of ids) {
       const res = await fetch(`/api/admin/leads?id=${id}`, { method: "DELETE", credentials: "same-origin" });
       if (res.ok) deleted++;
+      else failed.push(id);
     }
     if (detailLead && ids.includes(detailLead.id)) setDetailLead(null);
-    setSelectedIds(new Set());
-    setBulkMode(false);
-    setSuccess(`Deleted ${deleted} lead(s).`);
+    setSelectedIds(new Set(failed));
+    if (failed.length === 0) {
+      setBulkMode(false);
+      setSuccess(`Deleted ${deleted} lead(s).`);
+    } else {
+      setError(
+        `Deleted ${deleted} lead(s), but ${failed.length} could not be deleted. The failed leads are still selected.`,
+      );
+    }
     await fetchLeads();
   }
 

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { verifyAdminApi, verifyAdminPermissionApi } from "@/lib/auth";
+import { verifyAdminPermissionApi } from "@/lib/auth";
 
 const LEAD_STATUSES = ["new", "contacted", "qualified", "converted", "lost"] as const;
 const PATCHABLE_FIELDS = [

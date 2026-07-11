@@ -10,17 +10,17 @@ import {
 import { resolvePortalClient } from "@/lib/portal/resolve-portal-client";
 
 const MESSAGE_FIELDS =
-  "id, subject, content, read, created_at, project_id, sender_id, recipient_id, sender:profiles!messages_sender_id_fkey(full_name, email), recipient:profiles!messages_recipient_id_fkey(full_name, email), projects(title)" as const;
+  "id, subject, content, read, created_at, project_id, sender_id, recipient_id, sender:profiles!messages_sender_id_fkey(id, full_name, email), recipient:profiles!messages_recipient_id_fkey(id, full_name, email), projects(title)" as const;
 
 function sanitizeMessage(message: Record<string, unknown>, userId: string) {
   const sender = message.sender as
-    | { full_name: string | null; email?: string }
-    | { full_name: string | null; email?: string }[]
+    | { id?: string; full_name: string | null; email?: string }
+    | { id?: string; full_name: string | null; email?: string }[]
     | null
     | undefined;
   const recipient = message.recipient as
-    | { full_name: string | null; email?: string }
-    | { full_name: string | null; email?: string }[]
+    | { id?: string; full_name: string | null; email?: string }
+    | { id?: string; full_name: string | null; email?: string }[]
     | null
     | undefined;
 
@@ -39,12 +39,14 @@ function sanitizeMessage(message: Record<string, unknown>, userId: string) {
     recipient_id: message.recipient_id,
     is_outgoing: isOutgoing,
     sender: {
+      id: senderProfile?.id ?? message.sender_id,
       full_name: isOutgoing
         ? "You"
         : getPortalSenderName(senderProfile),
       email: senderProfile?.email,
     },
     recipient: {
+      id: recipientProfile?.id ?? message.recipient_id,
       full_name: isOutgoing
         ? getPortalSenderName(recipientProfile, "Team member")
         : "You",

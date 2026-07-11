@@ -6,6 +6,7 @@ import type { Conversation } from "@/lib/messages/utils";
 type MessagesConversationListProps = {
   conversations: Conversation[];
   selectedKey: string | null;
+  userId?: string | null;
   starredKeys: Set<string>;
   onSelect: (key: string) => void;
   onToggleStar: (key: string) => void;

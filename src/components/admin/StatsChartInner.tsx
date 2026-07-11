@@ -14,6 +14,7 @@ import {
   Filler,
 } from "chart.js";
 import { Line, Bar, Doughnut } from "react-chartjs-2";
+import { getAdminChartPalette, withAlpha } from "@/lib/admin/theme-colors";
 
 ChartJS.register(
   CategoryScale,
@@ -28,14 +29,8 @@ ChartJS.register(
   Filler,
 );
 
-const ADMIN_EMERALD = "#6f8f72";
-const ADMIN_GOLD = "#c9a962";
-const ADMIN_GOLD_LIGHT = "#dfc88a";
-const ADMIN_EMERALD_DEEP = "#2f5d50";
-
 const chartDefaults = {
   color: "rgba(245, 242, 235, 0.55)",
-  borderColor: "rgba(201, 169, 98, 0.12)",
 };
 
 export type ChartType = "line" | "bar" | "doughnut";
@@ -57,15 +52,17 @@ export interface StatsChartProps {
   hideLegend?: boolean;
 }
 
-function luxuryLineFill(context: { chart: ChartJS }) {
-  const chart = context.chart;
-  const { ctx, chartArea } = chart;
-  if (!chartArea) return "rgba(111, 143, 114, 0.2)";
-  const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-  gradient.addColorStop(0, "rgba(111, 143, 114, 0.48)");
-  gradient.addColorStop(0.55, "rgba(47, 93, 80, 0.18)");
-  gradient.addColorStop(1, "rgba(47, 93, 80, 0.02)");
-  return gradient;
+function luxuryLineFill(emerald: string, emeraldDeep: string) {
+  return (context: { chart: ChartJS }) => {
+    const chart = context.chart;
+    const { ctx, chartArea } = chart;
+    if (!chartArea) return withAlpha(emerald, 0.2);
+    const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+    gradient.addColorStop(0, withAlpha(emerald, 0.48));
+    gradient.addColorStop(0.55, withAlpha(emeraldDeep, 0.18));
+    gradient.addColorStop(1, withAlpha(emeraldDeep, 0.02));
+    return gradient;
+  };
 }
 
 export function chartHasData(labels: string[], datasets: StatsChartProps["datasets"]) {
@@ -85,6 +82,7 @@ export function StatsChartInner({
   hideLegend = false,
 }: StatsChartProps) {
   const isLuxury = variant === "luxury";
+  const palette = getAdminChartPalette();
 
   const data = {
     labels,
@@ -93,19 +91,25 @@ export function StatsChartInner({
       backgroundColor:
         ds.backgroundColor ??
         (type === "doughnut"
-          ? [ADMIN_EMERALD, ADMIN_GOLD_LIGHT, ADMIN_EMERALD_DEEP, "#5a7560", ADMIN_GOLD]
+          ? [
+              palette.emerald,
+              palette.goldLight,
+              palette.emeraldDeep,
+              withAlpha(palette.emerald, 0.65),
+              palette.gold,
+            ]
           : isLuxury && type === "line"
-            ? luxuryLineFill
-            : "rgba(111, 143, 114, 0.2)"),
-      borderColor: ds.borderColor ?? (isLuxury && type === "line" ? ADMIN_GOLD : ADMIN_GOLD),
+            ? luxuryLineFill(palette.emerald, palette.emeraldDeep)
+            : withAlpha(palette.emerald, 0.2)),
+      borderColor: ds.borderColor ?? palette.gold,
       borderWidth: type === "doughnut" ? 0 : isLuxury && type === "line" ? 2.5 : 2,
       tension: 0.4,
       fill: ds.fill ?? type === "line",
       ...(isLuxury && type === "line"
         ? {
-            pointBackgroundColor: ADMIN_GOLD,
-            pointBorderColor: ADMIN_GOLD_LIGHT,
-            pointHoverBackgroundColor: ADMIN_GOLD_LIGHT,
+            pointBackgroundColor: palette.gold,
+            pointBorderColor: palette.goldLight,
+            pointHoverBackgroundColor: palette.goldLight,
             pointHoverBorderColor: "#fff",
             pointRadius: 4,
             pointHoverRadius: 6,
@@ -146,7 +150,7 @@ export function StatsChartInner({
                 maxTicksLimit: 8,
                 font: { size: 11 },
               },
-              grid: { color: chartDefaults.borderColor },
+              grid: { color: withAlpha(palette.gold, 0.12) },
             },
             y: {
               ticks: {
@@ -154,7 +158,7 @@ export function StatsChartInner({
                 maxTicksLimit: 6,
                 font: { size: 11 },
               },
-              grid: { color: chartDefaults.borderColor },
+              grid: { color: withAlpha(palette.gold, 0.12) },
               beginAtZero: true,
             },
           }

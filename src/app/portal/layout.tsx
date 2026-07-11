@@ -10,6 +10,7 @@ import { PortalMobileNav } from "@/components/portal/PortalMobileNav";
 import { PortalNotice } from "@/components/portal/PortalNotice";
 import { PortalPermissionGuard } from "@/components/portal/PortalPermissionGuard";
 import { PortalSidebar } from "@/components/portal/PortalSidebar";
+import { CursorGlow } from "@/components/ui/CursorGlow";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -50,6 +51,7 @@ export default async function PortalLayout({
       className={`portal-theme ${portalSerif.variable} flex h-dvh min-h-dvh overflow-hidden`}
       data-dashboard-theme={dashboardTheme}
     >
+      <CursorGlow />
       <PortalSidebar profile={profile} roleCatalog={roleCatalog} canAccessAdmin={canAccessAdmin} />
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         <PortalMobileNav profile={profile} roleCatalog={roleCatalog} canAccessAdmin={canAccessAdmin} />

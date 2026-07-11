@@ -239,7 +239,10 @@ function PortalFilesInner() {
             {projects.length > 1 ? (
               <select
                 value={projectFilter}
-                onChange={(e) => setProjectFilter(e.target.value)}
+                onChange={(e) => {
+                  setProjectFilter(e.target.value);
+                  setSearch("");
+                }}
                 className="admin-entity-select w-full sm:max-w-xs"
               >
                 <option value="">All projects</option>

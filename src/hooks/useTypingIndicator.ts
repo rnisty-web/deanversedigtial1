@@ -4,7 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 const TYPING_IDLE_MS = 2000;
-const TYPING_DEBOUNCE_MS = 300;
+// Re-broadcast while typing continues, often enough to beat the receiver's stale timeout.
+const TYPING_THROTTLE_MS = 1200;
 const TYPING_STALE_MS = 2800;
 
 type TypingPayload = {
@@ -20,7 +21,7 @@ export function useTypingIndicator(
   const [isOtherTyping, setIsOtherTyping] = useState(false);
   const channelRef = useRef<ReturnType<ReturnType<typeof createClient>["channel"]> | null>(null);
   const typingIdleRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastSentRef = useRef(0);
   const staleRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const broadcastTyping = useCallback((isTyping: boolean) => {
@@ -35,20 +36,27 @@ export function useTypingIndicator(
   }, [userId]);
 
   const stopTyping = useCallback(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
     if (typingIdleRef.current) clearTimeout(typingIdleRef.current);
+    lastSentRef.current = 0;
     broadcastTyping(false);
   }, [broadcastTyping]);
 
   const notifyTyping = useCallback(() => {
     if (!conversationKey || !userId) return;
 
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
+    // Leading-edge throttle: broadcast immediately, then re-broadcast periodically
+    // while typing continues so the other side's stale timeout keeps refreshing.
+    const now = Date.now();
+    if (now - lastSentRef.current >= TYPING_THROTTLE_MS) {
+      lastSentRef.current = now;
       broadcastTyping(true);
-      if (typingIdleRef.current) clearTimeout(typingIdleRef.current);
-      typingIdleRef.current = setTimeout(() => broadcastTyping(false), TYPING_IDLE_MS);
-    }, TYPING_DEBOUNCE_MS);
+    }
+
+    if (typingIdleRef.current) clearTimeout(typingIdleRef.current);
+    typingIdleRef.current = setTimeout(() => {
+      lastSentRef.current = 0;
+      broadcastTyping(false);
+    }, TYPING_IDLE_MS);
   }, [broadcastTyping, conversationKey, userId]);
 
   useEffect(() => {

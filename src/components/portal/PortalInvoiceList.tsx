@@ -73,7 +73,7 @@ function InvoicePayButton({
       >
         {loading ? "Redirecting…" : "Pay now"}
       </button>
-      {error && <span className="text-[10px] text-red-300">{error}</span>}
+      {error && <span className="text-[10px] text-[var(--admin-danger)]">{error}</span>}
     </div>
   );
 }
@@ -81,8 +81,9 @@ function InvoicePayButton({
 function PaymentBanner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const paid = searchParams.get("paid");
-  const cancelled = searchParams.get("cancelled");
+  // Capture once so the banner stays visible after the URL params are cleaned up.
+  const [paid] = useState(() => searchParams.get("paid"));
+  const [cancelled] = useState(() => searchParams.get("cancelled"));
 
   useEffect(() => {
     if (!paid && !cancelled) return;

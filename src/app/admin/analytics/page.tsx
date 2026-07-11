@@ -16,6 +16,7 @@ import {
 import { AnalyticsSkeleton } from "@/components/admin/analytics/AnalyticsSkeleton";
 import { DashboardWidget } from "@/components/admin/dashboard/DashboardWidget";
 import { StatsChart } from "@/components/admin/StatsChart";
+import { getAdminChartPalette, withAlpha } from "@/lib/admin/theme-colors";
 import type { AnalyticsPeriod } from "@/lib/analytics/admin-metrics";
 
 type PerformanceMetric = {
@@ -140,6 +141,7 @@ export default function AdminAnalyticsPage() {
   const [period, setPeriod] = useState<AnalyticsPeriod>("month");
   const [exporting, setExporting] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const palette = getAdminChartPalette();
 
   const fetchAnalytics = useCallback(async (selectedPeriod: AnalyticsPeriod, isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
@@ -300,12 +302,12 @@ export default function AdminAnalyticsPage() {
                       {
                         label: "Visitors",
                         data: data.trafficVisitors,
-                        borderColor: "#c9a962",
+                        borderColor: palette.gold,
                       },
                       {
                         label: "Unique Visitors",
                         data: data.trafficUniqueVisitors,
-                        borderColor: "#6f8f72",
+                        borderColor: palette.emerald,
                         fill: false,
                       },
                     ]}
@@ -332,8 +334,8 @@ export default function AdminAnalyticsPage() {
                         {
                           label: "Leads",
                           data: data.leadsOverTime,
-                          backgroundColor: "rgba(111, 143, 114, 0.55)",
-                          borderColor: "#6f8f72",
+                          backgroundColor: withAlpha(palette.emerald, 0.55),
+                          borderColor: palette.emerald,
                         },
                       ]}
                       height={240}
@@ -351,8 +353,8 @@ export default function AdminAnalyticsPage() {
                         {
                           label: "Page Views",
                           data: data.hourlyTrafficData,
-                          backgroundColor: "rgba(201, 169, 98, 0.35)",
-                          borderColor: "#c9a962",
+                          backgroundColor: withAlpha(palette.gold, 0.35),
+                          borderColor: palette.gold,
                         },
                       ]}
                       height={240}
@@ -458,8 +460,8 @@ export default function AdminAnalyticsPage() {
                       {
                         label: "Page Views",
                         data: data.pageViewData,
-                        backgroundColor: "rgba(201, 169, 98, 0.35)",
-                        borderColor: "#c9a962",
+                        backgroundColor: withAlpha(palette.gold, 0.35),
+                        borderColor: palette.gold,
                       },
                     ]}
                     height={200}

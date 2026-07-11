@@ -19,19 +19,29 @@ export function DashboardQuickNav() {
 
   useEffect(() => {
     void (async () => {
-      const res = await fetch("/api/admin/dashboard", { credentials: "same-origin" });
-      if (!res.ok) return;
-      const data = await res.json().catch(() => ({}));
-      if (Array.isArray(data.permissions)) {
-        setPermissions(data.permissions);
+      try {
+        const res = await fetch("/api/admin/dashboard", { credentials: "same-origin" });
+        if (!res.ok) {
+          setPermissions([]);
+          return;
+        }
+        const data = await res.json().catch(() => ({}));
+        setPermissions(Array.isArray(data.permissions) ? data.permissions : []);
+      } catch {
+        setPermissions([]);
       }
     })();
   }, []);
 
   const visibleLinks = useMemo(() => {
-    if (!permissions) return links;
+    if (!permissions) return [];
     return links.filter((item) => permissions.includes(item.permission));
   }, [permissions]);
+
+  // Skeleton while permissions resolve so unauthorized links never flash.
+  if (permissions === null) {
+    return <div className="admin-luxury-card h-full min-h-[180px] animate-pulse" aria-hidden />;
+  }
 
   if (visibleLinks.length === 0) return null;
 

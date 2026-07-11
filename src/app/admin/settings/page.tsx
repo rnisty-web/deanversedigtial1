@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { AdminAlert } from "@/components/admin/AdminAlert";
 import { AdminEmptyState } from "@/components/admin/AdminEmptyState";
 import { AdminPageContent } from "@/components/admin/AdminPageContent";
 import { SettingsAdminHeader } from "@/components/admin/settings/SettingsAdminHeader";
@@ -20,17 +21,25 @@ type ProfileSummary = {
 export default function AdminSettingsPage() {
   const [search, setSearch] = useState("");
   const [profile, setProfile] = useState<ProfileSummary | null>(null);
+  const [profileError, setProfileError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadOverview() {
-      const accountRes = await fetch("/api/admin/account", { credentials: "same-origin" });
+      try {
+        const accountRes = await fetch("/api/admin/account", { credentials: "same-origin" });
 
-      if (accountRes.ok) {
-        const data = await accountRes.json();
-        setProfile({
-          full_name: data.profile?.full_name ?? null,
-          email: data.profile?.email ?? "",
-        });
+        if (accountRes.ok) {
+          const data = await accountRes.json();
+          setProfile({
+            full_name: data.profile?.full_name ?? null,
+            email: data.profile?.email ?? "",
+          });
+        } else {
+          const data = await accountRes.json().catch(() => ({}));
+          setProfileError(data.error ?? "Could not load your account overview.");
+        }
+      } catch {
+        setProfileError("Could not load your account overview.");
       }
     }
 
@@ -56,6 +65,11 @@ export default function AdminSettingsPage() {
       <SettingsAdminHeader search={search} onSearchChange={setSearch} />
 
       <AdminPageContent className="admin-settings-content">
+        {profileError ? (
+          <AdminAlert tone="warning" className="mb-6">
+            {profileError}
+          </AdminAlert>
+        ) : null}
         {filtered.length === 0 ? (
           <AdminEmptyState
             title="No settings match your search"

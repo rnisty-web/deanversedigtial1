@@ -3,13 +3,17 @@
 import Link from "next/link";
 import { useMemo } from "react";
 import { StatsChart } from "@/components/admin/StatsChart";
+import { getAdminChartPalette } from "@/lib/admin/theme-colors";
 import {
   buildTestimonialActivity,
   countByRating,
   type TestimonialRecord,
 } from "@/lib/testimonials/utils";
 
-const OVERVIEW_COLORS = ["#34d399", "#9ca3af", "#c9a962"];
+function overviewColors() {
+  const palette = getAdminChartPalette();
+  return ["#34d399", "#9ca3af", palette.gold];
+}
 
 type TestimonialsSidebarProps = {
   items: TestimonialRecord[];
@@ -28,6 +32,7 @@ export function TestimonialsSidebar({
   showImport,
   importing,
 }: TestimonialsSidebarProps) {
+  const OVERVIEW_COLORS = overviewColors();
   const overview = useMemo(() => {
     const published = items.filter((i) => i.published).length;
     const drafts = items.filter((i) => !i.published).length;

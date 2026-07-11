@@ -134,6 +134,11 @@ export default function AdminTestimonialsPage() {
     return filtered.slice(start, start + perPage);
   }, [filtered, page, perPage]);
 
+  useEffect(() => {
+    const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
+    if (page > totalPages) setPage(totalPages);
+  }, [filtered.length, perPage, page]);
+
   function openCreate() {
     setEditId(null);
     setForm(emptyForm);
@@ -231,12 +236,9 @@ export default function AdminTestimonialsPage() {
 
   async function togglePublish(item: TestimonialRecord) {
     const nextPublished = !item.published;
-    const nextFeatured = nextPublished ? true : item.featured;
     setItems((current) =>
       current.map((entry) =>
-        entry.id === item.id
-          ? { ...entry, published: nextPublished, featured: nextFeatured }
-          : entry,
+        entry.id === item.id ? { ...entry, published: nextPublished } : entry,
       ),
     );
     const res = await fetch("/api/admin/testimonials", {
@@ -246,7 +248,6 @@ export default function AdminTestimonialsPage() {
       body: JSON.stringify({
         id: item.id,
         published: nextPublished,
-        ...(nextPublished ? { featured: true } : {}),
       }),
     });
     if (!res.ok) {

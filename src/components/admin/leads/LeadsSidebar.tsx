@@ -2,6 +2,7 @@
 
 import { useMemo, useRef } from "react";
 import { StatsChart } from "@/components/admin/StatsChart";
+import { getAdminChartPalette } from "@/lib/admin/theme-colors";
 import type { LeadRecord } from "@/lib/leads/utils";
 import { isThisMonth, pct, statusStyle } from "@/lib/leads/utils";
 
@@ -14,9 +15,13 @@ type LeadsSidebarProps = {
   onSendEmail: () => void;
 };
 
-const PIPELINE_COLORS = ["#6f8f72", "#5b8fb9", "#c9a962", "#4ade80", "#ef4444"];
+function pipelineColors() {
+  const palette = getAdminChartPalette();
+  return [palette.emerald, "#5b8fb9", palette.gold, "#4ade80", "#ef4444"];
+}
 
 export function LeadsSidebar({ leads, onAddLead, onImport, onImportError, onAddNote, onSendEmail }: LeadsSidebarProps) {
+  const PIPELINE_COLORS = pipelineColors();
   const importRef = useRef<HTMLInputElement>(null);
 
   const pipeline = useMemo(() => {

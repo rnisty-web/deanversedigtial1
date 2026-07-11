@@ -48,6 +48,9 @@ export function useMessageRealtime({
         { event: "UPDATE", schema: "public", table: "messages" },
         (payload) => {
           const row = payload.new as RawMessageRow;
+          if (row.sender_id !== userId && row.recipient_id !== userId && variant === "portal") {
+            return;
+          }
           setMessages((prev) =>
             prev.map((message) =>
               message.id === row.id ? { ...message, read: row.read } : message,

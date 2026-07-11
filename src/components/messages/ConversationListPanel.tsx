@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 type ConversationListPanelProps = {
   conversations: Conversation[];
   selectedKey: string | null;
+  userId?: string | null;
   starredKeys?: Set<string>;
   onSelect: (key: string) => void;
   onToggleStar?: (key: string) => void;
@@ -24,6 +25,7 @@ type ConversationListPanelProps = {
 export function ConversationListPanel({
   conversations,
   selectedKey,
+  userId,
   starredKeys = new Set(),
   onSelect,
   onToggleStar,
@@ -59,7 +61,9 @@ export function ConversationListPanel({
             const isActive = selectedKey === conversation.key;
             const isStarred = starredKeys.has(conversation.key);
             const preview = truncatePreview(conversation.latestMessage.content, 56);
-            const outgoing = conversation.latestMessage.sender_id !== conversation.counterpart.id;
+            const outgoing = userId
+              ? conversation.latestMessage.sender_id === userId
+              : conversation.latestMessage.sender_id !== conversation.counterpart.id;
 
             return (
               <li key={conversation.key}>

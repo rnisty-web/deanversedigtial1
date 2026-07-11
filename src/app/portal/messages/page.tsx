@@ -86,7 +86,6 @@ export default function PortalMessagesPage() {
   useMessageRealtime({
     userId,
     variant: "portal",
-    enabled: !loading,
     setMessages,
   });
 
@@ -124,11 +123,12 @@ export default function PortalMessagesPage() {
     }
   }, [filtered, selectedKey]);
 
+  const selectedConversationKey = selected?.key ?? null;
   useEffect(() => {
-    if (!selected) return;
+    if (!selectedConversationKey) return;
     setReplyContent("");
     setSendError(null);
-  }, [selected]);
+  }, [selectedConversationKey]);
 
   const markConversationRead = useCallback(
     async (conversationKey: string) => {
@@ -324,6 +324,7 @@ export default function PortalMessagesPage() {
           <ConversationListPanel
             conversations={filtered}
             selectedKey={selected?.key ?? null}
+            userId={userId}
             onSelect={handleSelect}
             hidden={mobileChatOpen}
             variant="portal"

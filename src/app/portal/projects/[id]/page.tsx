@@ -9,6 +9,7 @@ import { PortalPageHeader } from "@/components/portal/PortalPageHeader";
 import { PortalCard } from "@/components/portal/PortalCard";
 import { PortalStatCard } from "@/components/portal/PortalStatCard";
 import { AdminStatusBadge } from "@/components/admin/AdminStatusBadge";
+import { PortalFileDownloadLink } from "@/components/portal/PortalFileDownloadLink";
 import { cn } from "@/lib/utils";
 
 const WORKFLOW_STEPS = projectStatuses.slice(0, 5);
@@ -137,12 +138,11 @@ export default async function PortalProjectDetailPage({
                         {new Date(file.created_at).toLocaleDateString()}
                       </p>
                     </div>
-                    <a
-                      href={`/api/portal/files?download=${encodeURIComponent(file.file_path)}`}
-                      className="inline-flex min-h-[44px] shrink-0 items-center text-xs font-medium text-[var(--admin-gold-light)] hover:text-[var(--admin-text)]"
-                    >
-                      Download
-                    </a>
+                    <PortalFileDownloadLink
+                      filePath={file.file_path}
+                      displayName={file.name}
+                      className="inline-flex min-h-[44px] shrink-0 items-center text-xs font-medium text-[var(--admin-gold-light)] hover:text-[var(--admin-text)] disabled:opacity-60"
+                    />
                   </div>
                 </li>
               ))}

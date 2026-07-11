@@ -2,6 +2,7 @@
 
 import { useMemo, useRef } from "react";
 import { StatsChart } from "@/components/admin/StatsChart";
+import { getAdminChartPalette } from "@/lib/admin/theme-colors";
 import type { ClientRecord } from "@/lib/clients/utils";
 import { CLIENT_STATUSES, isThisMonth, pct, statusStyle } from "@/lib/clients/utils";
 import { cn } from "@/lib/utils";
@@ -15,7 +16,10 @@ type ClientsSidebarProps = {
   onCreateInvoice: () => void;
 };
 
-const OVERVIEW_COLORS = ["#6f8f72", "#c9a962", "#ef4444"];
+function overviewColors() {
+  const palette = getAdminChartPalette();
+  return [palette.emerald, palette.gold, "#ef4444"];
+}
 
 const INDUSTRY_ORDER = ["E-Commerce", "Technology", "Healthcare", "Real Estate", "Fitness", "Other"];
 
@@ -28,6 +32,7 @@ export function ClientsSidebar({
   onCreateInvoice,
 }: ClientsSidebarProps) {
   const importRef = useRef<HTMLInputElement>(null);
+  const OVERVIEW_COLORS = overviewColors();
 
   const overview = useMemo(() => {
     const labels = CLIENT_STATUSES.map((s) => statusStyle(s).label);

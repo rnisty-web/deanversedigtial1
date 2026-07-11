@@ -88,10 +88,27 @@ export function enrichRealtimeMessage(
   return base;
 }
 
+function hasProfileData(profile: MessageRecord["sender"]): boolean {
+  const resolved = resolveProfile(profile);
+  return Boolean(resolved && (resolved.full_name || resolved.email));
+}
+
 export function mergeIncomingMessage(
   prev: MessageRecord[],
   incoming: MessageRecord,
 ): MessageRecord[] {
-  if (prev.some((message) => message.id === incoming.id)) return prev;
-  return [incoming, ...prev];
+  const existing = prev.find((message) => message.id === incoming.id);
+  if (!existing) return [incoming, ...prev];
+
+  // A realtime row may land before the richer API response (or vice versa).
+  // Upgrade the stored row field-by-field so profile names and project info
+  // from the API payload are never discarded.
+  const upgraded: MessageRecord = {
+    ...existing,
+    sender: hasProfileData(incoming.sender) ? incoming.sender : existing.sender,
+    recipient: hasProfileData(incoming.recipient) ? incoming.recipient : existing.recipient,
+    projects: incoming.projects ?? existing.projects,
+  };
+
+  return prev.map((message) => (message.id === incoming.id ? upgraded : message));
 }

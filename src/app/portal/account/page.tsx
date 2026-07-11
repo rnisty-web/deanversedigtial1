@@ -32,7 +32,8 @@ export default function PortalAccountPage() {
   const [saving, setSaving] = useState(false);
   const [passwordSaving, setPasswordSaving] = useState(false);
   const [activeSection, setActiveSection] = useState("profile");
-  const [message, setMessage] = useState<{ tone: "success" | "error" | "info"; text: string } | null>(null);
+  const [profileMessage, setProfileMessage] = useState<{ tone: "success" | "error" | "info"; text: string } | null>(null);
+  const [passwordMessage, setPasswordMessage] = useState<{ tone: "success" | "error"; text: string } | null>(null);
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -93,7 +94,7 @@ export default function PortalAccountPage() {
   async function saveProfile(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
-    setMessage(null);
+    setProfileMessage(null);
 
     const res = await fetch("/api/portal/account", {
       method: "PATCH",
@@ -123,7 +124,7 @@ export default function PortalAccountPage() {
         setClient(data.client);
         setCompany(data.client.company ?? "");
       }
-      setMessage({
+      setProfileMessage({
         tone: data.emailConfirmationRequired ? "info" : "success",
         text: data.emailConfirmationRequired
           ? "Profile saved. Check your inbox to confirm your new email address."
@@ -132,13 +133,13 @@ export default function PortalAccountPage() {
       return;
     }
 
-    setMessage({ tone: "error", text: data.error ?? "Failed to save profile" });
+    setProfileMessage({ tone: "error", text: data.error ?? "Failed to save profile" });
   }
 
   async function savePassword(e: React.FormEvent) {
     e.preventDefault();
     setPasswordSaving(true);
-    setMessage(null);
+    setPasswordMessage(null);
 
     const res = await fetch("/api/portal/account/password", {
       method: "POST",
@@ -153,11 +154,11 @@ export default function PortalAccountPage() {
     if (res.ok) {
       setCurrentPassword("");
       setNewPassword("");
-      setMessage({ tone: "success", text: "Password updated successfully." });
+      setPasswordMessage({ tone: "success", text: "Password updated successfully." });
       return;
     }
 
-    setMessage({ tone: "error", text: data.error ?? "Failed to update password" });
+    setPasswordMessage({ tone: "error", text: data.error ?? "Failed to update password" });
   }
 
   return (
@@ -176,12 +177,6 @@ export default function PortalAccountPage() {
         />
       }
     >
-
-      {message && (
-        <AdminAlert tone={message.tone} className="mb-6">
-          {message.text}
-        </AdminAlert>
-      )}
 
       {loading ? (
         <div className="portal-account-stack">
@@ -234,6 +229,9 @@ export default function PortalAccountPage() {
                 <AdminField label="Email" type="email" value={email} onChange={setEmail} />
                 <AdminField label="Phone" value={phone} onChange={setPhone} />
                 {client ? <AdminField label="Company" value={company} onChange={setCompany} /> : null}
+                {profileMessage && (
+                  <AdminAlert tone={profileMessage.tone}>{profileMessage.text}</AdminAlert>
+                )}
                 <div className="flex justify-end pt-2">
                   <Button type="submit" size="sm" className="admin-btn-gold" disabled={saving}>
                     {saving ? "Saving…" : "Save profile"}
@@ -265,6 +263,9 @@ export default function PortalAccountPage() {
                   onChange={setNewPassword}
                   hint="At least 8 characters"
                 />
+                {passwordMessage && (
+                  <AdminAlert tone={passwordMessage.tone}>{passwordMessage.text}</AdminAlert>
+                )}
                 <div className="flex justify-end pt-2">
                   <Button type="submit" size="sm" className="admin-btn-gold" disabled={passwordSaving}>
                     {passwordSaving ? "Updating…" : "Update password"}

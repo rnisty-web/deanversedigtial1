@@ -9,7 +9,7 @@ type AdminAlertProps = {
 const styles = {
   error: "border-red-400/30 bg-red-500/10 text-red-200",
   success:
-    "border-[color-mix(in_srgb,var(--admin-emerald)_40%,transparent)] bg-[var(--admin-emerald)]/10 text-[#a3c9a8]",
+    "border-[color-mix(in_srgb,var(--admin-emerald)_40%,transparent)] bg-[var(--admin-emerald)]/10 text-[color-mix(in_srgb,var(--admin-emerald)_55%,white)]",
   info: "border-blue-400/30 bg-blue-500/10 text-blue-100",
   warning: "border-amber-400/30 bg-amber-500/10 text-amber-100",
 };

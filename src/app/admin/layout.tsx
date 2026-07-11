@@ -2,6 +2,7 @@ import { Cormorant_Garamond } from "next/font/google";
 import { requireAdmin, isFounder } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { getRoleCatalogSafe } from "@/lib/roles/catalog-server";
+import { AdminPermissionGuard } from "@/components/admin/AdminPermissionGuard";
 import { getActiveRoleCatalog } from "@/lib/roles/catalog";
 import { AdminFooter } from "@/components/admin/AdminFooter";
 import { AdminMobileNav } from "@/components/admin/AdminMobileNav";
@@ -63,7 +64,15 @@ export default async function AdminLayout({
           />
           <div className="flex min-h-0 flex-1 flex-col">
             <main className="admin-main-scroll min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
-              <AdminPageTransition>{children}</AdminPageTransition>
+              <AdminPageTransition>
+                <AdminPermissionGuard
+                  profile={profile}
+                  roleCatalog={roleCatalog}
+                  isFounder={viewerIsFounder}
+                >
+                  {children}
+                </AdminPermissionGuard>
+              </AdminPageTransition>
             </main>
             <AdminFooter />
           </div>

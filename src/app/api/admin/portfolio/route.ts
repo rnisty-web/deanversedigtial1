@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { verifyAdminApi } from "@/lib/auth";
+import { verifyAdminApi, verifyAdminPermissionApi } from "@/lib/auth";
 import { revalidatePortfolioContent } from "@/lib/cms/revalidate";
 import { getPortfolioSeedRows } from "@/lib/cms/seed-content";
 
@@ -35,7 +35,7 @@ function revalidateAfterPortfolioChange(slugs: string[] = []) {
 }
 
 export async function GET(request: Request) {
-  const auth = await verifyAdminApi();
+  const auth = await verifyAdminPermissionApi("portfolio");
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
@@ -74,7 +74,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const auth = await verifyAdminApi();
+  const auth = await verifyAdminPermissionApi("portfolio");
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
@@ -160,7 +160,7 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  const auth = await verifyAdminApi();
+  const auth = await verifyAdminPermissionApi("portfolio");
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
@@ -202,7 +202,7 @@ export async function PATCH(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  const auth = await verifyAdminApi();
+  const auth = await verifyAdminPermissionApi("portfolio");
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }

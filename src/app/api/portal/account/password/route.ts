@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { verifyCustomerApi } from "@/lib/auth";
+import { verifyCustomerPermissionApi } from "@/lib/auth";
 import {
   checkRateLimit,
   getClientIp,
@@ -16,7 +16,8 @@ export async function POST(request: Request) {
     return rateLimitResponse(limit.resetAt);
   }
 
-  const auth = await verifyCustomerApi();  if (auth.error) {
+  const auth = await verifyCustomerPermissionApi("account");
+  if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
 

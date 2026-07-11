@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { verifyAdminApi } from "@/lib/auth";
+import { verifyAdminPermissionApi } from "@/lib/auth";
 import { sanitizeMediaObjectName, validateAdminMediaUpload } from "@/lib/admin/media-upload";
 
 export async function POST(request: Request) {
-  const auth = await verifyAdminApi();
+  const auth = await verifyAdminPermissionApi("media");
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
@@ -45,7 +45,7 @@ export async function POST(request: Request) {
 }
 
 export async function GET() {
-  const auth = await verifyAdminApi();
+  const auth = await verifyAdminPermissionApi("media");
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
@@ -81,7 +81,7 @@ export async function GET() {
 }
 
 export async function DELETE(request: Request) {
-  const auth = await verifyAdminApi();
+  const auth = await verifyAdminPermissionApi("media");
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }

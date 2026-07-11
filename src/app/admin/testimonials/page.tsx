@@ -403,8 +403,12 @@ export default function AdminTestimonialsPage() {
               </div>
             ) : filtered.length === 0 ? (
               <AdminEmptyState
-                title="No testimonials"
-                description="Import reviews from your public site or add new client feedback."
+                title={items.length === 0 ? "No testimonials" : "No matching testimonials"}
+                description={
+                  items.length === 0
+                    ? "Import reviews from your public site or add new client feedback."
+                    : "Try adjusting your search or filters."
+                }
                 actionLabel={items.length === 0 ? "Import site testimonials" : "Add testimonial"}
                 onAction={items.length === 0 ? importDefaults : openCreate}
               />

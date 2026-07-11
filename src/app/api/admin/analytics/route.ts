@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { verifyAdminApi } from "@/lib/auth";
+import { verifyAdminPermissionApi } from "@/lib/auth";
 import {
   buildAdminAnalyticsPayload,
   getPeriodRange,
@@ -10,7 +10,7 @@ import {
 } from "@/lib/analytics/admin-metrics";
 
 export async function GET(request: Request) {
-  const auth = await verifyAdminApi();
+  const auth = await verifyAdminPermissionApi("analytics");
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }

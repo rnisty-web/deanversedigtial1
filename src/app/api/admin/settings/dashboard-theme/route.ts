@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { verifyUserManagementApi } from "@/lib/auth";
+import { verifySettingsApi } from "@/lib/auth";
 import {
   DASHBOARD_THEMES,
   parseDashboardTheme,
@@ -12,7 +12,7 @@ import {
 } from "@/lib/settings/dashboard-theme-server";
 
 export async function GET() {
-  const auth = await verifyUserManagementApi();
+  const auth = await verifySettingsApi();
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
@@ -22,7 +22,7 @@ export async function GET() {
 }
 
 export async function PATCH(request: Request) {
-  const auth = await verifyUserManagementApi();
+  const auth = await verifySettingsApi();
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }

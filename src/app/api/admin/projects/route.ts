@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { verifyAdminApi } from "@/lib/auth";
+import { verifyAdminPermissionApi } from "@/lib/auth";
 
 export async function GET() {
-  const auth = await verifyAdminApi();
+  const auth = await verifyAdminPermissionApi("projects");
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
@@ -24,7 +24,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const auth = await verifyAdminApi();
+  const auth = await verifyAdminPermissionApi("projects");
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
@@ -61,7 +61,7 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  const auth = await verifyAdminApi();
+  const auth = await verifyAdminPermissionApi("projects");
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
@@ -93,7 +93,7 @@ export async function PATCH(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  const auth = await verifyAdminApi();
+  const auth = await verifyAdminPermissionApi("projects");
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }

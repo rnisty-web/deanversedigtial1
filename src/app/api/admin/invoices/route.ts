@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { verifyAdminApi } from "@/lib/auth";
+import { verifyAdminPermissionApi } from "@/lib/auth";
 import type { InvoiceLineItem } from "@/types";
 
 const INVOICE_SELECT =
@@ -28,7 +28,7 @@ function normalizeLineItems(raw: unknown): InvoiceLineItem[] {
 }
 
 export async function GET() {
-  const auth = await verifyAdminApi();
+  const auth = await verifyAdminPermissionApi("invoices");
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
@@ -55,7 +55,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const auth = await verifyAdminApi();
+  const auth = await verifyAdminPermissionApi("invoices");
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
@@ -110,7 +110,7 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  const auth = await verifyAdminApi();
+  const auth = await verifyAdminPermissionApi("invoices");
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
@@ -159,7 +159,7 @@ export async function PATCH(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  const auth = await verifyAdminApi();
+  const auth = await verifyAdminPermissionApi("invoices");
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }

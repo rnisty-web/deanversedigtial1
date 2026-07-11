@@ -427,6 +427,19 @@ export function ContentEditor() {
     );
   }
 
+  if (!loading && !content && message?.type === "error") {
+    return (
+      <div className="admin-content-editor flex min-h-0 flex-1 flex-col items-center justify-center p-8">
+        <div className="max-w-md text-center">
+          <p className="text-sm text-red-300">{message.text}</p>
+          <Button size="sm" className="admin-btn-gold mt-4" onClick={() => void fetchContent()}>
+            Try again
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="admin-content-editor flex min-h-0 flex-1 flex-col overflow-hidden">
       <ContentEditorHeader

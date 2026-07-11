@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { verifyAdminApi } from "@/lib/auth";
+import { verifyAdminApi, verifyAdminPermissionApi } from "@/lib/auth";
 
 const LEAD_STATUSES = ["new", "contacted", "qualified", "converted", "lost"] as const;
 const PATCHABLE_FIELDS = [
@@ -34,7 +34,7 @@ function pickLeadUpdates(body: Record<string, unknown>) {
 }
 
 export async function GET() {
-  const auth = await verifyAdminApi();
+  const auth = await verifyAdminPermissionApi("leads");
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
@@ -52,7 +52,7 @@ export async function GET() {
 }
 
 export async function PATCH(request: Request) {
-  const auth = await verifyAdminApi();
+  const auth = await verifyAdminPermissionApi("leads");
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
@@ -84,7 +84,7 @@ export async function PATCH(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const auth = await verifyAdminApi();
+  const auth = await verifyAdminPermissionApi("leads");
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
@@ -153,7 +153,7 @@ export async function POST(request: Request) {
 }
 
 async function handleConvert(
-  auth: Awaited<ReturnType<typeof verifyAdminApi>>,
+  auth: Awaited<ReturnType<typeof verifyAdminPermissionApi>>,
   body: {
     lead_id?: string;
     client?: { name?: string; email?: string; phone?: string; company?: string; notes?: string };
@@ -305,7 +305,7 @@ async function handleConvert(
 }
 
 export async function DELETE(request: Request) {
-  const auth = await verifyAdminApi();
+  const auth = await verifyAdminPermissionApi("leads");
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }

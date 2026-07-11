@@ -18,10 +18,17 @@ export async function resolvePortalClient(
   supabase: SupabaseClient,
   userId: string,
   userEmail: string,
-  options?: { fullName?: string | null; phone?: string | null; company?: string | null },
+  options?: {
+    fullName?: string | null;
+    phone?: string | null;
+    company?: string | null;
+    allowProvision?: boolean;
+  },
 ): Promise<PortalClient | null> {
-  const resolved = await resolvePortalClientInternal(supabase, userId, userEmail);
+  const resolved = await resolvePortalClientInternal(supabase, userId, userEmail, options);
   if (resolved) return resolved;
+
+  if (options?.allowProvision === false) return null;
 
   await ensurePortalClient({
     userId,
@@ -31,13 +38,14 @@ export async function resolvePortalClient(
     company: options?.company,
   });
 
-  return resolvePortalClientInternal(supabase, userId, userEmail);
+  return resolvePortalClientInternal(supabase, userId, userEmail, options);
 }
 
 async function resolvePortalClientInternal(
   supabase: SupabaseClient,
   userId: string,
   userEmail: string,
+  options?: { allowProvision?: boolean },
 ): Promise<PortalClient | null> {
   const { data: byProfile } = await supabase
     .from("clients")
@@ -63,6 +71,10 @@ async function resolvePortalClientInternal(
   }
 
   if (!byEmail.profile_id) {
+    if (options?.allowProvision === false) {
+      return { ...byEmail, profile_id: null };
+    }
+
     await ensurePortalClient({
       userId,
       email: userEmail,

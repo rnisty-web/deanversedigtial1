@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getOwnerEmail, isFounder, verifyAdminApi } from "@/lib/auth";
+import { getOwnerEmail, isFounder, verifyAdminPermissionApi, getViewerAdminPermissions } from "@/lib/auth";
 import { normalizeActivityStatus } from "@/lib/activity-status";
 import { getPresenceStatus } from "@/lib/presence";
 import {
@@ -66,7 +66,7 @@ function buildViewerName(
 }
 
 export async function GET() {
-  const auth = await verifyAdminApi();
+  const auth = await verifyAdminPermissionApi("dashboard");
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
@@ -102,6 +102,10 @@ export async function GET() {
     viewerProfile?.full_name,
     viewerProfile?.email ?? currentProfile?.email ?? auth.user!.email,
   );
+
+  const permissions = auth.profile
+    ? await getViewerAdminPermissions(auth.profile)
+    : [];
 
   const [
     { count: leadsCount, error: leadsError },
@@ -389,5 +393,6 @@ export async function GET() {
     recentPayments,
     todayEvents,
     recentMessages,
+    permissions,
   });
 }

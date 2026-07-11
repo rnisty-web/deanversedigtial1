@@ -1,5 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { getProfile } from "@/lib/auth";
+import { isStaffRole } from "@/lib/roles";
+import { getRoleCatalogSafe } from "@/lib/roles/catalog-server";
 import { getPortalLeadSummary } from "@/lib/portal/client-access";
 import { resolvePortalClient } from "@/lib/portal/resolve-portal-client";
 
@@ -26,7 +28,11 @@ export async function getClientProjects(userId: string, userEmail?: string) {
     email = profile?.email ?? "";
   }
 
-  const client = await resolvePortalClient(supabase, userId, email);
+  const profile = await getProfile();
+  const catalog = await getRoleCatalogSafe();
+  const allowProvision = !profile || !isStaffRole(profile, catalog);
+
+  const client = await resolvePortalClient(supabase, userId, email, { allowProvision });
 
   if (!client) {
     return { projects: [] as ClientProject[], stats: { total: 0, active: 0, completed: 0 }, client: null };

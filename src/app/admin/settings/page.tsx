@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { AdminEmptyState } from "@/components/admin/AdminEmptyState";
 import { AdminPageContent } from "@/components/admin/AdminPageContent";
 import { SettingsAdminHeader } from "@/components/admin/settings/SettingsAdminHeader";

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { verifyAdminApi } from "@/lib/auth";
+import { verifyAdminPermissionApi } from "@/lib/auth";
 import { getCalendarSeedRows } from "@/lib/calendar/seed-events";
 import type { CalendarEvent, CalendarEventType } from "@/lib/calendar/types";
 
@@ -36,7 +36,7 @@ function mapProjectDeadline(project: ProjectRow): CalendarEvent | null {
 }
 
 export async function GET() {
-  const auth = await verifyAdminApi();
+  const auth = await verifyAdminPermissionApi("calendar");
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
@@ -83,7 +83,17 @@ export async function GET() {
     .map(mapProjectDeadline)
     .filter(Boolean) as CalendarEvent[];
 
-  const merged = [...calendarEvents, ...projectEvents].sort(
+  const calendarProjectIds = new Set(
+    calendarEvents
+      .filter((event) => event.project_id)
+      .map((event) => event.project_id as string),
+  );
+
+  const dedupedProjectEvents = projectEvents.filter(
+    (event) => !event.project_id || !calendarProjectIds.has(event.project_id),
+  );
+
+  const merged = [...calendarEvents, ...dedupedProjectEvents].sort(
     (a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime(),
   );
 
@@ -91,7 +101,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const auth = await verifyAdminApi();
+  const auth = await verifyAdminPermissionApi("calendar");
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
@@ -167,7 +177,7 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  const auth = await verifyAdminApi();
+  const auth = await verifyAdminPermissionApi("calendar");
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
@@ -197,7 +207,7 @@ export async function PATCH(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  const auth = await verifyAdminApi();
+  const auth = await verifyAdminPermissionApi("calendar");
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }

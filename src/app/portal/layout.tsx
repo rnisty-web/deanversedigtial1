@@ -8,6 +8,7 @@ import { getDashboardThemeSafe } from "@/lib/settings/dashboard-theme-server";
 import { AdminFooter } from "@/components/admin/AdminFooter";
 import { PortalMobileNav } from "@/components/portal/PortalMobileNav";
 import { PortalNotice } from "@/components/portal/PortalNotice";
+import { PortalPermissionGuard } from "@/components/portal/PortalPermissionGuard";
 import { PortalSidebar } from "@/components/portal/PortalSidebar";
 import type { Metadata } from "next";
 
@@ -56,7 +57,9 @@ export default async function PortalLayout({
           <PortalNotice />
         </Suspense>
         <main className="admin-main-scroll flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain">
-          {children}
+          <PortalPermissionGuard profile={profile} roleCatalog={roleCatalog}>
+            {children}
+          </PortalPermissionGuard>
         </main>
         <AdminFooter />
       </div>

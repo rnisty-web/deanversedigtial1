@@ -9,7 +9,10 @@ import {
   hasAdminPermission,
   type AdminPermission,
 } from "@/lib/roles/permissions";
-import type { ClientPermission } from "@/lib/roles/client-permissions";
+import {
+  hasClientPermission,
+  type ClientPermission,
+} from "@/lib/roles/client-permissions";
 
 export type Profile = {
   id: string;
@@ -268,6 +271,55 @@ export async function verifyAdminApi() {
   return { supabase, user, profile, error: null, status: 200 as const };
 }
 
+export async function verifyAdminPermissionApi(permission: AdminPermission) {
+  const auth = await verifyAdminApi();
+  if (auth.error) {
+    return {
+      error: auth.error,
+      status: auth.status,
+      supabase: null,
+      user: null,
+      profile: null as Profile | null,
+    };
+  }
+
+  const { data: profile } = await auth.supabase!
+    .from("profiles")
+    .select("*")
+    .eq("id", auth.user!.id)
+    .single();
+
+  const fullProfile = profile ? ({ ...profile, roles: parseUserRoles(profile) } as Profile) : null;
+  const catalog = await getRoleCatalogSafe();
+
+  if (
+    !fullProfile ||
+    !hasAdminPermission(fullProfile, permission, catalog, {
+      isFounder: isFounder(fullProfile, fullProfile.email, auth.user!.email),
+    })
+  ) {
+    return {
+      error: "You do not have permission to access this resource",
+      status: 403 as const,
+      supabase: null,
+      user: null,
+      profile: null as Profile | null,
+    };
+  }
+
+  return {
+    supabase: auth.supabase,
+    user: auth.user,
+    profile: fullProfile,
+    error: null,
+    status: 200 as const,
+  };
+}
+
+export async function verifySettingsApi() {
+  return verifyAdminPermissionApi("settings");
+}
+
 export async function verifyAuthApi() {
   const supabase = await createClient();
   const {
@@ -314,4 +366,29 @@ export async function verifyCustomerApi() {
   }
 
   return auth;
+}
+
+export async function verifyCustomerPermissionApi(permission: ClientPermission) {
+  const auth = await verifyCustomerApi();
+  if (auth.error) {
+    return auth;
+  }
+
+  const fullProfile = { ...auth.profile!, roles: parseUserRoles(auth.profile!) } as Profile;
+  const catalog = await getRoleCatalogSafe();
+
+  if (!hasClientPermission(fullProfile, permission, catalog)) {
+    return {
+      error: "You do not have permission to access this resource",
+      status: 403 as const,
+      supabase: null,
+      user: null,
+      profile: null as Profile | null,
+    };
+  }
+
+  return {
+    ...auth,
+    profile: fullProfile,
+  };
 }

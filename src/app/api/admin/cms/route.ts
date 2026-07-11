@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { verifyAdminApi } from "@/lib/auth";
+import { verifyAdminPermissionApi } from "@/lib/auth";
 import { cmsDefaults, cmsKeys } from "@/lib/cms/defaults";
 import { defaultCMSLayout, mergeLayout, publishLayoutSection, type CMSLayout } from "@/lib/cms/layout";
 import { mergeCMSContent } from "@/lib/cms/merge";
@@ -29,7 +29,7 @@ async function loadCMSState(supabase: SupabaseClient) {
 }
 
 export async function GET() {
-  const auth = await verifyAdminApi();
+  const auth = await verifyAdminPermissionApi("site_content");
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
@@ -44,7 +44,7 @@ export async function GET() {
 }
 
 export async function PUT(request: Request) {
-  const auth = await verifyAdminApi();
+  const auth = await verifyAdminPermissionApi("site_content");
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
@@ -102,7 +102,7 @@ export async function PUT(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const auth = await verifyAdminApi();
+  const auth = await verifyAdminPermissionApi("site_content");
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }

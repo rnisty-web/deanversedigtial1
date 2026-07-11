@@ -4,7 +4,7 @@ import { fetchAdminUserById, fetchAdminUsers } from "@/lib/supabase/profile-quer
 import {
   getOwnerEmail,
   isFounder,
-  verifyAdminApi,
+  verifyAdminPermissionApi,
   verifyUserManagementApi,
 } from "@/lib/auth";
 import {
@@ -44,7 +44,7 @@ function normalizeRolesInput(
 }
 
 export async function GET() {
-  const auth = await verifyAdminApi();
+  const auth = await verifyAdminPermissionApi("users");
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }

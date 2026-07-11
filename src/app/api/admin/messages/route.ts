@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { verifyAdminApi } from "@/lib/auth";
+import { verifyAdminApi, verifyAdminPermissionApi } from "@/lib/auth";
 import { escapeHtml, sendClientEmail } from "@/lib/email";
 import { siteConfig } from "@/lib/constants";
 
@@ -7,7 +7,7 @@ const MESSAGE_SELECT =
   "id, subject, content, read, created_at, project_id, sender_id, recipient_id, sender:profiles!messages_sender_id_fkey(id, full_name, email), recipient:profiles!messages_recipient_id_fkey(id, full_name, email), projects(title)";
 
 export async function GET(request: Request) {
-  const auth = await verifyAdminApi();
+  const auth = await verifyAdminPermissionApi("messages");
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
@@ -62,7 +62,7 @@ async function resolveRecipientProfileId(
 }
 
 export async function POST(request: Request) {
-  const auth = await verifyAdminApi();
+  const auth = await verifyAdminPermissionApi("messages");
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
@@ -140,7 +140,7 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  const auth = await verifyAdminApi();
+  const auth = await verifyAdminPermissionApi("messages");
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }

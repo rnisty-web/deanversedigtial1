@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import { verifyCustomerApi } from "@/lib/auth";
+import { verifyCustomerPermissionApi } from "@/lib/auth";
 import { ensurePortalClient } from "@/lib/portal/provision-portal-client";
 import { resolvePortalClient } from "@/lib/portal/resolve-portal-client";
 
 const PROFILE_FIELDS = "id, email, full_name, avatar_url, phone" as const;
 
 export async function GET() {
-  const auth = await verifyCustomerApi();
+  const auth = await verifyCustomerPermissionApi("account");
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
@@ -35,7 +35,7 @@ export async function GET() {
 }
 
 export async function PATCH(request: Request) {
-  const auth = await verifyCustomerApi();
+  const auth = await verifyCustomerPermissionApi("account");
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
@@ -89,7 +89,7 @@ export async function PATCH(request: Request) {
     if (updateError) {
       return NextResponse.json({ error: updateError.message }, { status: 500 });
     }
-    profile = data;
+    profile = { ...auth.profile!, ...data };
   }
 
   if (company !== undefined) {

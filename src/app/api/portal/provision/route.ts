@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import { verifyCustomerApi } from "@/lib/auth";
+import { verifyCustomerPermissionApi } from "@/lib/auth";
 import { isStaffRole } from "@/lib/roles";
 import { getRoleCatalogSafe } from "@/lib/roles/catalog-server";
 import { ensurePortalClient } from "@/lib/portal/provision-portal-client";
 
 export async function POST() {
-  const auth = await verifyCustomerApi();
+  const auth = await verifyCustomerPermissionApi("dashboard");
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }

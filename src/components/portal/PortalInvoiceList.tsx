@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { AdminAlert } from "@/components/admin/AdminAlert";
 import { AdminStatusBadge } from "@/components/admin/AdminStatusBadge";
@@ -79,17 +79,21 @@ function InvoicePayButton({
 }
 
 function PaymentBanner() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const paid = searchParams.get("paid");
   const cancelled = searchParams.get("cancelled");
 
   useEffect(() => {
     if (!paid && !cancelled) return;
+    if (paid) {
+      router.refresh();
+    }
     const url = new URL(window.location.href);
     url.searchParams.delete("paid");
     url.searchParams.delete("cancelled");
     window.history.replaceState({}, "", `${url.pathname}${url.search}`);
-  }, [paid, cancelled]);
+  }, [paid, cancelled, router]);
 
   if (paid) {
     return (

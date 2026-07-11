@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { verifyCustomerApi } from "@/lib/auth";
+import { verifyCustomerPermissionApi } from "@/lib/auth";
 import { escapeHtml, sendOwnerNotification } from "@/lib/email";
 import { siteConfig } from "@/lib/constants";
 import {
@@ -10,7 +10,7 @@ import {
 import { resolvePortalClient } from "@/lib/portal/resolve-portal-client";
 
 async function getClientProjects(
-  supabase: NonNullable<Awaited<ReturnType<typeof verifyCustomerApi>>["supabase"]>,
+  supabase: NonNullable<Awaited<ReturnType<typeof verifyCustomerPermissionApi>>["supabase"]>,
   userId: string,
   userEmail: string,
 ) {
@@ -29,7 +29,7 @@ async function getClientProjects(
 const FILE_FIELDS = "id, name, file_path, project_id, file_size, mime_type, created_at" as const;
 
 export async function GET(request: Request) {
-  const auth = await verifyCustomerApi();
+  const auth = await verifyCustomerPermissionApi("files");
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
@@ -108,7 +108,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const auth = await verifyCustomerApi();
+  const auth = await verifyCustomerPermissionApi("files");
   if (auth.error) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }

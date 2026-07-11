@@ -288,7 +288,10 @@ export default function PortalMessagesPage() {
 
       {error ? (
         <AdminAlert tone="error" className="mb-4">
-          {error}
+          {error}{" "}
+          <button type="button" className="underline" onClick={() => void fetchMessages()}>
+            Try again
+          </button>
         </AdminAlert>
       ) : null}
 
@@ -299,7 +302,9 @@ export default function PortalMessagesPage() {
       ) : conversations.length === 0 ? (
         <PortalCard padding="lg" className="text-center">
           <p className="text-[var(--admin-text-muted)]">
-            Start a conversation with your project team.
+            {recipients.length === 0
+              ? "Messaging is not available yet — your team has not been configured to receive messages."
+              : "Start a conversation with your project team."}
           </p>
           <Button
             size="sm"

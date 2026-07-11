@@ -9821,3 +9821,39 @@ body > [role="dialog"] > div {
 .portal-theme .admin-main-scroll {
   scroll-behavior: smooth;
 }
+
+/* -------------------------------------------------------------------------- */
+/* Native select dropdowns: dark, readable popups that match the theme        */
+/* -------------------------------------------------------------------------- */
+
+/* Force the browser to render the option popup (and native date/time pickers)
+   in dark mode. Concrete color fallbacks are required because modals are
+   portaled to <body>, outside the .admin-theme / .portal-theme wrappers where
+   the CSS variables live. */
+select,
+input,
+textarea {
+  color-scheme: dark;
+}
+
+select option,
+select optgroup {
+  background-color: var(--admin-panel, #121715);
+  color: var(--admin-text, #f5f2eb);
+}
+
+select option:disabled {
+  color: var(--admin-text-muted, rgba(255, 255, 255, 0.45));
+}
+
+select option:checked {
+  background-color: var(--admin-gold-soft, rgba(201, 169, 98, 0.18));
+  color: var(--admin-gold-light, #dfc88a);
+}
+
+/* The closed select box itself: lift the resting text color so the chosen
+   value is easy to read (hover/focus states already brighten it further). */
+.admin-theme select,
+.portal-theme select {
+  color: color-mix(in srgb, var(--admin-text) 85%, transparent);
+}

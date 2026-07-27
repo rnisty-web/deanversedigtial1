@@ -41,10 +41,10 @@ export function SettingsOverviewPanel({
         </dl>
 
         <div className="admin-settings-quick-grid">
-          <Link href="/admin/settings/my-account" className="admin-settings-quick-btn">
+          <Link href="/workspace/account" className="admin-settings-quick-btn">
             My account
           </Link>
-          <Link href="/admin/settings/appearance" className="admin-settings-quick-btn">
+          <Link href="/workspace/settings/appearance" className="admin-settings-quick-btn">
             Appearance
           </Link>
           <Link href="/" className="admin-settings-quick-btn">
@@ -92,7 +92,7 @@ export function SettingsOverviewPanel({
             Rate limiting on public lead submissions
           </li>
         </ul>
-        <Link href="/admin/settings/my-account" className="admin-settings-security-link">
+        <Link href="/workspace/account" className="admin-settings-security-link">
           Update password →
         </Link>
       </div>

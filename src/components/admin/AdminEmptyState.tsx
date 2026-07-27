@@ -27,15 +27,15 @@ export function AdminEmptyState({
         className,
       )}
     >
-      {icon && <div className="admin-empty-icon-ring mb-4">{icon}</div>}
-      <h3 className="text-lg font-semibold text-[var(--admin-text)]">{title}</h3>
+      {icon && <div className="admin-empty-icon-ring mb-5">{icon}</div>}
+      <h3 className="admin-heading-serif text-xl text-[var(--admin-text)]">{title}</h3>
       {description && (
-        <p className="mt-2 max-w-md text-sm leading-relaxed text-[var(--admin-text-muted)]">
+        <p className="mt-2.5 max-w-md text-sm leading-relaxed text-[var(--admin-text-muted)]">
           {description}
         </p>
       )}
       {actionLabel && (onAction || actionHref) && (
-        <div className="mt-6">
+        <div className="mt-7">
           {actionHref ? (
             <Button href={actionHref} size="sm" className="admin-btn-gold">
               {actionLabel}

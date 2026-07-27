@@ -73,7 +73,7 @@ export async function requireAdmin(): Promise<Profile> {
   const profile = await getProfile();
   const catalog = await getRoleCatalogSafe();
   if (!profile || !isStaffRole(profile, catalog)) {
-    redirect("/login?redirectTo=/admin");
+    redirect("/login?redirectTo=/workspace");
   }
   return profile;
 }
@@ -81,19 +81,19 @@ export async function requireAdmin(): Promise<Profile> {
 export async function requireAuth(): Promise<Profile> {
   const profile = await getProfile();
   if (!profile) {
-    redirect("/login?redirectTo=/portal");
+    redirect("/login?redirectTo=/workspace");
   }
   return profile;
 }
 
-/** Client portal — customers only; staff are sent to the admin portal. */
+/** Customers only — staff are sent to the unified workspace home. */
 export async function requireCustomer(): Promise<Profile> {
   const profile = await getProfile();
   if (!profile) {
-    redirect("/login?redirectTo=/portal");
+    redirect("/login?redirectTo=/workspace");
   }
   if (!isCustomerRole(profile)) {
-    redirect("/admin");
+    redirect("/workspace");
   }
   return profile;
 }

@@ -12,12 +12,12 @@ export function AppearanceSettingsClient({ initialTheme }: { initialTheme: Dashb
         search=""
         onSearchChange={() => undefined}
         title="Appearance"
-        subtitle="Customize dashboard colors for the admin and client portals."
-        actionHref="/admin/settings"
+        subtitle="Customize workspace colors for every role."
+        actionHref="/workspace/settings"
         actionLabel="All settings"
         hideSearch
         breadcrumb={[
-          { label: "Settings", href: "/admin/settings" },
+          { label: "Settings", href: "/workspace/settings" },
           { label: "Appearance" },
         ]}
       />

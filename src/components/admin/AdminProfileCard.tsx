@@ -9,9 +9,18 @@ import { createClient } from "@/lib/supabase/client";
 import { getRoleLabel, getPrimaryRole, isFounderRole } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 
+export type ProfileMenuLink = { label: string; href: string };
+
+const DEFAULT_MENU_LINKS: ProfileMenuLink[] = [
+  { label: "My Account", href: "/workspace/account" },
+  { label: "Settings", href: "/workspace/settings" },
+];
+
 type AdminProfileCardProps = {
   profile: Profile;
   compact?: boolean;
+  /** Menu entries above "Sign out". The workspace shell passes permission-filtered links. */
+  menuLinks?: ProfileMenuLink[];
 };
 
 function ShieldIcon({ className }: { className?: string }) {
@@ -26,7 +35,11 @@ function ShieldIcon({ className }: { className?: string }) {
   );
 }
 
-export function AdminProfileCard({ profile, compact = false }: AdminProfileCardProps) {
+export function AdminProfileCard({
+  profile,
+  compact = false,
+  menuLinks = DEFAULT_MENU_LINKS,
+}: AdminProfileCardProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -121,38 +134,17 @@ export function AdminProfileCard({ profile, compact = false }: AdminProfileCardP
           className="absolute bottom-full left-0 right-0 z-50 mb-2 overflow-hidden rounded-xl border border-[var(--admin-border)] bg-[var(--admin-panel)] py-1 shadow-[0_12px_40px_-8px_rgba(0,0,0,0.75)]"
           role="menu"
         >
-          <Link
-            href="/portal"
-            className="admin-sidebar-menu-item"
-            role="menuitem"
-            onClick={() => setOpen(false)}
-          >
-            Client Portal
-          </Link>
-          <Link
-            href="/admin/settings/my-account"
-            className="admin-sidebar-menu-item"
-            role="menuitem"
-            onClick={() => setOpen(false)}
-          >
-            My Account
-          </Link>
-          <Link
-            href="/admin/settings"
-            className="admin-sidebar-menu-item"
-            role="menuitem"
-            onClick={() => setOpen(false)}
-          >
-            Settings
-          </Link>
-          <Link
-            href="/"
-            className="admin-sidebar-menu-item"
-            role="menuitem"
-            onClick={() => setOpen(false)}
-          >
-            Back to Website
-          </Link>
+          {menuLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="admin-sidebar-menu-item"
+              role="menuitem"
+              onClick={() => setOpen(false)}
+            >
+              {link.label}
+            </Link>
+          ))}
           <button
             type="button"
             className="admin-sidebar-menu-item w-full text-left"

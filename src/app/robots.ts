@@ -9,6 +9,8 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: "*",
       allow: "/",
       disallow: [
+        "/workspace",
+        "/workspace/",
         "/admin",
         "/admin/",
         "/portal",

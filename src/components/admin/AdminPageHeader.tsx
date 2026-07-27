@@ -160,10 +160,10 @@ export function AdminStatCard({
     <div className={cn("admin-stat-card admin-portal-stat-card", className)}>
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="text-[11px] font-medium uppercase tracking-wider text-[var(--admin-text-muted)]">{label}</p>
+          <p className="admin-stat-label">{label}</p>
           <p
             className={cn(
-              "mt-1 text-2xl font-bold tabular-nums",
+              "admin-stat-value",
               goldValue ? "text-[var(--admin-gold-light)]" : "text-[var(--admin-text)]",
             )}
           >
@@ -172,10 +172,8 @@ export function AdminStatCard({
           {hint ? (
             <p
               className={cn(
-                "mt-1.5 text-xs",
-                hintTone === "down"
-                  ? "text-red-300/90"
-                  : "text-[var(--admin-text-muted)]",
+                "admin-stat-hint",
+                hintTone === "down" ? "text-red-300/90" : "text-[var(--admin-text-muted)]",
               )}
             >
               {hint}

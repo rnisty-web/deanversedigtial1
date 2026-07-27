@@ -55,7 +55,6 @@ function AuthCallbackHandler() {
       }
 
       const nextParam = searchParams.get("next");
-      let destination = "/portal";
       let profile: { role?: string | null; roles?: string[] | null } | null = null;
 
       const {
@@ -71,8 +70,7 @@ function AuthCallbackHandler() {
         profile = loadedProfile;
       }
 
-      const defaultDestination = isStaffRole(profile) ? "/admin" : "/portal";
-      destination = getRoleAwareRedirectPath(profile, nextParam, defaultDestination);
+      const destination = getRoleAwareRedirectPath(profile, nextParam, "/workspace");
 
       if (!isStaffRole(profile)) {
         await fetch("/api/portal/provision", {

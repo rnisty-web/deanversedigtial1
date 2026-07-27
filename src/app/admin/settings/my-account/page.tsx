@@ -203,10 +203,10 @@ export default function MyAccountPage() {
         hideSearch
         title="My Account"
         subtitle="Manage your admin profile, email, password, and activity status."
-        actionHref="/admin/settings"
+        actionHref="/workspace/settings"
         actionLabel="All Settings"
         breadcrumb={[
-          { label: "Settings", href: "/admin/settings" },
+          { label: "Settings", href: "/workspace/settings" },
           { label: "My Account" },
         ]}
         sections={sections}

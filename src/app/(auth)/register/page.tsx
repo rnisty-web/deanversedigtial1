@@ -5,6 +5,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { getAuthCallbackUrl } from "@/lib/auth-redirect";
+import {
+  clientEmailHintForCreator,
+  isCreatorEmail,
+  normalizeEmail,
+} from "@/lib/auth-workspace";
 import { Button } from "@/components/ui/Button";
 
 export default function RegisterPage() {
@@ -37,15 +42,23 @@ export default function RegisterPage() {
       return;
     }
 
+    const normalized = normalizeEmail(email);
+    if (isCreatorEmail(normalized)) {
+      setError(
+        `${clientEmailHintForCreator()} Studio accounts are invited — they are not created here.`,
+      );
+      return;
+    }
+
     setLoading(true);
     const supabase = createClient();
 
     const { data, error: authError } = await supabase.auth.signUp({
-      email,
+      email: normalized,
       password,
       options: {
         data: { full_name: fullName },
-        emailRedirectTo: getAuthCallbackUrl("/portal"),
+        emailRedirectTo: getAuthCallbackUrl("/workspace"),
       },
     });
 
@@ -60,7 +73,7 @@ export default function RegisterPage() {
 
     if (data.session) {
       await fetch("/api/portal/provision", { method: "POST", credentials: "same-origin" });
-      router.push("/portal");
+      router.push("/workspace");
       router.refresh();
       return;
     }
@@ -74,13 +87,13 @@ export default function RegisterPage() {
         <div className="mb-4 text-4xl">✓</div>
         <h1 className="mb-2 text-xl font-semibold text-white">Account created!</h1>
         <p className="text-sm text-white/60">
-          Check your email to confirm your account, then sign in to access the client portal.
+          Check your email to confirm your account, then sign in to Client Workspace.
         </p>
         <Link
           href="/login"
           className="mt-6 inline-block text-sm text-[#a3c9a8] hover:text-[#6f8f72]"
         >
-          Go to sign in
+          Go to Client Workspace
         </Link>
       </div>
     );
@@ -88,9 +101,9 @@ export default function RegisterPage() {
 
   return (
     <>
-      <h1 className="mb-2 text-2xl font-semibold text-white">Create account</h1>
+      <h1 className="mb-2 text-2xl font-semibold text-white">Client Workspace</h1>
       <p className="mb-6 text-sm text-white/60">
-        Join the DeanVerse Digital client portal
+        Create your client account with any email to access projects, files, and invoices.
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -189,9 +202,21 @@ export default function RegisterPage() {
       <p className="mt-6 text-center text-sm text-white/50">
         Already have an account?{" "}
         <Link href="/login" className="text-[#a3c9a8] hover:text-[#6f8f72]">
-          Sign in
+          Sign in to Client Workspace
         </Link>
       </p>
+
+      <div className="mt-6 border-t border-white/10 pt-5">
+        <p className="mb-3 text-center text-xs text-white/45">
+          Part of the DeanVerse Digital studio team?
+        </p>
+        <Link
+          href="/login/creators"
+          className="flex w-full items-center justify-center rounded-lg border border-[var(--admin-gold,#c9a962)]/35 bg-[var(--admin-gold,#c9a962)]/10 px-4 py-2.5 text-sm font-medium text-[var(--admin-gold-light,#dfc88a)] transition hover:border-[var(--admin-gold,#c9a962)]/55 hover:bg-[var(--admin-gold,#c9a962)]/18"
+        >
+          Development Workspace
+        </Link>
+      </div>
     </>
   );
 }

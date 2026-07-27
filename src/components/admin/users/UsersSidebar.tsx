@@ -9,7 +9,7 @@ import { countUsersByRole, computeUserStats } from "@/lib/users/utils";
 type UsersSidebarProps = {
   users: UserRecord[];
   canManageUsers: boolean;
-  onInviteUser: () => void;
+  onAddUser: () => void;
   onManageRoles?: () => void;
   roleCatalog: RoleDefinition[];
 };
@@ -17,7 +17,7 @@ type UsersSidebarProps = {
 export function UsersSidebar({
   users,
   canManageUsers,
-  onInviteUser,
+  onAddUser,
   onManageRoles,
   roleCatalog,
 }: UsersSidebarProps) {
@@ -57,8 +57,8 @@ export function UsersSidebar({
         <div className="admin-users-sidebar-panel">
           <p className="admin-users-sidebar-title">Actions</p>
           <div className="admin-users-quick-grid">
-            <button type="button" className="admin-users-quick-btn" onClick={onInviteUser}>
-              + Invite user
+            <button type="button" className="admin-users-quick-btn" onClick={onAddUser}>
+              + Add user
             </button>
             {onManageRoles ? (
               <button type="button" className="admin-users-quick-btn" onClick={onManageRoles}>

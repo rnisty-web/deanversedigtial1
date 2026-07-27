@@ -6,12 +6,12 @@ import { AdminCard } from "@/components/admin/AdminCard";
 import type { AdminPermission } from "@/lib/roles/permissions";
 
 const links: { href: string; label: string; desc: string; permission: AdminPermission }[] = [
-  { href: "/admin/leads", label: "Leads", desc: "Pipeline & follow-ups", permission: "leads" },
-  { href: "/admin/projects", label: "Projects", desc: "Deadlines & delivery", permission: "projects" },
-  { href: "/admin/calendar", label: "Calendar", desc: "Schedule & events", permission: "calendar" },
-  { href: "/admin/users", label: "Users", desc: "Team & presence", permission: "users" },
-  { href: "/admin/content", label: "Content", desc: "Site copy & CMS", permission: "site_content" },
-  { href: "/admin/invoices", label: "Invoices", desc: "Billing & payments", permission: "invoices" },
+  { href: "/workspace/leads", label: "Leads", desc: "Pipeline & follow-ups", permission: "leads" },
+  { href: "/workspace/projects", label: "Projects", desc: "Deadlines & delivery", permission: "projects" },
+  { href: "/workspace/calendar", label: "Calendar", desc: "Schedule & events", permission: "calendar" },
+  { href: "/workspace/users", label: "Users", desc: "Team & presence", permission: "users" },
+  { href: "/workspace/content", label: "Content", desc: "Site copy & CMS", permission: "site_content" },
+  { href: "/workspace/invoices", label: "Invoices", desc: "Billing & payments", permission: "invoices" },
 ];
 
 export function DashboardQuickNav() {

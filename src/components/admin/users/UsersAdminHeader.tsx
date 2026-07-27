@@ -12,7 +12,7 @@ type UsersAdminHeaderProps = {
   tab: UserFilterTab;
   onTabChange: (tab: UserFilterTab) => void;
   counts: { all: number; staff: number; clients: number; online: number };
-  onInviteUser?: () => void;
+  onAddUser?: () => void;
   canManage?: boolean;
 };
 
@@ -22,7 +22,7 @@ export function UsersAdminHeader({
   tab,
   onTabChange,
   counts,
-  onInviteUser,
+  onAddUser,
   canManage,
 }: UsersAdminHeaderProps) {
   const searchRef = useRef<HTMLInputElement>(null);
@@ -81,9 +81,9 @@ export function UsersAdminHeader({
             />
             <AdminShortcutHint />
           </div>
-          {canManage && onInviteUser ? (
-            <button type="button" onClick={onInviteUser} className="admin-btn-gold whitespace-nowrap px-4 py-2 text-sm">
-              + Invite User
+          {canManage && onAddUser ? (
+            <button type="button" onClick={onAddUser} className="admin-btn-gold whitespace-nowrap px-4 py-2 text-sm">
+              + Add User
             </button>
           ) : null}
         </div>

@@ -272,7 +272,7 @@ export default function AdminDashboardPage() {
               <div className="admin-dashboard-widget-grid">
                 <DashboardTasksWidget tasks={buildTaskItems(stats)} />
                 <DashboardMessagesWidget messages={stats.recentMessages ?? []} />
-                <DashboardInvoicesWidget invoices={stats.recentInvoices} formatCurrency={formatCurrency} />
+                <DashboardInvoicesWidget invoices={stats.recentInvoices} />
               </div>
             </section>
 
@@ -284,12 +284,8 @@ export default function AdminDashboardPage() {
               />
               <div className="admin-dashboard-widget-grid">
                 <DashboardProjectStatusBar statusCounts={stats.projectStatusCounts} />
-                <DashboardDeadlinesTable deadlines={stats.upcomingDeadlines ?? []} formatDate={formatShortDate} />
-                <DashboardPaymentsTable
-                  payments={stats.recentPayments ?? []}
-                  formatCurrency={formatCurrency}
-                  formatDate={formatShortDate}
-                />
+                <DashboardDeadlinesTable deadlines={stats.upcomingDeadlines ?? []} />
+                <DashboardPaymentsTable payments={stats.recentPayments ?? []} />
               </div>
             </section>
 

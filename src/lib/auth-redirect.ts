@@ -1,13 +1,14 @@
 import { isStaffRole } from "@/lib/roles";
+import { workspaceHrefForLegacyPath } from "@/lib/workspace/modules";
 
-const ALLOWED_PREFIXES = ["/portal", "/admin", "/reset-password"] as const;
+const ALLOWED_PREFIXES = ["/workspace", "/portal", "/admin", "/reset-password"] as const;
 
 type RoleProfile = {
   role?: string | null;
   roles?: string[] | null;
 } | null | undefined;
 
-export function getSafeRedirectPath(path: string | null | undefined, fallback = "/portal"): string {
+export function getSafeRedirectPath(path: string | null | undefined, fallback = "/workspace"): string {
   if (!path || !path.startsWith("/") || path.startsWith("//")) {
     return fallback;
   }
@@ -20,21 +21,24 @@ export function getSafeRedirectPath(path: string | null | undefined, fallback = 
     (prefix) => path === prefix || path.startsWith(`${prefix}/`),
   );
 
-  return allowed ? path : fallback;
+  if (!allowed) return fallback;
+
+  // Normalize legacy portal/admin destinations onto the unified workspace.
+  if (path === "/admin" || path.startsWith("/admin/") || path === "/portal" || path.startsWith("/portal/")) {
+    return workspaceHrefForLegacyPath(path);
+  }
+
+  return path;
 }
 
-/** Block non-staff users from being sent to /admin routes after login or email confirmation. */
+/** After login, send every authenticated user into DeanVerse Workspace. */
 export function getRoleAwareRedirectPath(
   profile: RoleProfile,
   requestedPath: string | null | undefined,
-  fallback = "/portal",
+  fallback = "/workspace",
 ): string {
-  const safe = getSafeRedirectPath(requestedPath, fallback);
-  const wantsAdmin = safe === "/admin" || safe.startsWith("/admin/");
-  if (wantsAdmin && !isStaffRole(profile)) {
-    return "/portal";
-  }
-  return safe;
+  void profile;
+  return getSafeRedirectPath(requestedPath, fallback);
 }
 
 export function getAuthCallbackUrl(next?: string): string {
@@ -47,4 +51,14 @@ export function getAuthCallbackUrl(next?: string): string {
 
   const safeNext = getSafeRedirectPath(next);
   return `${base}?next=${encodeURIComponent(safeNext)}`;
+}
+
+/** @deprecated Staff/client split is gone — kept for callers during migration. */
+export function getDefaultPostLoginPath(profile: RoleProfile): string {
+  void profile;
+  return "/workspace";
+}
+
+export function isStaffProfile(profile: RoleProfile): boolean {
+  return isStaffRole(profile);
 }

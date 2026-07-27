@@ -26,19 +26,27 @@ type TaskItem = {
   href: string;
 };
 
+function formatCurrency(amount: number) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(amount);
+}
+
 export function DashboardInvoicesWidget({
   invoices,
-  formatCurrency,
+  href = "/admin/invoices",
 }: {
   invoices: InvoiceItem[];
-  formatCurrency: (n: number) => string;
+  href?: string;
 }) {
   return (
     <DashboardWidget
       eyebrow="Billing"
       title="Recent invoices"
       subtitle="Latest payment activity"
-      actionHref="/admin/invoices"
+      actionHref={href}
     >
       {invoices.length === 0 ? (
         <p className="admin-dashboard-empty-copy">No invoices yet.</p>
@@ -46,7 +54,7 @@ export function DashboardInvoicesWidget({
         <ul className="admin-dashboard-list">
           {invoices.map((inv) => (
             <li key={inv.id}>
-              <DashboardWidgetLink href="/admin/invoices">
+              <DashboardWidgetLink href={href}>
                 <div className="admin-dashboard-list-row">
                   <div className="min-w-0">
                     <p className="admin-dashboard-list-title">{inv.client_name}</p>
@@ -66,13 +74,19 @@ export function DashboardInvoicesWidget({
   );
 }
 
-export function DashboardMessagesWidget({ messages }: { messages: MessageItem[] }) {
+export function DashboardMessagesWidget({
+  messages,
+  href = "/admin/messages",
+}: {
+  messages: MessageItem[];
+  href?: string;
+}) {
   return (
     <DashboardWidget
       eyebrow="Inbox"
       title="Messages"
       subtitle="Recent conversations"
-      actionHref="/admin/messages"
+      actionHref={href}
     >
       {messages.length === 0 ? (
         <p className="admin-dashboard-empty-copy">No messages yet.</p>
@@ -80,7 +94,7 @@ export function DashboardMessagesWidget({ messages }: { messages: MessageItem[] 
         <ul className="admin-dashboard-list">
           {messages.map((msg) => (
             <li key={msg.id}>
-              <DashboardWidgetLink href="/admin/messages">
+              <DashboardWidgetLink href={href}>
                 <div className="admin-dashboard-list-row">
                   <div className="admin-dashboard-avatar">{msg.sender_name.charAt(0).toUpperCase()}</div>
                   <div className="min-w-0 flex-1">
@@ -100,13 +114,19 @@ export function DashboardMessagesWidget({ messages }: { messages: MessageItem[] 
   );
 }
 
-export function DashboardTasksWidget({ tasks }: { tasks: TaskItem[] }) {
+export function DashboardTasksWidget({
+  tasks,
+  href = "/admin/leads",
+}: {
+  tasks: TaskItem[];
+  href?: string;
+}) {
   return (
     <DashboardWidget
       eyebrow="Action items"
       title="Priority tasks"
       subtitle="What needs attention now"
-      actionHref="/admin/leads"
+      actionHref={href}
     >
       {tasks.length === 0 ? (
         <p className="admin-dashboard-empty-copy">You&apos;re all caught up.</p>

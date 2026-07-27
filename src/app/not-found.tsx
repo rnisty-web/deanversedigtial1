@@ -24,7 +24,7 @@ export default function NotFound() {
           Contact us
         </Button>
       </div>
-      <Link href="/portal" className="mt-6 text-sm text-white/40 hover:text-[#a3c9a8]">
+      <Link href="/workspace" className="mt-6 text-sm text-white/40 hover:text-[#a3c9a8]">
         Client portal
       </Link>
     </div>

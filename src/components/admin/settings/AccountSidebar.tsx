@@ -94,7 +94,7 @@ export function AccountSidebar({
         </section>
 
         <section className="admin-settings-account-sidebar-section">
-          <Link href="/admin/settings" className="admin-btn-ghost w-full justify-center py-2 text-sm">
+          <Link href="/workspace/settings" className="admin-btn-ghost w-full justify-center py-2 text-sm">
             ← All Settings
           </Link>
         </section>

@@ -1,11 +1,12 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { getSafeRedirectPath } from "@/lib/auth-redirect";
-import { isStaffRole } from "@/lib/roles";
+import { workspaceHrefForLegacyPath } from "@/lib/workspace/modules";
 import { updateSession } from "@/lib/supabase/session";
 
-const protectedRoutes = ["/admin", "/portal"];
+const protectedRoutes = ["/workspace", "/admin", "/portal"];
 const authRoutes = [
   "/login",
+  "/login/creators",
   "/register",
   "/forgot-password",
   "/reset-password",
@@ -23,12 +24,17 @@ function isAuthRoute(pathname: string) {
   );
 }
 
-function isAdminRoute(pathname: string) {
-  return pathname === "/admin" || pathname.startsWith("/admin/");
+function isLegacyPortalRoute(pathname: string) {
+  return (
+    pathname === "/admin" ||
+    pathname.startsWith("/admin/") ||
+    pathname === "/portal" ||
+    pathname.startsWith("/portal/")
+  );
 }
 
 export async function proxy(request: NextRequest) {
-  const { response, user, profileRoles } = await updateSession(request);
+  const { response, user } = await updateSession(request);
   const { pathname } = request.nextUrl;
 
   if (pathname === "/blog" || pathname.startsWith("/blog/")) {
@@ -38,6 +44,13 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(homeUrl);
   }
 
+  // Permanent unification: old admin/client portal URLs land in Workspace.
+  if (isLegacyPortalRoute(pathname)) {
+    const destination = request.nextUrl.clone();
+    destination.pathname = workspaceHrefForLegacyPath(pathname);
+    return NextResponse.redirect(destination);
+  }
+
   if (isProtectedRoute(pathname) && !user) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/login";
@@ -45,25 +58,15 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  if (isAdminRoute(pathname) && user && !isStaffRole(profileRoles)) {
-    const portalUrl = request.nextUrl.clone();
-    portalUrl.pathname = "/portal";
-    portalUrl.searchParams.set("notice", "admin-required");
-    return NextResponse.redirect(portalUrl);
-  }
-
   if (isAuthRoute(pathname) && user) {
     const redirectTo = request.nextUrl.searchParams.get("redirectTo");
     const destination = request.nextUrl.clone();
 
     if (redirectTo) {
-      destination.pathname = getSafeRedirectPath(
-        redirectTo,
-        isStaffRole(profileRoles) ? "/admin" : "/portal",
-      );
+      destination.pathname = getSafeRedirectPath(redirectTo, "/workspace");
       destination.searchParams.delete("redirectTo");
     } else {
-      destination.pathname = isStaffRole(profileRoles) ? "/admin" : "/portal";
+      destination.pathname = "/workspace";
       destination.search = "";
     }
 

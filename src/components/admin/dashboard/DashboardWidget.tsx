@@ -22,7 +22,7 @@ export function DashboardWidget({
   padding?: "sm" | "md" | "lg";
 }) {
   return (
-    <AdminCard hover={false} padding={padding} className={cn("admin-dashboard-widget h-full", className)}>
+    <AdminCard hover padding={padding} className={cn("admin-dashboard-widget h-full", className)}>
       <div className="admin-dashboard-widget-shine" aria-hidden />
       <div className="admin-dashboard-widget-header">
         <div className="min-w-0">

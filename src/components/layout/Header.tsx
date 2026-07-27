@@ -80,10 +80,10 @@ export function Header() {
 
         <div className="hidden items-center gap-3 lg:flex">
           <Link
-            href="/login"
+            href="/workspace"
             className="rounded-full px-3 py-2 text-sm font-medium text-white/50 transition-colors hover:text-[#a3c9a8]"
           >
-            Client Login
+            Client Workspace
           </Link>
           <Button href="/contact" variant="primary" size="sm">
             Start a Project
@@ -155,10 +155,10 @@ export function Header() {
           })}
           <div className="mt-4 border-t border-white/10 pt-4">
             <Link
-              href="/login"
+              href="/workspace"
               className="mb-4 block rounded-xl px-4 py-3 text-base font-medium text-white/50 transition-colors hover:bg-white/5 hover:text-[#a3c9a8]"
             >
-              Client Login
+              Client Workspace
             </Link>
             <Button href="/contact" variant="primary" className="w-full">
               Start a Project

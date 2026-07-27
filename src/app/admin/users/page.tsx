@@ -57,6 +57,13 @@ const emptyCreateForm: CreateForm = {
   roles: ["customer"],
 };
 
+function generatePassword(length = 16): string {
+  const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%&*";
+  const bytes = new Uint8Array(length);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, (b) => chars[b % chars.length]).join("");
+}
+
 const statIcons = {
   total: (
     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden>
@@ -282,13 +289,27 @@ export default function AdminUsersPage() {
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
+
+    const email = createForm.email.trim();
+    const password = createForm.password;
+
+    if (!email) {
+      showFeedback("Email is required", "error");
+      return;
+    }
+
+    if (!password || password.length < 8) {
+      showFeedback("Password must be at least 8 characters", "error");
+      return;
+    }
+
     setCreating(true);
 
     const res = await fetch("/api/admin/users", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "same-origin",
-      body: JSON.stringify(createForm),
+      body: JSON.stringify({ ...createForm, email }),
     });
 
     setCreating(false);
@@ -299,9 +320,11 @@ export default function AdminUsersPage() {
       return;
     }
 
+    const data = await res.json();
     setShowCreateForm(false);
     setCreateForm(emptyCreateForm);
-    showFeedback("User created successfully");
+    showFeedback(`${email} added successfully`);
+    if (data.user?.id) setSelectedId(data.user.id);
     fetchUsers();
   }
 
@@ -352,7 +375,7 @@ export default function AdminUsersPage() {
         onTabChange={setTab}
         counts={tabCounts}
         canManage={canManageUsers}
-        onInviteUser={() => setShowCreateForm(true)}
+        onAddUser={() => setShowCreateForm(true)}
       />
 
       <AdminPageContent className="admin-users-content">
@@ -404,7 +427,7 @@ export default function AdminUsersPage() {
           <AdminEmptyState
             title="No users yet"
             description="Create the first account to start managing roles, presence, and portal access."
-            actionLabel={canManageUsers ? "Invite user" : undefined}
+            actionLabel={canManageUsers ? "Add user" : undefined}
             onAction={canManageUsers ? () => setShowCreateForm(true) : undefined}
           />
         ) : filteredUsers.length === 0 ? (
@@ -437,7 +460,7 @@ export default function AdminUsersPage() {
             <UsersSidebar
               users={users}
               canManageUsers={canManageUsers}
-              onInviteUser={() => setShowCreateForm(true)}
+              onAddUser={() => setShowCreateForm(true)}
               onManageRoles={() => setTab("roles")}
               roleCatalog={roleCatalog}
             />
@@ -448,7 +471,7 @@ export default function AdminUsersPage() {
       <AdminModal
         open={showCreateForm}
         onClose={() => setShowCreateForm(false)}
-        title="Invite User"
+        title="Add User"
         footer={
           <div className="flex justify-end gap-2">
             <Button
@@ -460,30 +483,48 @@ export default function AdminUsersPage() {
             >
               Cancel
             </Button>
-            <Button size="sm" className="admin-btn-gold" type="submit" form="invite-user-form" disabled={creating}>
-              {creating ? "Creating…" : "Create User"}
+            <Button size="sm" className="admin-btn-gold" type="submit" form="add-user-form" disabled={creating}>
+              {creating ? "Adding…" : "Add User"}
             </Button>
           </div>
         }
       >
-        <form id="invite-user-form" onSubmit={handleCreate} className="space-y-4">
-          <AdminField
-            label="Full name"
-            value={createForm.full_name}
-            onChange={(v) => setCreateForm({ ...createForm, full_name: v })}
-          />
+        <form id="add-user-form" onSubmit={handleCreate} className="space-y-4">
           <AdminField
             label="Email"
             type="email"
             value={createForm.email}
             onChange={(v) => setCreateForm({ ...createForm, email: v })}
+            placeholder="user@example.com"
           />
+          <div>
+            <div className="mb-1.5 flex items-center justify-between gap-2">
+              <label className="text-sm font-medium text-[var(--admin-text-muted)]">Password</label>
+              <button
+                type="button"
+                className="text-xs text-[var(--admin-gold-light)] hover:underline"
+                onClick={() => setCreateForm({ ...createForm, password: generatePassword() })}
+              >
+                Generate
+              </button>
+            </div>
+            <input
+              type="password"
+              value={createForm.password}
+              onChange={(e) => setCreateForm({ ...createForm, password: e.target.value })}
+              placeholder="Minimum 8 characters"
+              className="admin-input w-full"
+              autoComplete="new-password"
+            />
+            <p className="mt-1.5 text-xs text-[var(--admin-text-muted)]">
+              Required. Share securely with the user or use Generate.
+            </p>
+          </div>
           <AdminField
-            label="Temporary password"
-            type="password"
-            value={createForm.password}
-            onChange={(v) => setCreateForm({ ...createForm, password: v })}
-            hint="At least 8 characters. Share this securely with the user."
+            label="Full name"
+            value={createForm.full_name}
+            onChange={(v) => setCreateForm({ ...createForm, full_name: v })}
+            placeholder="Optional"
           />
           <div>
             <label className="mb-1.5 block text-sm font-medium text-[var(--admin-text-muted)]">Roles</label>

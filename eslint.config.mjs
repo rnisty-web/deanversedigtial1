@@ -22,6 +22,7 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     "deanversedigtial/**",
     "archive/**",
+    "scripts/**",
   ]),
 ]);
 

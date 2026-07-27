@@ -31,6 +31,22 @@ function daysUntil(dateStr: string) {
   return `${diff} days left`;
 }
 
+function formatShortDate(dateStr: string) {
+  return new Date(dateStr).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function formatCurrency(amount: number) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(amount);
+}
+
 type DeadlineRow = {
   id: string;
   title: string;
@@ -49,8 +65,10 @@ type PaymentRow = {
 
 export function DashboardProjectStatusBar({
   statusCounts,
+  href = "/admin/projects",
 }: {
   statusCounts: Record<string, number>;
+  href?: string;
 }) {
   const entries = Object.entries(statusCounts).filter(([, count]) => count > 0);
   const total = entries.reduce((sum, [, count]) => sum + count, 0);
@@ -60,7 +78,7 @@ export function DashboardProjectStatusBar({
       eyebrow="Pipeline"
       title="Project status"
       subtitle="Current workload breakdown"
-      actionHref="/admin/projects"
+      actionHref={href}
     >
       {total === 0 ? (
         <p className="admin-dashboard-empty-copy">No projects yet.</p>
@@ -92,17 +110,17 @@ export function DashboardProjectStatusBar({
 
 export function DashboardDeadlinesTable({
   deadlines,
-  formatDate,
+  href = "/admin/projects",
 }: {
   deadlines: DeadlineRow[];
-  formatDate: (d: string) => string;
+  href?: string;
 }) {
   return (
     <DashboardWidget
       eyebrow="Delivery"
       title="Upcoming deadlines"
       subtitle="Projects due soon"
-      actionHref="/admin/projects"
+      actionHref={href}
       padding="sm"
     >
       {deadlines.length === 0 ? (
@@ -122,13 +140,13 @@ export function DashboardDeadlinesTable({
               {deadlines.map((row) => (
                 <tr key={row.id}>
                   <td>
-                    <Link href="/admin/projects" className="admin-dashboard-table-link">
+                    <Link href={href} className="admin-dashboard-table-link">
                       {row.title}
                     </Link>
                     <p className="admin-dashboard-table-sub">{daysUntil(row.deadline)}</p>
                   </td>
                   <td className="text-[var(--admin-text-muted)]">{row.client_name}</td>
-                  <td className="tabular-nums text-[var(--admin-text-muted)]">{formatDate(row.deadline)}</td>
+                  <td className="tabular-nums text-[var(--admin-text-muted)]">{formatShortDate(row.deadline)}</td>
                   <td>
                     <AdminStatusBadge status={row.status} />
                   </td>
@@ -144,19 +162,17 @@ export function DashboardDeadlinesTable({
 
 export function DashboardPaymentsTable({
   payments,
-  formatCurrency,
-  formatDate,
+  href = "/admin/invoices",
 }: {
   payments: PaymentRow[];
-  formatCurrency: (n: number) => string;
-  formatDate: (d: string) => string;
+  href?: string;
 }) {
   return (
     <DashboardWidget
       eyebrow="Revenue"
       title="Recent payments"
       subtitle="Completed transactions"
-      actionHref="/admin/invoices"
+      actionHref={href}
       padding="sm"
     >
       {payments.length === 0 ? (
@@ -179,7 +195,7 @@ export function DashboardPaymentsTable({
                   <td className="font-medium text-[var(--admin-text)]">{row.client_name}</td>
                   <td className="text-[var(--admin-text-muted)]">{row.invoice_number}</td>
                   <td className="admin-dashboard-table-amount">{formatCurrency(row.amount)}</td>
-                  <td className="tabular-nums text-[var(--admin-text-muted)]">{formatDate(row.created_at)}</td>
+                  <td className="tabular-nums text-[var(--admin-text-muted)]">{formatShortDate(row.created_at)}</td>
                   <td>
                     <AdminStatusBadge status="paid" />
                   </td>

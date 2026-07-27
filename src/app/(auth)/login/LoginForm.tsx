@@ -5,12 +5,52 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { getRoleAwareRedirectPath } from "@/lib/auth-redirect";
-import { isStaffRole } from "@/lib/roles";
+import {
+  CREATOR_EMAIL_DOMAIN,
+  clientEmailHintForCreator,
+  creatorEmailError,
+  isCreatorEmail,
+  normalizeEmail,
+  type AuthWorkspaceVariant,
+} from "@/lib/auth-workspace";
 import { Button } from "@/components/ui/Button";
 
-export default function LoginForm() {
+const COPY: Record<
+  AuthWorkspaceVariant,
+  {
+    title: string;
+    subtitle: string;
+    emailPlaceholder: string;
+    switchLabel: string;
+    switchHref: string;
+    switchCta: string;
+    showRegister: boolean;
+  }
+> = {
+  client: {
+    title: "Client Workspace",
+    subtitle: "Sign in to view your projects, files, messages, and invoices.",
+    emailPlaceholder: "you@example.com",
+    switchLabel: "Part of the DeanVerse Digital studio team?",
+    switchHref: "/login/creators",
+    switchCta: "Development Workspace",
+    showRegister: true,
+  },
+  creators: {
+    title: "Development Workspace",
+    subtitle: `Studio access for @${CREATOR_EMAIL_DOMAIN} accounts only.`,
+    emailPlaceholder: `you@${CREATOR_EMAIL_DOMAIN}`,
+    switchLabel: "Looking for your client portal?",
+    switchHref: "/login",
+    switchCta: "Client Workspace",
+    showRegister: false,
+  },
+};
+
+export default function LoginForm({ variant }: { variant: AuthWorkspaceVariant }) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const copy = COPY[variant];
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -33,6 +73,19 @@ export default function LoginForm() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+
+    const normalized = normalizeEmail(email);
+
+    if (variant === "creators" && !isCreatorEmail(normalized)) {
+      setError(creatorEmailError());
+      return;
+    }
+
+    if (variant === "client" && isCreatorEmail(normalized)) {
+      setError(clientEmailHintForCreator());
+      return;
+    }
+
     setLoading(true);
 
     let supabase;
@@ -47,7 +100,7 @@ export default function LoginForm() {
     let authError;
     try {
       ({ error: authError } = await supabase.auth.signInWithPassword({
-        email,
+        email: normalized,
         password,
       }));
     } catch {
@@ -64,9 +117,24 @@ export default function LoginForm() {
       return;
     }
 
+    // Defense in depth: reject mismatched workspace even if the password was valid.
     const {
       data: { user },
     } = await supabase.auth.getUser();
+
+    const signedInEmail = user?.email ?? normalized;
+    if (variant === "creators" && !isCreatorEmail(signedInEmail)) {
+      await supabase.auth.signOut();
+      setError(creatorEmailError());
+      setLoading(false);
+      return;
+    }
+    if (variant === "client" && isCreatorEmail(signedInEmail)) {
+      await supabase.auth.signOut();
+      setError(clientEmailHintForCreator());
+      setLoading(false);
+      return;
+    }
 
     const { data: profile } = user
       ? await supabase
@@ -76,23 +144,26 @@ export default function LoginForm() {
           .maybeSingle()
       : { data: null };
 
-    const defaultDestination = isStaffRole(profile) ? "/admin" : "/portal";
     const destination = getRoleAwareRedirectPath(
       profile,
       searchParams.get("redirectTo"),
-      defaultDestination,
+      "/workspace",
     );
 
     router.push(destination);
     router.refresh();
   }
 
+  const switchHref = (() => {
+    const redirectTo = searchParams.get("redirectTo");
+    if (!redirectTo) return copy.switchHref;
+    return `${copy.switchHref}?redirectTo=${encodeURIComponent(redirectTo)}`;
+  })();
+
   return (
     <>
-      <h1 className="mb-2 text-2xl font-semibold text-white">Welcome back</h1>
-      <p className="mb-6 text-sm text-white/60">
-        Sign in to your DeanVerse Digital account
-      </p>
+      <h1 className="mb-2 text-2xl font-semibold text-white">{copy.title}</h1>
+      <p className="mb-6 text-sm text-white/60">{copy.subtitle}</p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {notice && (
@@ -103,6 +174,22 @@ export default function LoginForm() {
         {error && (
           <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
             {error}
+            {variant === "client" && isCreatorEmail(email) ? (
+              <>
+                {" "}
+                <Link href={switchHref} className="underline underline-offset-2 hover:text-white">
+                  Go to Development Workspace
+                </Link>
+              </>
+            ) : null}
+            {variant === "creators" && email && !isCreatorEmail(email) ? (
+              <>
+                {" "}
+                <Link href={switchHref} className="underline underline-offset-2 hover:text-white">
+                  Go to Client Workspace
+                </Link>
+              </>
+            ) : null}
           </div>
         )}
 
@@ -117,7 +204,8 @@ export default function LoginForm() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-white placeholder:text-white/30 focus:border-[#6f8f72] focus:outline-none focus:ring-1 focus:ring-[#6f8f72]"
-            placeholder="you@example.com"
+            placeholder={copy.emailPlaceholder}
+            autoComplete="email"
           />
         </div>
 
@@ -141,6 +229,7 @@ export default function LoginForm() {
             onChange={(e) => setPassword(e.target.value)}
             className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-white placeholder:text-white/30 focus:border-[#6f8f72] focus:outline-none focus:ring-1 focus:ring-[#6f8f72]"
             placeholder="••••••••"
+            autoComplete="current-password"
           />
         </div>
 
@@ -149,12 +238,28 @@ export default function LoginForm() {
         </Button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-white/50">
-        Don&apos;t have an account?{" "}
-        <Link href="/register" className="text-[#a3c9a8] hover:text-[#6f8f72]">
-          Create one
+      {copy.showRegister ? (
+        <p className="mt-6 text-center text-sm text-white/50">
+          Don&apos;t have an account?{" "}
+          <Link href="/register" className="text-[#a3c9a8] hover:text-[#6f8f72]">
+            Create one
+          </Link>
+        </p>
+      ) : (
+        <p className="mt-6 text-center text-sm text-white/45">
+          Studio accounts are invited. Contact your founder if you need access.
+        </p>
+      )}
+
+      <div className="mt-6 border-t border-white/10 pt-5">
+        <p className="mb-3 text-center text-xs text-white/45">{copy.switchLabel}</p>
+        <Link
+          href={switchHref}
+          className="flex w-full items-center justify-center rounded-lg border border-[var(--admin-gold,#c9a962)]/35 bg-[var(--admin-gold,#c9a962)]/10 px-4 py-2.5 text-sm font-medium text-[var(--admin-gold-light,#dfc88a)] transition hover:border-[var(--admin-gold,#c9a962)]/55 hover:bg-[var(--admin-gold,#c9a962)]/18"
+        >
+          {copy.switchCta}
         </Link>
-      </p>
+      </div>
     </>
   );
 }

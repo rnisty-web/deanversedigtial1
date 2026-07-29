@@ -23,9 +23,14 @@ export function LeadForm({ budgetRanges, projectTypes }: LeadFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const preselectedService = searchParams.get("service")?.trim() ?? "";
-  const preselectedValue = isAllowedContactChoice(preselectedService, projectTypes)
+  const preselectedProjectType = isAllowedContactChoice(preselectedService, projectTypes)
     ? preselectedService
     : "";
+  const preselectedBudgetRaw = searchParams.get("budget")?.trim() ?? "";
+  const preselectedBudget = isAllowedContactChoice(preselectedBudgetRaw, budgetRanges)
+    ? preselectedBudgetRaw
+    : "";
+  const prefilledMessage = (searchParams.get("message")?.trim() ?? "").slice(0, 5000);
 
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
@@ -204,7 +209,7 @@ export function LeadForm({ budgetRanges, projectTypes }: LeadFormProps) {
               name="budget"
               required
               className={cn(inputStyles, "appearance-none")}
-              defaultValue=""
+              defaultValue={preselectedBudget || ""}
             >
               <option value="" disabled className="bg-[#0f1a17]">
                 Select a range
@@ -225,7 +230,7 @@ export function LeadForm({ budgetRanges, projectTypes }: LeadFormProps) {
               name="project_type"
               required
               className={cn(inputStyles, "appearance-none")}
-              defaultValue={preselectedValue || ""}
+              defaultValue={preselectedProjectType || ""}
             >
               <option value="" disabled className="bg-[#0f1a17]">
                 Select a type
@@ -252,6 +257,7 @@ export function LeadForm({ budgetRanges, projectTypes }: LeadFormProps) {
             rows={5}
             className={cn(inputStyles, "resize-y")}
             placeholder="Tell me about your project, goals, and timeline..."
+            defaultValue={prefilledMessage}
           />
         </div>
 

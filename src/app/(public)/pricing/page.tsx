@@ -3,6 +3,7 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { getCMSContent } from "@/lib/cms/get-content";
+import { contactHrefForPricingTier } from "@/lib/contact/pricing-contact";
 import { createPageMetadata } from "@/lib/seo/metadata";
 import { cn } from "@/lib/utils";
 import type { Metadata } from "next";
@@ -84,7 +85,7 @@ export default async function PricingPage() {
                   </ul>
 
                   <Button
-                    href="/contact"
+                    href={contactHrefForPricingTier(tier)}
                     variant={tier.highlighted ? "primary" : "secondary"}
                     className="w-full"
                   >

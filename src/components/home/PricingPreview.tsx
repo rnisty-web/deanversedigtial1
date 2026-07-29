@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionHeading } from "@/components/ui/SectionHeading";
+import { contactHrefForPricingTier } from "@/lib/contact/pricing-contact";
 
 export function PricingPreview() {
   const { pricing } = useCMS();
@@ -69,7 +70,7 @@ export function PricingPreview() {
                 </ul>
 
                 <Button
-                  href="/contact"
+                  href={contactHrefForPricingTier(tier)}
                   variant={tier.highlighted ? "primary" : "secondary"}
                   className="w-full"
                 >

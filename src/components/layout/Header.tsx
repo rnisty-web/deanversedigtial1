@@ -36,20 +36,20 @@ export function Header() {
   return (
     <header
       className={cn(
-        "sticky top-0 z-50 w-full transition-all duration-500",
+        "site-header sticky top-0 z-50 w-full transition-all duration-500",
         scrolled
           ? "border-b border-white/10 bg-[#0f1a17]/70 shadow-lg shadow-black/10 backdrop-blur-xl"
           : "bg-transparent",
       )}
     >
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:h-20 sm:px-6 lg:px-8">
-        <Link href="/" className="group shrink-0 transition-opacity hover:opacity-90">
+      <div className="site-header-bar mx-auto flex h-14 max-w-7xl items-center justify-between gap-3 px-4 sm:h-16 sm:px-6 lg:h-20 lg:px-8">
+        <Link href="/" className="group min-w-0 shrink transition-opacity hover:opacity-90">
           <BrandLogo
             src={siteConfig.assets.logo}
             alt={siteConfig.name}
             width={240}
             height={320}
-            className="h-14 w-auto max-w-[180px] transition-transform duration-300 group-hover:scale-[1.02] sm:h-16 sm:max-w-[220px] lg:h-20 lg:max-w-[260px]"
+            className="h-9 w-auto max-w-[130px] transition-transform duration-300 group-hover:scale-[1.02] sm:h-11 sm:max-w-[160px] lg:h-16 lg:max-w-[220px] xl:h-20 xl:max-w-[260px]"
             priority
           />
         </Link>
@@ -92,8 +92,12 @@ export function Header() {
 
         <button
           type="button"
-          className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white lg:hidden"
+          className={cn(
+            "site-header-menu-btn inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white transition-colors lg:hidden",
+            mobileOpen && "border-[#6f8f72]/40 bg-[#6f8f72]/15 text-[#a3c9a8]",
+          )}
           aria-expanded={mobileOpen}
+          aria-controls="site-mobile-nav"
           aria-label={mobileOpen ? "Close menu" : "Open menu"}
           onClick={() => setMobileOpen((prev) => !prev)}
         >
@@ -104,6 +108,7 @@ export function Header() {
             viewBox="0 0 24 24"
             stroke="currentColor"
             strokeWidth={2}
+            aria-hidden
           >
             {mobileOpen ? (
               <path strokeLinecap="round" d="M6 18L18 6M6 6l12 12" />
@@ -115,57 +120,72 @@ export function Header() {
       </div>
 
       <div
+        id="site-mobile-nav"
         className={cn(
-          "fixed inset-0 top-16 z-40 sm:top-20 lg:hidden",
-          mobileOpen
-            ? "pointer-events-auto opacity-100"
-            : "pointer-events-none opacity-0",
+          "site-mobile-nav fixed inset-0 z-40 lg:hidden",
+          mobileOpen ? "pointer-events-auto" : "pointer-events-none",
         )}
+        aria-hidden={!mobileOpen}
       >
         <button
           type="button"
-          className="absolute inset-0 bg-[#0f1a17]/95 backdrop-blur-xl"
+          className={cn(
+            "site-mobile-nav-backdrop absolute inset-0 bg-[#0a1210]/90 backdrop-blur-md transition-opacity duration-300",
+            mobileOpen ? "opacity-100" : "opacity-0",
+          )}
           aria-label="Close menu"
           onClick={() => setMobileOpen(false)}
         />
-        <nav
-          className="relative z-10 flex flex-col gap-1 px-4 py-6"
-          aria-label="Mobile navigation"
+        <div
+          className={cn(
+            "site-mobile-nav-panel absolute inset-x-0 bottom-0 top-14 flex max-h-[calc(100dvh-3.5rem)] flex-col transition-transform duration-300 ease-out sm:top-16",
+            mobileOpen ? "translate-y-0" : "translate-y-full",
+          )}
         >
-          {navLinks.map((link) => {
-            const isActive =
-              link.href === "/"
-                ? pathname === "/"
-                : pathname.startsWith(link.href);
+          <nav
+            className="site-mobile-nav-links flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain px-4 py-5"
+            aria-label="Mobile navigation"
+          >
+            <p className="mb-3 px-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-white/35">
+              Explore
+            </p>
+            <div className="site-mobile-nav-grid">
+              {navLinks.map((link) => {
+                const isActive =
+                  link.href === "/"
+                    ? pathname === "/"
+                    : pathname.startsWith(link.href);
 
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={cn(
-                  "rounded-xl px-4 py-3.5 text-base font-medium transition-colors min-h-[44px] flex items-center",
-                  isActive
-                    ? "bg-[#6f8f72]/20 text-[#a3c9a8]"
-                    : "text-white/80 hover:bg-white/5 hover:text-white",
-                )}
-              >
-                {link.label}
-              </Link>
-            );
-          })}
-          <div className="mt-4 border-t border-white/10 pt-4">
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className={cn(
+                      "site-mobile-nav-link",
+                      isActive && "site-mobile-nav-link-active",
+                    )}
+                  >
+                    {link.label}
+                  </Link>
+                );
+              })}
+            </div>
+          </nav>
+
+          <div className="site-mobile-nav-footer shrink-0 border-t border-white/10 px-4 py-4">
             <Link
               href="/workspace"
-              className="mb-4 block rounded-xl px-4 py-3 text-base font-medium text-white/50 transition-colors hover:bg-white/5 hover:text-[#a3c9a8]"
+              className="mb-3 flex min-h-[44px] items-center rounded-xl px-4 text-sm font-medium text-white/55 transition-colors hover:bg-white/5 hover:text-[#a3c9a8]"
             >
               Client Workspace
             </Link>
-            <Button href="/contact" variant="primary" className="w-full">
+            <Button href="/contact" variant="primary" className="w-full min-h-[48px]">
               Start a Project
             </Button>
           </div>
-        </nav>
+        </div>
       </div>
     </header>
   );
+
 }

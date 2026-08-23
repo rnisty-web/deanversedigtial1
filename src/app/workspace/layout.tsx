@@ -83,7 +83,7 @@ export default async function WorkspaceLayout({ children }: { children: React.Re
             badges={badges}
             menuLinks={menuLinks}
           />
-          <div className="flex min-h-0 flex-1 flex-col">
+          <div className="workspace-mobile-shell flex min-h-0 flex-1 flex-col">
             <main className="admin-main-scroll min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
               <AdminPageTransition>
                 <WorkspaceModuleGuard permissions={session.permissions}>

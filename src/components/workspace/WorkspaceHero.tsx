@@ -69,14 +69,14 @@ export function WorkspaceHero({
       <div className="admin-dashboard-hero-glow" aria-hidden />
       <div className="admin-dashboard-hero-mesh" aria-hidden />
       <div className="relative mx-auto max-w-[1680px]">
-        <div className="flex flex-col gap-7 py-3 sm:py-4">
-          <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
+        <div className="flex flex-col gap-4 py-2 sm:gap-7 sm:py-4">
+          <div className="flex flex-col gap-4 sm:gap-6 xl:flex-row xl:items-end xl:justify-between">
             <div className="min-w-0">
               <p className="admin-dashboard-hero-eyebrow">DeanVerse Workspace</p>
               <h1 className="admin-dashboard-hero-title admin-heading-serif">
                 {getGreeting()}, <span className="admin-dashboard-hero-name">{viewerName}</span>
               </h1>
-              <p className="admin-dashboard-hero-subtitle">{subtitle}</p>
+              <p className="admin-dashboard-hero-subtitle hidden sm:block">{subtitle}</p>
             </div>
 
             <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">

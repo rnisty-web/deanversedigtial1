@@ -47,7 +47,8 @@ export function WorkspaceMobileNav({
 
   return (
     <>
-      <div className="workspace-mobile-topbar admin-mobile-topbar relative z-20 flex shrink-0 items-center justify-between gap-2 border-b border-[var(--admin-border-subtle)] bg-[color-mix(in_srgb,var(--admin-bg)_92%,transparent)] px-3 py-2.5 backdrop-blur-xl lg:hidden">
+      {/* Fixed top bar — always visible on phones */}
+      <header className="workspace-mobile-topbar admin-mobile-topbar fixed inset-x-0 top-0 z-40 flex shrink-0 items-center justify-between gap-2 border-b border-[var(--admin-border-subtle)] bg-[color-mix(in_srgb,var(--admin-bg)_94%,transparent)] px-3 py-2.5 backdrop-blur-xl md:hidden">
         <Link href="/workspace" className="flex min-w-0 flex-1 items-center gap-2">
           <div className="admin-logo-ring !h-9 !w-9 !p-1">
             <BrandLogo width={80} height={80} className="h-full w-full object-contain" />
@@ -82,10 +83,11 @@ export function WorkspaceMobileNav({
             )}
           </svg>
         </button>
-      </div>
+      </header>
 
+      {/* Fixed bottom tab bar — thumb-friendly, always visible on phones */}
       <nav
-        className="workspace-mobile-tabs relative z-20 shrink-0 border-b border-[var(--admin-border-subtle)] bg-[color-mix(in_srgb,var(--admin-bg)_88%,transparent)] px-1 py-1.5 backdrop-blur-xl lg:hidden"
+        className="workspace-mobile-bottomnav fixed inset-x-0 bottom-0 z-40 border-t border-[var(--admin-border-subtle)] bg-[color-mix(in_srgb,var(--admin-bg)_94%,transparent)] px-1 py-1 backdrop-blur-xl md:hidden"
         aria-label="Quick navigation"
       >
         <div className="workspace-mobile-tabs-inner">
@@ -130,9 +132,10 @@ export function WorkspaceMobileNav({
         </div>
       </nav>
 
+      {/* Full navigation sheet */}
       <div
         className={cn(
-          "workspace-mobile-menu fixed inset-0 z-50 lg:hidden",
+          "workspace-mobile-menu fixed inset-0 z-50 md:hidden",
           menuOpen ? "pointer-events-auto" : "pointer-events-none",
         )}
         aria-hidden={!menuOpen}
@@ -148,7 +151,7 @@ export function WorkspaceMobileNav({
         />
         <div
           className={cn(
-            "workspace-mobile-menu-panel absolute inset-x-0 bottom-0 flex max-h-[min(88dvh,calc(100dvh-4.5rem))] flex-col rounded-t-[1.35rem] border border-[var(--admin-border-subtle)] bg-[var(--admin-bg-secondary)] shadow-2xl transition-transform duration-300 ease-out",
+            "workspace-mobile-menu-panel absolute inset-x-0 bottom-0 flex max-h-[min(88dvh,calc(100dvh-var(--workspace-mobile-topbar-height)-var(--workspace-mobile-bottomnav-height)))] flex-col rounded-t-[1.35rem] border border-[var(--admin-border-subtle)] bg-[var(--admin-bg-secondary)] shadow-2xl transition-transform duration-300 ease-out",
             menuOpen ? "translate-y-0" : "translate-y-full",
           )}
         >

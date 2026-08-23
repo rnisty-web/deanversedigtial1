@@ -22,15 +22,16 @@ export function WorkspaceSidebar({ profile, items, badges, menuLinks }: Workspac
   return (
     <aside
       className={cn(
-        "admin-sidebar admin-sidebar--fit relative z-20 hidden h-dvh shrink-0 flex-col overflow-hidden transition-[width] duration-300 ease-out lg:sticky lg:top-0 lg:flex",
+        "admin-sidebar admin-sidebar--fit fixed inset-y-0 left-0 z-30 hidden h-dvh shrink-0 flex-col overflow-hidden transition-[width] duration-300 ease-out md:flex",
         sidebarCollapsed && "admin-sidebar-collapsed",
       )}
+      aria-label="Workspace sidebar"
     >
       <div className="flex shrink-0 items-center justify-end px-2 pt-2">
         <button
           type="button"
           onClick={toggleSidebar}
-          className="admin-btn-ghost hidden !min-h-0 !px-2 !py-1.5 lg:inline-flex"
+          className="admin-btn-ghost hidden !min-h-0 !px-2 !py-1.5 md:inline-flex"
           aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           <svg

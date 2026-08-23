@@ -10,6 +10,7 @@ import { AdminPageTransition } from "@/components/admin/AdminPageTransition";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { PresenceHeartbeat } from "@/components/admin/PresenceHeartbeat";
 import { CursorGlow } from "@/components/ui/CursorGlow";
+import { WorkspaceContentArea } from "@/components/workspace/WorkspaceContentArea";
 import { WorkspaceMobileNav } from "@/components/workspace/WorkspaceMobileNav";
 import { WorkspaceModuleGuard } from "@/components/workspace/WorkspaceModuleGuard";
 import { WorkspaceSidebar } from "@/components/workspace/WorkspaceSidebar";
@@ -75,7 +76,7 @@ export default async function WorkspaceLayout({ children }: { children: React.Re
           badges={badges}
           menuLinks={menuLinks}
         />
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+        <WorkspaceContentArea>
           {session.isStaff ? <PresenceHeartbeat /> : null}
           <WorkspaceMobileNav
             profile={session.profile}
@@ -84,7 +85,7 @@ export default async function WorkspaceLayout({ children }: { children: React.Re
             menuLinks={menuLinks}
           />
           <div className="workspace-mobile-shell flex min-h-0 flex-1 flex-col">
-            <main className="admin-main-scroll min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
+            <main className="admin-main-scroll workspace-main-scroll min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
               <AdminPageTransition>
                 <WorkspaceModuleGuard permissions={session.permissions}>
                   {children}
@@ -93,7 +94,7 @@ export default async function WorkspaceLayout({ children }: { children: React.Re
             </main>
             <AdminFooter />
           </div>
-        </div>
+        </WorkspaceContentArea>
       </div>
     </AdminShell>
   );

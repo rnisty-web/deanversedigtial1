@@ -53,7 +53,7 @@ export function PortalPageHeader({
       <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div className="min-w-0">
           <p className="admin-dashboard-hero-eyebrow">Client portal</p>
-          <h1 className="admin-heading-serif admin-content-title admin-portal-section-title mt-1 truncate text-2xl text-[var(--admin-text)] md:text-3xl">
+          <h1 className="admin-heading-serif admin-content-title admin-portal-section-title mt-1 line-clamp-2 text-2xl text-[var(--admin-text)] md:truncate md:text-3xl">
             {title}
           </h1>
           {subtitle ? (

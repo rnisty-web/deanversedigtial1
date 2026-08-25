@@ -54,7 +54,7 @@ export function WorkspaceMobileNav({
             <BrandLogo width={80} height={80} className="h-full w-full object-contain" />
           </div>
           <div className="min-w-0">
-            <p className="truncate text-[8px] font-semibold uppercase tracking-[0.18em] text-[var(--admin-gold)]">
+            <p className="truncate text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--admin-gold)]">
               DeanVerse
             </p>
             <p className="truncate text-sm font-medium text-[var(--admin-text)]">
@@ -66,7 +66,7 @@ export function WorkspaceMobileNav({
         <button
           type="button"
           className={cn(
-            "inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--admin-border-subtle)] bg-white/[0.04] text-[var(--admin-gold-light)] transition-colors",
+            "inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[var(--admin-border-subtle)] bg-white/[0.04] text-[var(--admin-gold-light)] transition-colors",
             menuOpen && "border-[var(--admin-gold)]/35 bg-[var(--admin-gold-soft)]",
           )}
           aria-expanded={menuOpen}
@@ -164,7 +164,7 @@ export function WorkspaceMobileNav({
             </div>
             <button
               type="button"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[var(--admin-border-subtle)] bg-white/[0.04] text-[var(--admin-gold-light)]"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[var(--admin-border-subtle)] bg-white/[0.04] text-[var(--admin-gold-light)]"
               aria-label="Close navigation menu"
               onClick={() => setMenuOpen(false)}
             >

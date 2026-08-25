@@ -50,7 +50,7 @@ function ProjectStageTrack({ status }: { status: string }) {
               />
               <span
                 className={cn(
-                  "truncate text-[9px] uppercase tracking-wider",
+                  "truncate text-[10px] uppercase tracking-wider",
                   isCurrent ? "text-[var(--admin-gold-light)]" : "text-[var(--admin-text-muted)]",
                 )}
               >

@@ -34,8 +34,9 @@ const MENU_ESTIMATED_HEIGHT = 260;
 function getMenuPosition(button: HTMLElement) {
   const rect = button.getBoundingClientRect();
   const left = Math.max(8, Math.min(rect.right - MENU_WIDTH, window.innerWidth - MENU_WIDTH - 8));
+  const bottomInset = 72;
   let top = rect.bottom + 6;
-  if (top + MENU_ESTIMATED_HEIGHT > window.innerHeight - 8) {
+  if (top + MENU_ESTIMATED_HEIGHT > window.innerHeight - 8 - bottomInset) {
     top = Math.max(8, rect.top - MENU_ESTIMATED_HEIGHT - 6);
   }
   return { top, left };
@@ -76,7 +77,77 @@ export function InvoicesTable({
 
   return (
     <>
-      <div className="admin-invoices-table-wrap">
+      <ul className="admin-mobile-card-list lg:hidden">
+        {invoices.map((invoice) => {
+          const clientName = joinClientName(invoice.clients);
+          return (
+            <li key={invoice.id} className="admin-mobile-card">
+              <div className="flex items-start justify-between gap-3">
+                <button
+                  type="button"
+                  onClick={() => onView(invoice)}
+                  className="min-w-0 text-left"
+                >
+                  <p className="font-medium text-[var(--admin-text)]">{invoice.invoice_number}</p>
+                  <p className="mt-0.5 truncate text-sm text-[var(--admin-text-muted)]">{clientName}</p>
+                </button>
+                <InvoiceStatusBadge status={invoice.status} />
+              </div>
+              <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--admin-text-muted)]">Amount</p>
+                  <p className="font-semibold tabular-nums text-[var(--admin-gold-light)]">
+                    {formatCurrency(Number(invoice.amount))}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--admin-text-muted)]">Due</p>
+                  <p className="tabular-nums text-[var(--admin-text)]">{formatDate(invoice.due_date)}</p>
+                </div>
+                <div className="col-span-2">
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--admin-text-muted)]">Project</p>
+                  <p className="truncate text-[var(--admin-text)]">{joinProjectTitle(invoice.projects)}</p>
+                </div>
+              </div>
+              <div className="mt-3 flex items-center justify-end gap-1">
+                <button
+                  type="button"
+                  onClick={() => onView(invoice)}
+                  className="admin-invoices-action-btn"
+                  aria-label={`View ${invoice.invoice_number}`}
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  className="admin-invoices-action-btn"
+                  aria-label={`Download ${invoice.invoice_number}`}
+                  onClick={() => window.open(`/admin/invoices/${invoice.id}/print`, "_blank", "noopener,noreferrer")}
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  className="admin-invoices-action-btn"
+                  aria-label={`More actions for ${invoice.invoice_number}`}
+                  onClick={(e) => setMenuState({ invoice, ...getMenuPosition(e.currentTarget) })}
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
+                  </svg>
+                </button>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+
+      <div className="admin-invoices-table-wrap hidden lg:block">
         <table className="admin-invoices-table w-full min-w-[960px] text-sm">
           <thead>
             <tr className="text-left text-[10px] uppercase tracking-[0.14em] text-[var(--admin-text-muted)]">

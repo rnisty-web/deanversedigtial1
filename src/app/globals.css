@@ -337,6 +337,11 @@ body {
   overflow: hidden;
 }
 
+.admin-mobile-shell:has(.admin-content-page) .admin-footer-gold-border,
+.workspace-mobile-shell:has(.admin-content-page) .admin-footer-gold-border {
+  display: none;
+}
+
 .admin-luxury-card {
   border-radius: var(--admin-radius);
   border: 1px solid var(--admin-border);
@@ -8500,6 +8505,7 @@ body {
     min-height: 0;
     flex: 1;
     flex-direction: column;
+    overflow: hidden;
     padding-bottom: 0;
   }
 
@@ -8628,11 +8634,41 @@ body {
 
   .admin-leads-action-btn,
   .admin-leads-view-btn,
+  .admin-clients-action-btn,
+  .admin-clients-view-btn,
+  .admin-projects-action-btn,
+  .admin-projects-view-btn,
+  .admin-invoices-action-btn,
+  .admin-media-view-btn,
+  .admin-media-menu-btn,
+  .admin-portfolio-view-btn,
+  .admin-testimonials-view-btn,
   .dm-star-btn {
     min-height: 2.75rem;
     min-width: 2.75rem;
   }
 
+  .admin-btn-gold,
+  .admin-btn-ghost {
+    min-height: 2.75rem;
+  }
+
+  .admin-content-tab,
+  .portal-page-tabs .admin-content-tab {
+    min-height: 2.75rem;
+    padding-inline: 1.125rem;
+  }
+
+  .dm-composer-send {
+    height: 2.75rem;
+    width: 2.75rem;
+  }
+
+  .dm-list-item-main {
+    min-height: 2.75rem;
+  }
+
+  .admin-theme .admin-footer-gold-border,
   .portal-theme .admin-footer {
     padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
   }
@@ -8647,6 +8683,17 @@ body {
     min-height: min(calc(100dvh - 11rem), 720px);
   }
 
+  .admin-theme .portal-messages-layout.dm-layout,
+  .admin-theme .portal-messages-layout .dm-list-panel,
+  .admin-theme .portal-messages-layout .dm-chat-panel {
+    min-height: min(
+      calc(
+        100dvh - var(--workspace-mobile-topbar-height) - var(--workspace-mobile-bottomnav-height) - 7rem
+      ),
+      720px
+    );
+  }
+
   .portal-messages-layout .dm-list {
     max-height: none;
     min-height: 0;
@@ -8659,22 +8706,43 @@ body {
     min-height: min(calc(100dvh - 11rem), 720px);
   }
 
-  .portal-theme .admin-content-tab {
-    min-height: 2.75rem;
-    padding-inline: 1.125rem;
+  .admin-leads-tabs,
+  .admin-clients-tabs,
+  .admin-projects-tabs,
+  .admin-invoices-tabs,
+  .admin-users-tabs,
+  .admin-portfolio-tabs,
+  .admin-testimonials-tabs,
+  .admin-media-tabs,
+  .admin-content-tabs,
+  .portal-page-tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    scroll-snap-type: x proximity;
   }
 
-  .portal-theme .dm-composer-send {
-    height: 2.75rem;
-    width: 2.75rem;
+  .admin-leads-tabs::-webkit-scrollbar,
+  .admin-clients-tabs::-webkit-scrollbar,
+  .admin-projects-tabs::-webkit-scrollbar,
+  .admin-invoices-tabs::-webkit-scrollbar,
+  .admin-users-tabs::-webkit-scrollbar,
+  .portal-page-tabs::-webkit-scrollbar {
+    display: none;
   }
 
-  .portal-theme .dm-list-item-main {
-    min-height: 2.75rem;
+  .admin-input-with-icon {
+    padding-right: 1rem;
   }
 
-  .portal-theme .portal-page-tabs .admin-content-tab {
-    min-height: 2.75rem;
+  .admin-mobile-shell {
+    padding-top: var(--workspace-mobile-topbar-height);
+    padding-bottom: var(--workspace-mobile-bottomnav-height);
+  }
+
+  .admin-mobile-shell .admin-footer-gold-border {
+    display: none;
   }
 }
 
@@ -8695,6 +8763,104 @@ body {
   .admin-content-sidebar {
     max-height: min(36vh, 280px);
   }
+
+  .admin-portal-header.sticky,
+  .admin-content-header.sticky,
+  .admin-dashboard-hero.sticky {
+    position: relative;
+    top: auto;
+  }
+
+  .admin-portal-header {
+    padding-top: 0.9rem;
+    padding-bottom: 0.85rem;
+  }
+
+  .admin-projects-kanban {
+    display: flex;
+    gap: 0.75rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .admin-projects-kanban-column {
+    flex: 0 0 min(80vw, 18rem);
+    scroll-snap-align: start;
+  }
+
+  .admin-dashboard-table {
+    min-width: 0;
+  }
+
+  .admin-dashboard-table thead {
+    display: none;
+  }
+
+  .admin-dashboard-table tbody,
+  .admin-dashboard-table tr,
+  .admin-dashboard-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .admin-dashboard-table tr {
+    margin-bottom: 0.75rem;
+    border: 1px solid var(--admin-border-subtle);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--admin-panel) 70%, transparent);
+    padding: 0.75rem 1rem;
+  }
+
+  .admin-dashboard-table td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.28rem 0;
+  }
+
+  .admin-dashboard-table td::before {
+    content: attr(data-label);
+    flex: 0 0 auto;
+    color: var(--admin-text-muted);
+    font-size: 0.625rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .admin-theme .admin-content-shell,
+  .portal-theme .admin-content-shell,
+  .admin-theme .admin-main-scroll,
+  .portal-theme .admin-main-scroll {
+    overflow-x: hidden;
+    max-width: 100%;
+  }
+
+  .admin-theme:has(.dm-layout-chat-open) .workspace-mobile-bottomnav,
+  .admin-theme:has(.dm-layout-chat-open) .admin-mobile-bottomnav {
+    display: none;
+  }
+
+  .admin-theme:has(.dm-layout-chat-open) .workspace-mobile-shell,
+  .admin-theme:has(.dm-layout-chat-open) .admin-mobile-shell {
+    padding-bottom: 0;
+  }
+}
+
+.admin-mobile-card-list {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.75rem;
+}
+
+.admin-mobile-card {
+  border-radius: 14px;
+  border: 1px solid var(--admin-border-subtle);
+  background: color-mix(in srgb, var(--admin-panel) 78%, transparent);
+  padding: 1rem;
 }
 
 @media (min-width: 1024px) {
@@ -10872,8 +11038,8 @@ select option:checked {
 /* -------------------------------------------------------------------------- */
 
 :root {
-  --workspace-mobile-topbar-height: calc(3.25rem + env(safe-area-inset-top, 0px));
-  --workspace-mobile-bottomnav-height: calc(3.75rem + env(safe-area-inset-bottom, 0px));
+  --workspace-mobile-topbar-height: calc(4rem + env(safe-area-inset-top, 0px));
+  --workspace-mobile-bottomnav-height: calc(4rem + env(safe-area-inset-bottom, 0px));
 }
 
 .workspace-content-area {

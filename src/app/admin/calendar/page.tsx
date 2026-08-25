@@ -19,6 +19,7 @@ import { CalendarSidebar } from "@/components/admin/calendar/CalendarSidebar";
 import { CalendarWeekView } from "@/components/admin/calendar/CalendarWeekView";
 import { Button } from "@/components/ui/Button";
 import type { CalendarEvent, CalendarEventType, CalendarViewMode } from "@/lib/calendar/types";
+import { usePrefersMobileLayout } from "@/hooks/usePrefersMobileLayout";
 import { CALENDAR_EVENT_TYPES, EVENT_TYPE_LABELS } from "@/lib/calendar/types";
 import { addDays, addMonths, computeCalendarStats, filterEventsByType, monthEventsHint, pct } from "@/lib/calendar/utils";
 
@@ -82,6 +83,8 @@ export default function AdminCalendarPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [migrationHint, setMigrationHint] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<CalendarViewMode>("month");
+  const [viewTouched, setViewTouched] = useState(false);
+  const isMobileLayout = usePrefersMobileLayout();
   const [cursorDate, setCursorDate] = useState(() => new Date());
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [typeFilter, setTypeFilter] = useState<CalendarEventType[] | "all">("all");
@@ -112,14 +115,9 @@ export default function AdminCalendarPage() {
   }, [fetchEvents]);
 
   useEffect(() => {
-    const mq = window.matchMedia("(max-width: 767px)");
-    const apply = () => {
-      if (mq.matches) setViewMode("agenda");
-    };
-    apply();
-    mq.addEventListener("change", apply);
-    return () => mq.removeEventListener("change", apply);
-  }, []);
+    if (viewTouched) return;
+    if (isMobileLayout) setViewMode("agenda");
+  }, [isMobileLayout, viewTouched]);
 
   const filteredEvents = useMemo(
     () => filterEventsByType(events, typeFilter),
@@ -290,7 +288,10 @@ export default function AdminCalendarPage() {
       <CalendarAdminHeader
         cursorDate={cursorDate}
         viewMode={viewMode}
-        onViewModeChange={setViewMode}
+        onViewModeChange={(mode) => {
+          setViewTouched(true);
+          setViewMode(mode);
+        }}
         onToday={goToday}
         onPrev={goPrev}
         onNext={goNext}

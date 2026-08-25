@@ -50,7 +50,7 @@ export function AdminPageHeader({
     <AdminPortalHeader sticky={sticky} className={className}>
       <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div className="min-w-0">
-          <h1 className="admin-heading-serif admin-content-title truncate text-2xl text-[var(--admin-text)] md:text-3xl">
+          <h1 className="admin-heading-serif admin-content-title line-clamp-2 text-2xl text-[var(--admin-text)] md:truncate md:text-3xl">
             {title}{" "}
             {displayEmoji ? (
               <span className="admin-section-emoji" aria-hidden>
@@ -106,7 +106,7 @@ export function AdminSearchField({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="admin-input admin-input-with-icon w-full py-2.5 pr-16"
+        className="admin-input admin-input-with-icon w-full py-2.5 pr-4 sm:pr-16"
       />
       <AdminShortcutHint />
     </div>

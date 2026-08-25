@@ -27,6 +27,7 @@ import {
   statCount,
 } from "@/lib/leads/utils";
 import { cn } from "@/lib/utils";
+import { usePrefersMobileLayout } from "@/hooks/usePrefersMobileLayout";
 
 function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
@@ -81,6 +82,8 @@ export default function AdminLeadsPage() {
   const [dateFrom, setDateFrom] = useState(defaultRange.from);
   const [dateTo, setDateTo] = useState(defaultRange.to);
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
+  const [viewTouched, setViewTouched] = useState(false);
+  const isMobileLayout = usePrefersMobileLayout();
   const [bulkMode, setBulkMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [page, setPage] = useState(1);
@@ -131,6 +134,11 @@ export default function AdminLeadsPage() {
   useEffect(() => {
     fetchLeads();
   }, [fetchLeads]);
+
+  useEffect(() => {
+    if (viewTouched) return;
+    setViewMode(isMobileLayout ? "grid" : "list");
+  }, [isMobileLayout, viewTouched]);
 
   useEffect(() => {
     setPage(1);
@@ -494,7 +502,10 @@ export default function AdminLeadsPage() {
                 <div className="admin-leads-view-toggle">
                   <button
                     type="button"
-                    onClick={() => setViewMode("grid")}
+                    onClick={() => {
+                      setViewTouched(true);
+                      setViewMode("grid");
+                    }}
                     className={cn("admin-leads-view-btn", viewMode === "grid" && "admin-leads-view-btn-active")}
                     aria-label="Grid view"
                   >
@@ -504,7 +515,10 @@ export default function AdminLeadsPage() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setViewMode("list")}
+                    onClick={() => {
+                      setViewTouched(true);
+                      setViewMode("list");
+                    }}
                     className={cn("admin-leads-view-btn", viewMode === "list" && "admin-leads-view-btn-active")}
                     aria-label="List view"
                   >

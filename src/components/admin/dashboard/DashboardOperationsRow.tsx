@@ -127,7 +127,7 @@ export function DashboardDeadlinesTable({
         <p className="admin-dashboard-empty-copy px-2 py-4">No upcoming deadlines.</p>
       ) : (
         <div className="overflow-x-auto">
-          <table className="admin-dashboard-table w-full min-w-[420px] text-sm">
+          <table className="admin-dashboard-table w-full min-w-0 text-sm lg:min-w-[420px]">
             <thead>
               <tr>
                 <th>Project</th>
@@ -139,15 +139,15 @@ export function DashboardDeadlinesTable({
             <tbody>
               {deadlines.map((row) => (
                 <tr key={row.id}>
-                  <td>
+                  <td data-label="Project">
                     <Link href={href} className="admin-dashboard-table-link">
                       {row.title}
                     </Link>
                     <p className="admin-dashboard-table-sub">{daysUntil(row.deadline)}</p>
                   </td>
-                  <td className="text-[var(--admin-text-muted)]">{row.client_name}</td>
-                  <td className="tabular-nums text-[var(--admin-text-muted)]">{formatShortDate(row.deadline)}</td>
-                  <td>
+                  <td data-label="Client" className="text-[var(--admin-text-muted)]">{row.client_name}</td>
+                  <td data-label="Due" className="tabular-nums text-[var(--admin-text-muted)]">{formatShortDate(row.deadline)}</td>
+                  <td data-label="Status">
                     <AdminStatusBadge status={row.status} />
                   </td>
                 </tr>
@@ -179,7 +179,7 @@ export function DashboardPaymentsTable({
         <p className="admin-dashboard-empty-copy px-2 py-4">No payments recorded yet.</p>
       ) : (
         <div className="overflow-x-auto">
-          <table className="admin-dashboard-table w-full min-w-[420px] text-sm">
+          <table className="admin-dashboard-table w-full min-w-0 text-sm lg:min-w-[420px]">
             <thead>
               <tr>
                 <th>Client</th>
@@ -192,11 +192,11 @@ export function DashboardPaymentsTable({
             <tbody>
               {payments.map((row) => (
                 <tr key={row.id}>
-                  <td className="font-medium text-[var(--admin-text)]">{row.client_name}</td>
-                  <td className="text-[var(--admin-text-muted)]">{row.invoice_number}</td>
-                  <td className="admin-dashboard-table-amount">{formatCurrency(row.amount)}</td>
-                  <td className="tabular-nums text-[var(--admin-text-muted)]">{formatShortDate(row.created_at)}</td>
-                  <td>
+                  <td data-label="Client" className="font-medium text-[var(--admin-text)]">{row.client_name}</td>
+                  <td data-label="Invoice" className="text-[var(--admin-text-muted)]">{row.invoice_number}</td>
+                  <td data-label="Amount" className="admin-dashboard-table-amount">{formatCurrency(row.amount)}</td>
+                  <td data-label="Date" className="tabular-nums text-[var(--admin-text-muted)]">{formatShortDate(row.created_at)}</td>
+                  <td data-label="Status">
                     <AdminStatusBadge status="paid" />
                   </td>
                 </tr>

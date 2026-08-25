@@ -37,6 +37,13 @@ export function useFloatingMenuDismiss(
 
     function closeOnScroll(event: Event) {
       if (isEventInsideMenu(event, menuRef.current)) return;
+      const target = event.target;
+      if (target instanceof Element) {
+        const scrollHost = target.closest(
+          ".overflow-x-auto, [class*='table-wrap'], .admin-leads-tabs, .admin-clients-tabs, .admin-projects-tabs, .admin-invoices-tabs, .admin-users-tabs, .portal-page-tabs",
+        );
+        if (scrollHost) return;
+      }
       onClose();
     }
 

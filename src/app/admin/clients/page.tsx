@@ -30,6 +30,7 @@ import {
   statusStyle,
 } from "@/lib/clients/utils";
 import { cn } from "@/lib/utils";
+import { usePrefersMobileLayout } from "@/hooks/usePrefersMobileLayout";
 
 const emptyForm = { name: "", email: "", phone: "", company: "", notes: "", status: "active" };
 
@@ -96,6 +97,8 @@ export default function AdminClientsPage() {
   const [dateFrom, setDateFrom] = useState(defaultRange.from);
   const [dateTo, setDateTo] = useState(defaultRange.to);
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
+  const [viewTouched, setViewTouched] = useState(false);
+  const isMobileLayout = usePrefersMobileLayout();
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(8);
 
@@ -124,6 +127,11 @@ export default function AdminClientsPage() {
   useEffect(() => {
     fetchClients();
   }, [fetchClients]);
+
+  useEffect(() => {
+    if (viewTouched) return;
+    setViewMode(isMobileLayout ? "grid" : "list");
+  }, [isMobileLayout, viewTouched]);
 
   useEffect(() => {
     setPage(1);
@@ -391,12 +399,12 @@ export default function AdminClientsPage() {
                 </div>
 
                 <div className="admin-clients-view-toggle">
-                  <button type="button" onClick={() => setViewMode("grid")} className={cn("admin-clients-view-btn", viewMode === "grid" && "admin-clients-view-btn-active")} aria-label="Grid view">
+                  <button type="button" onClick={() => { setViewTouched(true); setViewMode("grid"); }} className={cn("admin-clients-view-btn", viewMode === "grid" && "admin-clients-view-btn-active")} aria-label="Grid view">
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0111.25 6v2.25A2.25 2.25 0 019.5 10.5H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25h-2.25a2.25 2.25 0 01-2.25-2.25v-2.25z" />
                     </svg>
                   </button>
-                  <button type="button" onClick={() => setViewMode("list")} className={cn("admin-clients-view-btn", viewMode === "list" && "admin-clients-view-btn-active")} aria-label="List view">
+                  <button type="button" onClick={() => { setViewTouched(true); setViewMode("list"); }} className={cn("admin-clients-view-btn", viewMode === "list" && "admin-clients-view-btn-active")} aria-label="List view">
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm0 5.25h.007v.008H3.75v-.008zm0 5.25h.007v.008H3.75v-.008z" />
                     </svg>

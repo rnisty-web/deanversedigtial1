@@ -64,7 +64,7 @@ export default async function AdminLayout({
             isFounder={viewerIsFounder}
             unreadMessagesCount={unreadMessagesCount ?? 0}
           />
-          <div className="flex min-h-0 flex-1 flex-col">
+          <div className="admin-mobile-shell flex min-h-0 flex-1 flex-col">
             <main className="admin-main-scroll min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
               <AdminPageTransition>
                 <AdminPermissionGuard

@@ -31,6 +31,7 @@ import {
 } from "@/lib/projects/utils";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
+import { usePrefersMobileLayout } from "@/hooks/usePrefersMobileLayout";
 
 type Client = { id: string; name: string; email: string };
 
@@ -88,6 +89,8 @@ function AdminProjectsInner() {
   const [tagFilter, setTagFilter] = useState("all");
   const [layoutMode, setLayoutMode] = useState<"list" | "kanban">("list");
   const [listDisplay, setListDisplay] = useState<"table" | "grid">("table");
+  const [listDisplayTouched, setListDisplayTouched] = useState(false);
+  const isMobileLayout = usePrefersMobileLayout();
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(8);
 
@@ -119,6 +122,11 @@ function AdminProjectsInner() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  useEffect(() => {
+    if (listDisplayTouched) return;
+    setListDisplay(isMobileLayout ? "grid" : "table");
+  }, [isMobileLayout, listDisplayTouched]);
 
   useEffect(() => {
     setPage(1);
@@ -337,12 +345,12 @@ function AdminProjectsInner() {
                 </button>
                 {layoutMode === "list" && (
                   <div className="admin-projects-view-toggle">
-                    <button type="button" onClick={() => setListDisplay("grid")} className={cn("admin-projects-view-btn", listDisplay === "grid" && "admin-projects-view-btn-active")} aria-label="Grid view">
+                    <button type="button" onClick={() => { setListDisplayTouched(true); setListDisplay("grid"); }} className={cn("admin-projects-view-btn", listDisplay === "grid" && "admin-projects-view-btn-active")} aria-label="Grid view">
                       <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0111.25 6v2.25A2.25 2.25 0 019.5 10.5H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25h-2.25a2.25 2.25 0 01-2.25-2.25v-2.25z" />
                       </svg>
                     </button>
-                    <button type="button" onClick={() => setListDisplay("table")} className={cn("admin-projects-view-btn", listDisplay === "table" && "admin-projects-view-btn-active")} aria-label="List view">
+                    <button type="button" onClick={() => { setListDisplayTouched(true); setListDisplay("table"); }} className={cn("admin-projects-view-btn", listDisplay === "table" && "admin-projects-view-btn-active")} aria-label="List view">
                       <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm0 5.25h.007v.008H3.75v-.008zm0 5.25h.007v.008H3.75v-.008z" />
                       </svg>
